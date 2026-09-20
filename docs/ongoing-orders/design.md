@@ -19,6 +19,9 @@ ops mirror of Orders Placed.
   rollback via a "Revert" ghost action — flagged, not designed in depth).
 - Order detail expand: lines, address, buyer contact — needed for picking/
   hand-off.
+- **Domain examples (electronics):** expanded detail shows line models +
+  quantities (e.g. "Anker 735 Power Bank ×1, Logitech MX Keys S ×2"); no fields
+  beyond the sheet's locked set (lines, address, buyer contact).
 - **Staff capability boundary:** staff can advance status and see alerts
   (their whole scope: "daily transaction ops: order status, product
   alerts"). No product CRUD, no review moderation, no user management —
@@ -48,11 +51,12 @@ ASCII wireframe (desktop, list variant — assumption, kanban is a flagged alt):
 +------------------------------------------------------------------+
 | ONGOING ORDERS        All(42) Pending(9) Processing(5) Shipped(3)|
 | +--------------------------------------------------------------+|
-| | #WB-1042 · 19 Sep 12:04 · 2 lines · Rp 120.000  [● pending] ||
+| | #WB-1042 · 19 Sep 12:04 · 2 lines · Rp 1.670.000 [● pending] ||
 | |    [ Start processing ]   [ Details ▾ ]                     ||
-| | #WB-1039 · 18 Sep 09:11 · 1 line  · Rp  60.000  [◐ processing]|
+| | #WB-1039 · 18 Sep 09:11 · 1 line · Rp 240.000 [◐ processing]|
 | |    [ Mark shipped ]     [ Details ▾ ]                       ||
 | +--------------------------------------------------------------+|
+|   (detail: WF-C710N ×1 · 735 PB ×1 · Jkt, Indonesia)            |
 |   …                                                             |
 +------------------------------------------------------------------+
 ```

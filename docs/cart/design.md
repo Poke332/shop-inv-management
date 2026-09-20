@@ -6,8 +6,9 @@ Order flow: **Cart → Checkout → Orders Placed** (locked by the sheet's check
 ## FEATURES
 
 - Buyer-only cart (matrix: "add product to cart" buyer T, all others F).
-- Cart contents: image, name, unit price, quantity stepper, line total; order
-  subtotal + "Proceed to checkout" (the sheet's "Buy/Checkout" CTA).
+- Cart contents: image, name (+ model / category + brand subline, e.g. "Sony
+  WF-C710N" / "Wireless Earbuds · Audio · Sony"), unit price, quantity stepper,
+  line total; order subtotal + "Proceed to checkout" (the sheet's "Buy/Checkout" CTA).
 - **Cart persistence (open decision #3): TBD.** Most likely interpretation:
   **session-based** (survives navigation/refresh, cleared or kept on logout
   undecided; not synced across devices). The UI is persistence-agnostic — item
@@ -38,15 +39,17 @@ ASCII wireframe (desktop):
 
 ```
 +------------------------------------------------------------------+
-| LOGO  [ search bar................. ]   (cart:3)  (account)      |
+| LOGO  [ search bar................. ]   (cart:2)  (account)      |
 +------------------------------------------------------------------+
-| CART (3)                                                         |
+| CART (2)                                                         |
 | +--------------------------------------------------------+ ------|
-| | [img]  Widget A — Rp 45.000   [ - 2 + ]  Rp 90.000  [x] |      |
-| | [img]  Widget B — Rp 30.000   [ - 1 + ]  Rp 30.000  [x] |      |
+| | [img]  Sony WF-C710N — Rp 1.290.000                    |      |
+| |        Wireless Earbuds · Audio · Sony  [ -1+ ] Rp 1.29jt [x] |
+| | [img]  Anker 735 Power Bank — Rp 380.000               |      |
+| |        20 000 mAh · USB-C PD 140 W      [ -1+ ] Rp 380rb [x] |
 | +--------------------------------------------------------+ ------|
 | Summary panel (right col ≥768px):                              |
-|   Subtotal   Rp 120.000                                       |
+|   Subtotal   Rp 1.670.000                                      |
 |   (payment/total TBD — see §FEATURES)                          |
 |   [ Proceed to checkout → ]  (primary, full width)            |
 |   Continue shopping                                             |

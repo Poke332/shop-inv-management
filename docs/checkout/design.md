@@ -12,6 +12,10 @@ checkout use case (Sheet2) in full.
   1. **Shipping address** (name, phone, address — assumed minimum set; flagged).
   2. **Order review** (line list, read-only, from cart).
   3. **Place order** (primary CTA).
+- **Domain examples (electronics):** order lines show model + category context,
+  e.g. "Sony WF-C710N Wireless Earbuds ×1" / "Anker 735 Power Bank ×1"; shipping
+  form copy can mention electronics (fragile-item / packaging note optional —
+  assumption, not required by the sheet).
 - **Payment model (open decision #4): TBD.** The sheet defines **no payment at all** —
   no gateway, no currency even; orders just sit "pending". Most likely interpretation
   for v1 UI: **no payment step**; CTA label is "Place order" not "Pay now", and the
@@ -54,10 +58,10 @@ ASCII wireframe (desktop):
 | CHECKOUT                                                         |
 | +-----------------------------------+---------------------------+|
 | | 1. Shipping address              | Order review              ||
-| | Name   [____________________]     | [img] Widget A x2 90.000 ||
-| | Phone  [____________________]     | [img] Widget B x1 30.000 ||
-| | Address[____________________]     | Subtotal    120.000      ||
-| |      (textarea, 3 lines)          | Total (to settle)* 120.000||
+| | Name   [____________________]     | [img] Sony WF-C710N x1  1.290.000 ||
+| | Phone  [____________________]     | [img] Anker 735 PB x1   380.000  ||
+| | Address[____________________]     | Subtotal    1.670.000      ||
+| |      (textarea, 3 lines)          | Total (to settle)* 1.670.000||
 | +-----------------------------------+  *payment TBD            ||
 | +-----------------------------------+  [ Place order ]  (primary)||
 | | 2. Review your order             |  Edit cart                ||

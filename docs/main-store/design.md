@@ -17,6 +17,11 @@ reused on Search/Browse and Product Details list contexts).
   sheet says "catalog + featured items" without mechanics; most likely a flag on the product
   record set by manager/admin via Per Product Dashboard).
 - Every card links to Product Details; "Add to Cart" is a card action (matrix: buyer-only).
+  **Sale badge (color-tokens §3):** when a product carries an active discount, the card
+  shows a "−X%" / "On sale" badge — `strawberryRed-600` fill, white label. Badge data
+  (sale flag + discount) comes from the product record; sale-flag mechanics are **TBD**
+  (no sheet basis — most likely a manager/admin flag, consistent with the featured-flag
+  assumption above).
 - Infinite scroll or pagination — **TBD** (assume a "Load more" button for v1, simplest).
 - Empty catalog state: message + icon (relevant for early launch; also the "no products in
   this view" fallback).
@@ -49,9 +54,9 @@ ASCII wireframe (desktop):
 | SHOP ALL                                                         |
 | +--------+ +--------+ +--------+ +--------+ +--------+            |
 | | [img]  | | [img]  | | [img]  | | [img]  | | [img]  |  …        |
-| | Name   | | Name   | | Name   | | Name   | | Name   |            |
-| | Rp X   | | Rp X   | | Rp X   | | Rp X   | | Rp X   |            |
-| | [+cart]| | [+cart]| | [+cart]| | [+cart]| | [+cart]|            |
+| | Sony C71| | Anker PB| | Logi MXK| | Razer V3| | Galaxy 6|      |
+| | Rp1.29jt| | Rp380k  | | Rp415jt | | Rp240k  | | Rp1.65jt|      |
+| | [+cart]| | [+cart]| | [+cart]| | [+cart]| | [+cart]|      |
 | +--------+ +--------+ +--------+ +--------+ +--------+            |
 | [ Load more ]                                                    |
 +------------------------------------------------------------------+
@@ -70,6 +75,7 @@ at <390px; featured strip horizontal-scroll snap.
 | Card bg / border / hover border | `#FFFFFF` / `blueSlate-200` / `atomicTangerine-400` |
 | Card price text | `carrotOrange-600` |
 | "Featured" tag | `tuscanSun-500` bg, `blueSlate-950` label |
+| Sale badge ("On sale", "−X%") | `strawberryRed-600` fill, white label (color-tokens §3) |
 | Add-to-cart icon button | `blueSlate-950` icon on `blueSlate-100` circle → hover `atomicTangerine-500` bg, white icon |
 | Cart badge | `atomicTangerine-500` bg, white number |
 | Out-of-stock card | image at 40% opacity, label `strawberryRed-600` |

@@ -26,6 +26,13 @@ product CRUD console: list, add, edit (pre-filled form per the sheet).
 - **Delete product:** matrix has no "delete product" permission; product
   CRUD in the sheet = add/edit. **Out of scope — do not ship a delete
   button in v1** (flagged).
+- **Spec fields (electronics domain, TBD):** Product Details designs a
+  per-product spec table (model number, Bluetooth version, battery,
+  compatibility, …). The sheet's locked field set has **no specs** — if
+  the team adds them, this form gains a repeatable name/value spec pair
+  (ordered list) and the list view gains a "specs" column or detail
+  affordance. No layout change designed here until decided (flagged,
+  same decision as the Product Details doc).
 
 ## LINKS / NAVIGATION
 
@@ -46,16 +53,16 @@ ASCII wireframe (desktop):
 +------------------------------------------------------------------+
 | OPS CONSOLE   [Ongoing Orders] [Inventory] [Products] [Reviews]  |
 +------------------------------------------------------------------+
-| PRODUCTS                       PRODUCT EDITOR (#P-231)           |
-| [search products………]        +----------------------------------+ |
+| PRODUCTS                        PRODUCT EDITOR (#P-231)          |
+| [search products………]       +----------------------------------+ |
 | +------------------------+   | Name      [_______________]    | |
-| | P-231 Widget A  · 34   |   | Price     [_______________]    | |
-| | P-198 Widget B  ·  5   |   | Category  [select ▾]           | |
-| | P-140 Widget C  ·  0   |   | Image     [ thumb | Replace ]  | |
-| | …                      |   | Description [textarea………]      | |
-| +------------------------+   | Initial stock [___________]     | |
-| [ + New product ]          |   +----------------------------------+ |
-|                              | [ Save changes ]   (primary)        | |
+| | P-231 Sony WF-C710N 34|   | Price     [_______________]    | |
+| | P-198 Anker 735 PB   5|   | Category  [ Audio ▾ ]         | |
+| | P-140 Logi MX Keys S  3|   | Image     [ thumb | Replace ]  | |
+| | P-087 Razer V3       0|   | Description [textarea………]      | |
+| | …                      |   | Initial stock [___________]     | |
+| +------------------------+   +----------------------------------+ |
+| [ + New product ]            | [ Save changes ]   (primary)        | |
 +------------------------------+-----------------------------------+ |
 ```
 
@@ -68,7 +75,7 @@ item is selected (back link to list). Admin consoles are desktop-first.
 |---|---|
 | Canvas / list border / form border | `#FFFFFF` / `blueSlate-200` |
 | List row hover / selected | `blueSlate-50` / `atomicTangerine-100` left bar |
-| List stock badges (in/low/out) | `willowGreen-100` / `tuscanSun-100` / `strawberryRed-100`, text `blueSlate-900` |
+| List stock badges (in/low/out) | `willowGreen-100` / `carrotOrange-100` / `strawberryRed-100`, text `blueSlate-900` (low-stock = warning role per color-tokens §3) |
 | Form labels | `blueSlate-950` (14px, medium) |
 | Input border / focus ring | `blueSlate-200` / `atomicTangerine-500` |
 | Field error | `strawberryRed-600` text, `strawberryRed-100` tint under field |

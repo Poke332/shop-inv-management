@@ -65,6 +65,7 @@ theme: {
 | Primary CTA (Buy, Place order, Save, Submit) | `atomicTangerine-500`, label white; small text on it uses `atomicTangerine-600` bg | 500+white = 3.3:1 (§6) — fine for ≥18px / bold button labels; 600 for small text |
 | Secondary button / price emphasis | `carrotOrange-500` | |
 | Featured tag, star rating, "highlight" | `tuscanSun-500` | filled stars; empty stars = `tuscanSun-200` |
+| Sale / discount badge ("On sale", "−20%") | `strawberryRed-600` fill, white label | electronics promo pricing (price drops, flash sales) reuses the error hue — no new color; see §6 |
 | Error, destructive, out-of-stock, delete | `strawberryRed-500/600`; tinted surface `strawberryRed-100` | button: 600 bg + white label; text = `-700` (§6) |
 | Success, in-stock, delivered, approved | `willowGreen-500/600`; tinted surface `willowGreen-100` | text = `-700` (§6) |
 | Processing state, positive secondary | `seagrass-500/600`; tinted surface `seagrass-100` | text = `-700` (§6) |
@@ -135,6 +136,7 @@ replaced by spinner (`blueSlate-950` on tint / `#FFFFFF` on 600+ fill) + `aria-b
 | `blueSlate-500` #60829F on `#FFFFFF` | 4.05 | below 4.5 — placeholders & large text only |
 | `#FFFFFF` on `atomicTangerine-600` #C14B0B | 4.9 | AA white button label |
 | `#FFFFFF` on `atomicTangerine-500` #F15D0E | 3.3 | large/UI components only; small labels use 600 |
+| `#FFFFFF` on `strawberryRed-600` #C60609 (sale badge, error button) | 6.1 | AA white badge label |
 | `willowGreen-700` on `willowGreen-100` | 5.2 | success text on tint |
 | `carrotOrange-700` on `carrotOrange-100` | 5.0 | warning text on tint |
 | `strawberryRed-700` on `strawberryRed-100` | 6.5 | error text on tint |

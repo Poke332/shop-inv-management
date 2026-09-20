@@ -9,6 +9,8 @@ the strongest guard in the app.
 
 - **User list:** name, email, role (buyer/staff/manager/admin), account
   status (active/disabled), last activity. Search by name/email.
+  The user base is the store's community: buyers of the electronics
+  catalog + internal ops staff (wireframe examples are illustrative).
 - **Role change:** per-user role select (buyer/staff/manager/admin),
   persisted via high-level `PATCH /users/:id/role` assumption. A
   user can be demoted from the list, or an admin can be promoted
@@ -50,9 +52,10 @@ ASCII wireframe (desktop):
 | USERS                          (admin only)                      |
 | [ search name/email………]   128 users · 3 staff · 2 managers · 1 admin|
 | +--------------------------------------------------------------+|
-| | buyer_102 · buyer · [active] · last 2d      [role ▾][⏻]    ||
-| | ops_marta · staff · [active] · last 1h      [role ▾][⏻]    ||
-| | ops_dan · manager · [disabled] · last 40d   [role ▾][⏻]    ||
+| buyer_102 · buyer · [active] · last 2d      [role ▾][⏻]    ||
+| ops_marta · staff · [active] · last 1h      [role ▾][⏻]    ||
+| ops_dan · manager · [disabled] · last 40d   [role ▾][⏻]    ||
+| rian_w · buyer · [active] · last 6d         [role ▾][⏻]    ||
 | +--------------------------------------------------------------+|
 | * Users nav item: admin-only. ⏻ = disable/enable toggle          |
 +------------------------------------------------------------------+

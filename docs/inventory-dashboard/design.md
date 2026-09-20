@@ -58,16 +58,17 @@ ASCII wireframe (desktop):
 | OPS CONSOLE   [Ongoing Orders] [Inventory (3)] [Products] […]*  |
 +------------------------------------------------------------------+
 | INVENTORY                                                    + 5|
-|  ! NEEDS ATTENTION (3)  (tuscanSun banner)                  0|
+|  ! NEEDS ATTENTION (3)  (carrotOrange banner)               0|
 |  +----------------------------------------------------------+  |
-|  | Widget C · Tech · stock 0 · OUT   [ + set ] [Open edit] |  |
-|  | Widget D · Tech · stock 3 · LOW   [ + set ] [Open edit] |  |
+|  | Sony WF-C710N · Audio · stock 0 · OUT  [ + set ] [Open edit] |
+|  | Logi MX Keys S · Gaming · stock 3 · LOW [ + set ] [Open edit] |
 |  +----------------------------------------------------------+  |
 |  ALL PRODUCTS (48)                                             |
 |  +----------------------------------------------------------+  |
-|  | Widget A | Apparel | Rp 45.000 | [ - 34 + ] | In stock  |  |
-|  | Widget B | Apparel | Rp 30.000 | [ -  5 + ] | Low       |  |
-|  | …        |        |           |           |            |  |
+|  | Sony WF-C710N | Audio | Rp 1.290.000 | [ - 34 + ] | In stock |
+|  | Anker 735 PB  | Access| Rp 380.000   | [ -  5 + ] | Low      |
+|  | Razer V3      | Gaming| Rp 240.000   | [ -  2 + ] | Low      |
+|  | …        |        |            |          |          |  |
 |  +----------------------------------------------------------+  |
 * ops nav items are role-gated: staff sees Ongoing Orders +          |
   Inventory(read-only) + Products(read-only); manager/admin all;     |
@@ -85,9 +86,9 @@ desktop-first (staff workstation) — mobile is a supported-but-degraded view.
 |---|---|
 | Page canvas / table bg | `#FFFFFF` |
 | Ops sidebar / active item | `blueSlate-900` sidebar bg, `blueSlate-50` text; active item `atomicTangerine-500` left bar |
-| "Needs attention" banner | `tuscanSun-100` bg, `blueSlate-950` text, count in `tuscanSun-500` badge |
+| "Needs attention" banner | `carrotOrange-100` bg, `blueSlate-950` text, count in `carrotOrange-600` badge (low-stock warning role per color-tokens §3; t_1007e199 handoff) |
 | Table row border / zebra | `blueSlate-200`; zebra `blueSlate-50` |
-| Status pill: in / low / out | `willowGreen-100` / `tuscanSun-100` / `strawberryRed-100`, text `blueSlate-900` (no color-only conveyance: pill has label text — see below) |
+| Status pill: in / low / out | `willowGreen-100` / `carrotOrange-100` / `strawberryRed-100`, text `blueSlate-900` (no color-only conveyance: pill has label text — see below) |
 | Stock stepper | `blueSlate-200` border, `blueSlate-950` value |
 | "Open editor" link | `atomicTangerine-600` |
 | "Set stock" quick action | `atomicTangerine-500` bg white text |

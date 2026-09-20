@@ -42,13 +42,16 @@ ASCII wireframe (desktop):
 +------------------------------------------------------------------+
 | OPS CONSOLE  [Ongoing Orders] [Inventory] [Products] [Reviews (7)]|
 +------------------------------------------------------------------+
-| REVIEWS   Product: [ Widget A (P-231) ▾ ]    7 pending / 42 total |
+| REVIEWS   Product: [ Sony WF-C710N (P-231) ▾ ]    7 pending / 42 total |
 +------------------------------------------------------------------+
 | PENDING (7)                                                      |
 | +--------------------------------------------------------------+|
-| | ★★★★☆  "Solid build…"  — buyer_102 (order #WB-0987)        ||
+| | ★★★★☆  "Solid build, ANC keeps up on the train…"            ||
+| |            — buyer_102 (order #WB-0987, Sony WF-C710N x1)    ||
 | |    [ Approve ]  [ Hide ]  [ Delete (confirm) ]              ||
 | +--------------------------------------------------------------+|
+| | ★★★★★  "Fast charge, great for travel"                      ||
+| |            — buyer_207 (order #WB-0951, Anker 735 PB x1)    ||
 | APPROVED (34)  (collapsed list, newest first)                    |
 | HIDDEN (6)   (collapsed; per item: [ Restore ] [ Delete ])      |
 +------------------------------------------------------------------+

@@ -47,15 +47,15 @@ ASCII wireframe (desktop):
 +------------------------------------------------------------------+
 | MY ORDERS                                                        |
 | +--------------------------------------------------------------+|
-| | #WB-1042  19 Sep 2026   [● pending  ]          [ Details ▾ ]||
+| | #WB-1042  19 Sep 2026   [● pending  ]          [ Details ▾ ] ||
 | | +--------------------------------------------------------------||
 | | | pending → processing → shipped → delivered  (timeline)     ||
-| | | [img] Widget A x2   Rp 90.000                              ||
-| | | [img] Widget B x1   Rp 30.000     Total Rp 120.000        ||
+| | | [img] Sony WF-C710N x1   Rp 1.290.000                     ||
+| | | [img] Anker 735 PB x1   Rp 380.000     Total Rp 1.670.000 ||
 | | +--------------------------------------------------------------||
 | | #WB-0987  12 Sep 2026   [✓ delivered]          [ Details ▾ ]||
-| | |   … timeline (all complete, willowGreen)                   ||
-| | | RATE THIS PURCHASE  Widget A: [★ ★ ★ ★ ☆] [ comment…] [Send]||
+| |   … timeline (all complete, willowGreen)                    ||
+| | RATE THIS PURCHASE  Sony WF-C710N: [★ ★ ★ ★ ☆] [comment…] [Send]||
 | | +--------------------------------------------------------------||
 +------------------------------------------------------------------+
 ```
@@ -89,7 +89,7 @@ labels below; "Rate" expands into a bottom sheet.
 - **Review form:** appears only when status = delivered AND not yet rated
   (server flag `reviewed`). Stars: hover fills to cursor, click sets;
   submitting with 0 stars → inline `strawberryRed-600` "Please pick a rating".
-  Success → form replaced by "Thanks — you rated Widget A ★★★★☆"
+  Success → form replaced by "Thanks — you rated Sony WF-C710N ★★★★☆"
   (`willowGreen-600`), non-re-openable for that item.
 - **Disabled states:** review CTA absent for pending/processing/shipped
   (purchase not complete — most likely interpretation; can be flipped to

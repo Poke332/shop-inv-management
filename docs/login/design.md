@@ -3,6 +3,12 @@
 Palette: `docs/color-tokens.md`. Roles/permissions: `Sheets-report.md` RBAC matrix.
 React component names are hints only — this is a design plan, not code.
 
+**SHARED LAYOUT (locked with Register, `docs/register/design.md`):** this page and Register share
+one layout — the two-panel `AuthLayout` below (brand panel + form card, same logo placement,
+typography, spacing, colors, and mobile collapse). They differ **only in the form** (sign-in
+fields vs registration fields). The layout in this doc is identical to `docs/register/design.md`;
+the layout in that doc is identical to this one.
+
 ## FEATURES
 
 - Email + password sign-in for **all 4 roles** (matrix: login T for buyer/staff/manager/admin).
@@ -13,6 +19,8 @@ React component names are hints only — this is a design plan, not code.
 - No "remember me" / session duration spec in the sheet — **TBD** (most likely: normal session
   cookie; no UI implication for this page).
 - No forgot-password flow in the sheet — out of scope; error copy must not imply one exists.
+- **AuthLayout is shared with Register** — identical brand panel, logo placement, typography,
+  and spacing; only the form and its copy differ (see shared-layout note in the header).
 - Account-disabled users (admin can disable from User Dashboard): server denial state →
   "Account not available — contact an administrator" error banner.
 
@@ -64,7 +72,8 @@ Mobile (<768px): brand panel collapses to a 64px top strip with the logo; card f
 
 ## INTERACTIONS
 
-(React: `LoginForm`, `AuthCard`, `InputField`, `PrimaryButton` — shared with Register.)
+(React: shared `AuthLayout` two-panel container + brand panel; `LoginForm` on the form side;
+`InputField`, `PrimaryButton` reused by Register — see `docs/register/design.md`.)
 
 - **Idle:** fields empty; Submit disabled — `blueSlate-200` bg, `blueSlate-500` text (app-wide
   disabled rule).

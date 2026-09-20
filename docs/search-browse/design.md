@@ -9,6 +9,13 @@ Shared shell: `StorefrontHeader` (search bar pre-filled on arrival from header s
 - Search + filter the catalog (buyer). Locked axes from the sheet: **category, price, brand +
   free-text**. No other axes (do not invent sort-by-rating etc. without a sheet basis —
   a plain "Sort: Featured / Price ↑ / Price ↓" is a reasonable assumption and flagged).
+- **Domain example set (electronics/gadgets, user directive):** category filter options
+  render as the store's categories — e.g. Audio, Smart Home, Gaming, Laptops,
+  Accessories, Wearables; brand filter options as electronics brands — e.g. Sony,
+  Anker, Logitech, Samsung. These are illustrative data, not a hard-coded list: the
+  filter rail reflects whatever categories/brands exist in the catalog (the category
+  set is admin/manager-manageable — category CRUD is out of sheet scope, flagged in
+  the Per Product Dashboard doc).
 - Results are a paginated/`Load more` grid consistent with Main Store.
 - **Role-gating (TBD — open decision #8):** buyer-only per the page list, which
   contradicts the matrix granting browse/view-detail to staff+ (also flagged in
@@ -40,18 +47,29 @@ ASCII wireframe (desktop):
 +------------------------------------------------------------------+
 | LOGO  [ search bar................. ]   (cart:2)  (account)      |
 +------------------------------------------------------------------+
-| FILTERS   |  128 results            Sort: [Featured ▾]           |
+| FILTERS   |  [Sony ×] [Audio ×]   128 results  Sort: [Featured ▾] |
 | Category  |  +--------+ +--------+ +--------+ +--------+         |
 |  All      |  | card   | | card   | | card   | | card   |  …       |
-|  Apparel  |  +--------+ +--------+ +--------+ +--------+         |
-|  Tech    |  +--------+ +--------+ +--------+ +--------+          |
-| Brand    |  | card   | | card   | | card   | | card   |          |
-|  [x] Nike|  +--------+ +--------+ +--------+ +--------+          |
-|  [ ] Acme|  [ Load more ]                                            |
-| Price     |                                                          |
-| [---o-----] 20k – 500k                                         |
+|  Audio    |  +--------+ +--------+ +--------+ +--------+         |
+|  Smart Home| +--------+ +--------+ +--------+ +--------+         |
+|  Gaming   | | card   | | card   | | card   | | card   |          |
+|  Laptops  | +--------+ +--------+ +--------+ +--------+          |
+|  Access.  | | ...    | | ...    | | ...    | | ...    |          |
+|  Wearables| +--------+ +--------+ +--------+ +--------+          |
+| Brand    |  [ Load more ]                                       |
+|  [x] Sony|                                                       |
+|  [ ] Anker|                                                      |
+|  [ ] Logitech|                                                  |
+|  [ ] Samsung|                                                   |
+|  [ ] ASUS |                                                      |
+| Price     |                                                       |
+| [---o-----] Rp 50k – Rp 5.000.000                               |
 +------------------------------------------------------------------+
 ```
+
+(Card copy follows the Main Store card spec; typical results: "Sony WF-C710N
+Wireless Earbuds", "Anker 735 Power Bank 20 000 mAh", "Razer BlackWidow V3",
+"Logitech MX Keys S", "ASUS RT-AX58 Wi-Fi 6 router", "Samsung Galaxy Watch6".)
 
 Mobile (<768px): filter rail becomes a bottom sheet / off-canvas drawer ("Filters (3)"
 button shows active count); grid 2-up at ≥390px, 1-up below; search bar stays in the
@@ -70,6 +88,7 @@ sticky header row.
 | Sort control | ghost, `blueSlate-950` text, `blueSlate-200` border, hover `blueSlate-50` |
 | Filter drawer toggle (mobile) | `atomicTangerine-500` bg white label when active filters present |
 | Empty-results panel | `blueSlate-50` bg, heading `blueSlate-950`, helper `blueSlate-700` |
+| Sale badge on result cards | `strawberryRed-600` fill, white label (color-tokens §3; same card spec as Main Store) |
 | API error panel | `strawberryRed-100` bg, `strawberryRed-600` text + "Try again" |
 
 ## INTERACTIONS
