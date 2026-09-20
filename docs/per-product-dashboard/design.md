@@ -37,10 +37,8 @@ product CRUD console: list, add, edit (pre-filled form per the sheet).
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "product management dashboard, white background, left
-product list column with search, right detail editor form (name, price, category, image
-upload box, description, stock), warm orange save button, SaaS admin console look,
-sharp borders, desktop 1440px" — save to `docs/per-product-dashboard/`.
+![Product management dashboard mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

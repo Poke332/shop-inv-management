@@ -31,10 +31,8 @@ Order flow: **Cart → Checkout → Orders Placed** (locked by the sheet's check
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "shopping cart page, white background, list of cart lines
-with square thumbnails, quantity steppers and line totals, right-aligned summary panel with
-subtotal and large warm orange 'Proceed to checkout' button, sharp borders, desktop 1440px"
-— save to `docs/cart/`.
+![Shopping cart page mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

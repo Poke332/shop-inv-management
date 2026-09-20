@@ -33,10 +33,8 @@ moderation console: approve / hide / delete reviews, scoped per product.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "review moderation dashboard, white background, product
-dropdown header, three sections (Pending, Approved, Hidden) with review cards showing
-star ratings, buyer name, and approve/hide/delete action buttons in warm orange and
-strawberry red, SaaS admin look, desktop 1440px" — save to `docs/per-product-review-panel/`.
+![Review moderation panel mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

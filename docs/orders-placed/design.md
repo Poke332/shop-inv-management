@@ -36,10 +36,8 @@ history + status tracking page, and — per the sheet's implementation notes —
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "order history page, white background, list of order cards
-each with status pill (amber pending, teal processing, gray shipped, green delivered),
-expandable detail with 4-step progress timeline, star rating form for delivered orders,
-warm orange accents, sharp borders, desktop 1440px" — save to `docs/orders-placed/`.
+![My orders page mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

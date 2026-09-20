@@ -37,10 +37,8 @@ ops mirror of Orders Placed.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "order fulfillment dashboard, white background, kanban-
-style board or list with status columns (Pending amber, Processing teal, Shipped gray,
-Delivered green), order cards with advance-status buttons in warm orange, SaaS console,
-sharp borders, desktop 1440px" — save to `docs/ongoing-orders/`.
+![Ongoing orders dashboard mockup](mockup.png)
+
 
 ASCII wireframe (desktop, list variant — assumption, kanban is a flagged alt):
 

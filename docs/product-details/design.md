@@ -29,10 +29,8 @@ reviews). The two variants are in §INTERACTIONS.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "product detail page, white background, large square product
-image left, product info column right with price, stock line, quantity selector and warm
-orange 'Add to cart' button, review section below with star ratings, sharp borders,
-desktop 1440px" — save to `docs/product-details/`.
+![Product detail page mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

@@ -42,10 +42,8 @@ checkout use case (Sheet2) in full.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "checkout page, white background, two-column layout: left
-shipping address form with sharp 1px border inputs, right order summary panel listing
-items and total with large warm orange 'Place order' button, subtle pending-status
-note, clean sans-serif, desktop 1440px" — save to `docs/checkout/`.
+![Checkout page mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

@@ -31,10 +31,8 @@ Shared shell: `StorefrontHeader` (search bar pre-filled on arrival from header s
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "e-commerce search results page, left filter rail with
-accordion sections (Category, Brand, Price range sliders), top search box, product card grid
-on white background, sharp borders, warm orange accents, desktop 1440px" — save to
-`docs/search-browse/`.
+![Search & browse results page mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

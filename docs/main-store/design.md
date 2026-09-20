@@ -32,9 +32,8 @@ reused on Search/Browse and Product Details list contexts).
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "clean e-commerce homepage, white background, top nav bar with
-search, featured strip of 4 product cards, product grid of cards with warm sunset accent tags,
-sharp borders, generous whitespace, desktop 1440px" — save to `docs/main-store/`.
+![Main store homepage mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

@@ -25,11 +25,7 @@ React component names are hints only — this is a design plan, not code.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` minimal login card on white canvas, desktop left brand panel
-in warm Sunset Glow gradient. Suggested prompt: "minimal e-commerce login page, white background,
-left brand panel with flat warm sunset gradient (coral to amber) and geometric sun shape,
-right side centered email+password card with sharp 1px borders, warm orange primary button,
-clean sans-serif, desktop 1440px" — save to `docs/login/`.
+![Login page mockup](mockup.png)
 
 ASCII wireframe (desktop, ≥768px):
 

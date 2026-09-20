@@ -48,11 +48,8 @@ matrix-driven feature gating inside:
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "internal inventory dashboard, white background, top
-alert banner '3 products need restocking' in warm amber, dense data table with
-status pills (green in-stock, red out-of-stock, amber low), quantity stepper
-cells, warm orange primary actions, clean SaaS look, desktop 1440px" — save to
-`docs/inventory-dashboard/`.
+![Inventory dashboard mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

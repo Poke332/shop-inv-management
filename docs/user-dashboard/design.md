@@ -38,10 +38,8 @@ the strongest guard in the app.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` "user account management admin page, white background,
-dense table of users with role dropdowns (buyer staff manager admin), active/disabled
-status pills, search box, prominent 'disable' toggle, SaaS admin console, warm orange
-accents, desktop 1440px" — save to `docs/user-dashboard/`.
+![User management dashboard mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 

@@ -20,10 +20,8 @@ Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 
 ## VISUALIZATION
 
-`TODO: request image generation —` same shell as Login (shared `AuthCard`): white canvas,
-sharp-bordered card, stacked fields, warm orange primary button. Suggested prompt: "minimal
-signup form, white background, card with name/email/password/confirm fields, sharp 1px borders,
-warm orange primary button, clean sans-serif, desktop 1440px" — save to `docs/register/`.
+![Register page mockup](mockup.png)
+
 
 ASCII wireframe (desktop):
 
