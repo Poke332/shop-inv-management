@@ -62,12 +62,13 @@ theme: {
 
 | UI role | Token (weight) | Notes |
 |---|---|---|
-| Primary CTA (Buy, Place order, Save, Submit) | `atomicTangerine-500`, label white; small text on it uses `atomicTangerine-600` bg | 500 with white ≈ 3:1 — fine for ≥16px semibold button labels; 600 for small text |
+| Primary CTA (Buy, Place order, Save, Submit) | `atomicTangerine-500`, label white; small text on it uses `atomicTangerine-600` bg | 500+white = 3.3:1 (§6) — fine for ≥18px / bold button labels; 600 for small text |
 | Secondary button / price emphasis | `carrotOrange-500` | |
 | Featured tag, star rating, "highlight" | `tuscanSun-500` | filled stars; empty stars = `tuscanSun-200` |
-| Error, destructive, out-of-stock, delete | `strawberryRed-500/600`; tinted surface `strawberryRed-100` | button: 600 bg + white label |
-| Success, in-stock, delivered, approved | `willowGreen-500/600`; tinted surface `willowGreen-100` | |
-| Processing state, positive secondary | `seagrass-500/600`; tinted surface `seagrass-100` | |
+| Error, destructive, out-of-stock, delete | `strawberryRed-500/600`; tinted surface `strawberryRed-100` | button: 600 bg + white label; text = `-700` (§6) |
+| Success, in-stock, delivered, approved | `willowGreen-500/600`; tinted surface `willowGreen-100` | text = `-700` (§6) |
+| Processing state, positive secondary | `seagrass-500/600`; tinted surface `seagrass-100` | text = `-700` (§6) |
+| Warning / low-stock alert | `carrotOrange-500/600`; tinted surface `carrotOrange-100` | text = `-700` (§6) |
 | Neutral text | `blueSlate-950` (headings/body), `blueSlate-700` (muted), `blueSlate-500` (placeholders) | |
 | Neutral borders / dividers | `blueSlate-200` | |
 | Panel / chip surfaces | `blueSlate-50` (storefront), `blueSlate-100` (hover) | |
