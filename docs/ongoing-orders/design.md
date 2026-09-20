@@ -1,0 +1,98 @@
+# Page: Ongoing Orders — Design Spec (Sunset Glow)
+
+Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
+Access: **staff/manager/admin** (matrix: "update purchase status" F/T/T/T;
+page list = staff/manager/admin). This is the **fulfillment console** — the
+ops mirror of Orders Placed.
+
+## FEATURES
+
+- Queue of open orders, filtered by default to `pending` + `processing`
+  ("ongoing"); tabs to widen: All / Pending / Processing / Shipped /
+  Delivered (recent, read-only audit).
+- **Status update control (the page's core action):** per-order
+  advance button `PATCH /orders/:id/status` (high-level assumption) —
+  pending → processing → shipped → delivered (locked machine). Buttons
+  label as "Start processing" / "Mark shipped" / "Mark delivered".
+  Regression allowed? **TBD** (assume forward-only for v1 — shipping
+  workflow is one-directional; a manager can later decide to allow
+  rollback via a "Revert" ghost action — flagged, not designed in depth).
+- Order detail expand: lines, address, buyer contact — needed for picking/
+  hand-off.
+- **Staff capability boundary:** staff can advance status and see alerts
+  (their whole scope: "daily transaction ops: order status, product
+  alerts"). No product CRUD, no review moderation, no user management —
+  this page exposes nothing beyond status advancement.
+- **Alerts (open decision #1): TBD** — most likely in-app: an "Orders
+  need attention" count badge on the ops nav (e.g. pending > N hours).
+  No email infra in the sheet; out of UI scope.
+
+## LINKS / NAVIGATION
+
+- Ops nav "Ongoing Orders". Post-login routing: **staff land here**
+  (most likely interpretation, flagged in the Login doc).
+- Order id → deep-link `/ops/orders/:id`.
+- No links to storefront; buyer names are plain text (links to
+  User Dashboard would be admin-only scope — **do not link**).
+
+## VISUALIZATION
+
+`TODO: request image generation —` "order fulfillment dashboard, white background, kanban-
+style board or list with status columns (Pending amber, Processing teal, Shipped gray,
+Delivered green), order cards with advance-status buttons in warm orange, SaaS console,
+sharp borders, desktop 1440px" — save to `docs/ongoing-orders/`.
+
+ASCII wireframe (desktop, list variant — assumption, kanban is a flagged alt):
+
+```
++------------------------------------------------------------------+
+| OPS CONSOLE  [Ongoing Orders] [Inventory (3)] [Products] [Reviews]|
++------------------------------------------------------------------+
+| ONGOING ORDERS        All(42) Pending(9) Processing(5) Shipped(3)|
+| +--------------------------------------------------------------+|
+| | #WB-1042 · 19 Sep 12:04 · 2 lines · Rp 120.000  [● pending] ||
+| |    [ Start processing ]   [ Details ▾ ]                     ||
+| | #WB-1039 · 18 Sep 09:11 · 1 line  · Rp  60.000  [◐ processing]|
+| |    [ Mark shipped ]     [ Details ▾ ]                       ||
+| +--------------------------------------------------------------+|
+|   …                                                             |
++------------------------------------------------------------------+
+```
+
+Mobile (<768px): cards stack; filter tabs scroll horizontally; expand
+details in place.
+
+## COLOR USAGE
+
+| Element | Token |
+|---|---|
+| Canvas / card border | `#FFFFFF` / `blueSlate-200` |
+| Ops sidebar (shared `OpsSidebar`) | `blueSlate-900` bg, active item `atomicTangerine-500` left bar |
+| Status chips (pending/processing/shipped/delivered) | per color-tokens §3: `tuscanSun-100` / `seagrass-100` / `blueSlate-100` / `willowGreen-100`, text `blueSlate-900` |
+| Advance button (primary per row) | `atomicTangerine-500` → `atomicTangerine-600` hover, white label |
+| "Details" toggle | `atomicTangerine-600` link |
+| Filter tabs active / idle | active `atomicTangerine-500` underline + `blueSlate-950` text; idle `blueSlate-700` |
+| Success flash (row after advance) | `willowGreen-100` row tint, `willowGreen-600` text |
+| Failure toast / banner | `strawberryRed-100` bg, `strawberryRed-600` text |
+| Attention badge (nav) | `strawberryRed-500` bg, white count |
+
+## INTERACTIONS
+
+(React: `OngoingOrders`, `OrderQueue`, `OrderRow`, `StatusAdvanceButton`.)
+
+- **Idle:** queue sorted by age desc (oldest pending first — fulfillment
+  priority; flagged assumption vs newest-first).
+- **Advance:** optimistic: chip + button move forward, success flash;
+  on 409/5xx → `strawberryRed` toast "Status update failed — retry",
+  button stays. Double-advance guarded (button disabled mid-flight).
+- **Loading:** row skeletons; status refetches on focus + 30s poll
+  (assumption, TBD-light — mirrors Orders Placed polling).
+- **Error (page):** `strawberryRed` panel + retry.
+- **Disabled logic:** delivered orders show no advance button (terminal
+  state) — read-only audit row instead.
+- **Role-based visibility:** staff/manager/admin all see status buttons
+  (all three have "update purchase status" T); nothing on this page is
+  admin-exclusive. Manager additionally reaches Products/Reviews nav
+  items (separate pages).
+- **a11y:** status conveyed by chip text + icon (never color-only);
+  advance buttons text-labelled; queue changes via `aria-live="polite"`.
