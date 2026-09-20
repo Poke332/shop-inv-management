@@ -85,7 +85,7 @@ letter-spacing:var(--track-section);color:var(--bs-950)}
 }
 .hicon{display:flex;align-items:center;justify-content:center;width:44px;height:44px;color:var(--bs-950);position:relative;cursor:pointer}
 .hicon .badge{position:absolute;top:2px;right:0;background:var(--at-500);color:#fff;border-radius:var(--radius-pill);
-font-size:11px;font-weight:600;padding:1px 6px;line-height:15px} /* TBD: per open decision #3 (cart color accents) */
+font-size:12px;font-weight:600;padding:2px 6px;line-height:16px} /* TBD: per open decision #3 (cart color accents) */
 /* ---- buttons (§3.2) ---- */
 .btn-p{display:inline-flex;align-items:center;justify-content:center;min-height:var(--touch-min);min-width:var(--touch-min);
 padding:0 20px;border-radius:8px;border:0;cursor:pointer;background:var(--at-600);color:#fff;
@@ -162,7 +162,7 @@ svg{flex:none}
 .oside .os-title b{color:var(--ts-400);font-weight:600}
 .onav{display:flex;align-items:center;gap:8px;padding:0 10px;min-height:44px;border-radius:8px;font-size:14px;font-weight:500;color:var(--bs-50);border-left:3px solid transparent;cursor:pointer}
 .onav.active{background:var(--bs-800);border-left-color:var(--at-500);font-weight:600}
-.onav .nbadge{margin-left:auto;background:var(--sr-600);color:#fff;border-radius:var(--radius-pill);font-size:11px;font-weight:600;padding:1px 7px}
+.onav .nbadge{margin-left:auto;background:var(--sr-600);color:#fff;border-radius:var(--radius-pill);font-size:12px;line-height:16px;font-weight:600;padding:2px 7px}
 .foot{font-size:12px;color:var(--bs-500);margin:12px 8px 0;line-height:1.5}
 .ops-main{flex:1;padding:20px 24px;overflow:hidden}
 /* ---- timeline ---- */
