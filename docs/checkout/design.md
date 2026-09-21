@@ -3,15 +3,17 @@
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Order flow: **Cart → Checkout → Orders Placed**. This page implements the sheet's
 checkout use case (Sheet2) in full.
+Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+unified pill badges, filled CTA stack).
 
 ## FEATURES
 
 - Buyer-only (matrix: purchase/add-to-cart F for staff+). Preconditions: logged in
   + cart ≥1 item (route guard; otherwise redirect to Cart / Main Store).
-- Step layout (single-page stepper, no multi-page wizard — most likely v1):
+- Step layout (single-page two-panel layout, no multi-page wizard — most likely v1):
   1. **Shipping address** (name, phone, address — assumed minimum set; flagged).
   2. **Order review** (line list, read-only, from cart).
-  3. **Place order** (primary CTA).
+  3. **Place order** (primary CTA in the summary panel).
 - **Domain examples (electronics):** order lines show model + category context,
   e.g. "Sony WF-C710N Wireless Earbuds ×1" / "Anker 735 Power Bank ×1"; shipping
   form copy can mention electronics (fragile-item / packaging note optional —
@@ -53,20 +55,23 @@ ASCII wireframe (desktop):
 
 ```
 +------------------------------------------------------------------+
-| LOGO  [ search bar................. ]   (cart:2)  (account)      |
+| Sunset Electronics [ search........ ]  (cart:2)  (account)       |
 +------------------------------------------------------------------+
-| CHECKOUT                                                         |
-| +-----------------------------------+---------------------------+|
-| | 1. Shipping address              | Order review              ||
-| | Name   [____________________]     | [img] Sony WF-C710N x1  1.290.000 ||
-| | Phone  [____________________]     | [img] Anker 735 PB x1   380.000  ||
-| | Address[____________________]     | Subtotal    1.670.000      ||
-| |      (textarea, 3 lines)          | Total (to settle)* 1.670.000||
-| +-----------------------------------+  *payment TBD            ||
-| +-----------------------------------+  [ Place order ]  (primary)||
-| | 2. Review your order             |  Edit cart                ||
-| | (line list, read-only)           |---------------------------+|
-| +-----------------------------------+                            |
+| Checkout                                                        |
+| +----------------------------------------+ +------------------+ |
+| | [1] Shipping address                   | | Order review     | |
+| | Name   [____________________________]   | | [44px] Sony C710N| |
+| | Phone  [____________________________]   | |         ×1 Rp1.29jt| |
+| | Address[____________________________]   | | [44px] Anker PB  | |
+| |        (66px min)                       | |          ×1 Rp380k| |
+| |                                          | | Subtotal    Rp1.67jt| |
+| +----------------------------------------+ | Total*      Rp1.67jt| |
+| | [2] Review your order                    | | *payment TBD     | |
+| | Sony WF-C710N ×1 · Anker 735 PB ×1 —    | | [ Place order ] | |
+| | read-only; edit in Cart.                 | | [ Edit cart ]    | |
+| +----------------------------------------+ +------------------+ |
+| step numbers: 26px circular badges, atomicTangerine-600 fill,  | |
+| white 13/600 digit; section titles 16/24 w600                 | |
 +------------------------------------------------------------------+
 ```
 
@@ -77,15 +82,18 @@ load), sticky bottom bar with "Place order" + total on 390px.
 
 | Element | Token |
 |---|---|
-| Canvas / form border | `#FFFFFF` / `blueSlate-200` |
-| Section step numbers | `atomicTangerine-500` circles, white text |
-| Labels / input text | `blueSlate-950` / placeholder `blueSlate-500` |
-| Input focus ring | `atomicTangerine-500` |
-| Order review line borders | `blueSlate-200` |
-| Total row | `blueSlate-950` 20px; "to be settled" hint `blueSlate-700` |
-| "Place order" CTA | `atomicTangerine-500` → `atomicTangerine-600` hover; loading keeps 500 with spinner |
+| Canvas / form border | `#FFFFFF` / `blueSlate-200`, radius 12px, card padding 24px |
+| Section step numbers | 26px circles, `atomicTangerine-600` fill, white 13/600 digit |
+| Section titles ("Shipping address", "Review your order") | `blueSlate-950` 16/24 w600 |
+| Labels | `blueSlate-950` 13/600; input text 14px, placeholder `blueSlate-500` |
+| Inputs | 44px min height, radius 8px, 1px `blueSlate-200` border; focus ring 2px `atomicTangerine-500` offset 2 |
+| Review line thumbs / names | 44×44 category-keyed gradient tiles; `blueSlate-950` 14/500 name, `atomicTangerine-600` 14/600 price |
+| Subtotal label / value | `blueSlate-700` 14/400 / `blueSlate-950` 14/600 |
+| Total row | `blueSlate-700` label ("Total (to be settled)*") + `blueSlate-950` 20/28 w600 value; "*payment TBD" hint `blueSlate-700` 13/400 |
+| "Place order" CTA | filled 44px: `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label; loading keeps `-600` fill with spinner; disabled = `blueSlate-100` bg + `blueSlate-400` text |
+| "Edit cart" button | secondary: white fill, 1px `blueSlate-200` border, `blueSlate-950` label, hover fill `blueSlate-100`, 44px min |
 | Alt-flow 3a conflicting line | `strawberryRed-100` bg tint, border `strawberryRed-300`, note `strawberryRed-600` |
-| Alt-flow 5a banner | `strawberryRed-100` bg, `strawberryRed-600` text, retry link `strawberryRed-600` underlined |
+| Alt-flow 5a banner | `strawberryRed-100` bg, `strawberryRed-700` text, retry link `strawberryRed-600` underlined |
 | Success (redirects anyway) | `willowGreen-100` bg + `willowGreen-600` text if a brief flash needed |
 
 ## INTERACTIONS
@@ -96,7 +104,9 @@ load), sticky bottom bar with "Place order" + total on 390px.
   check (digits/`+`, min 8 — assumption); address required, min ~20 chars.
   Inline `strawberryRed-600` under field on blur; CTA blocked until valid.
 - **CTA enabling:** valid address AND ≥1 cart line AND no unresolved stock
-  conflict. **Loading:** spinner + "Placing order…", inputs + CTA locked.
+  conflict; disabled = `blueSlate-100` bg + `blueSlate-400` label.
+  **Loading:** spinner + "Placing order…" (idle fill kept), inputs + CTA locked;
+  static/`prefers-reduced-motion` safe — no scale or shadow bloom.
 - **Alt flow 3a (out of stock, `POST /orders` returns stock conflict):**
   page stays; conflicting lines get the `strawberryRed-100` tint + a note
   "Only N left" or "Out of stock"; CTA label → "Update quantities & retry";
@@ -110,4 +120,5 @@ load), sticky bottom bar with "Place order" + total on 390px.
 - **Role-based visibility:** any non-buyer → redirect to their dashboard
   before content renders (guard at route level).
 - **a11y:** errors `aria-describedby`; stock-conflict note `aria-live="assertive"`;
-  sticky CTA focusable on mobile.
+  sticky CTA focusable on mobile; focus ring 2px `atomicTangerine-500` offset 2;
+  all tap targets ≥ 44px.

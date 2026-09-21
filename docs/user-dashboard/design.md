@@ -1,6 +1,7 @@
 # Page: User Dashboard — Design Spec (Sunset Glow)
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
+Typography & spacing per docs/design-tokens-round3.md (Inter 400/500/600, 8pt grid, unified pill badges, filled CTA stack).
 Access: **admin only** (matrix: "manage user accounts" F/F/F/T). The sheet
 flags this as the "most sensitive feature" with strict route protection —
 the strongest guard in the app.
@@ -43,22 +44,25 @@ the strongest guard in the app.
 ![User management dashboard mockup](mockup.png)
 
 
-ASCII wireframe (desktop):
+ASCII wireframe (desktop — vertical 230px dark ops sidebar, not a top bar):
 
 ```
-+------------------------------------------------------------------+
-| OPS CONSOLE  [Ongoing Orders] [Inventory] [Products] [Reviews] [Users*]|
-+------------------------------------------------------------------+
-| USERS                          (admin only)                      |
-| [ search name/email………]   128 users · 3 staff · 2 managers · 1 admin|
-| +--------------------------------------------------------------+|
-| buyer_102 · buyer · [active] · last 2d      [role ▾][⏻]    ||
-| ops_marta · staff · [active] · last 1h      [role ▾][⏻]    ||
-| ops_dan · manager · [disabled] · last 40d   [role ▾][⏻]    ||
-| rian_w · buyer · [active] · last 6d         [role ▾][⏻]    ||
-| +--------------------------------------------------------------+|
-| * Users nav item: admin-only. ⏻ = disable/enable toggle          |
-+------------------------------------------------------------------+
++------------------+-------------------------------------------------------+
+| OPS CONSOLE      | Users   [ Admin only ]                                 |
+|------------------+-------------------------------------------------------|
+| Ongoing Orders   | [ Search name / email… ]  128 users · 3 staff ·       |
+| Inventory        |   2 managers · 1 admin                                |
+| Products         |+-------------------------------------------------------|
+| Reviews          | | buyer_102 [buyer] [Active]  last 2d  [role ▾][toggle]|
+| > Users          | | ops_marta [staff] [Active]  last 1h  [role ▾][toggle]|
+| (foot: role-gated| | ops_dan   [manager] [Disabled] last 40d [role ▾][toggle]|
+|  note)           | | rian_w    [buyer] [Active]  last 6d  [role ▾][toggle]|
+|                  | | admin_ria [admin] [Active]  last 2h  [role ▾][toggle]|
+|                  |+-------------------------------------------------------|
+|                  | Role updated to manager · ops_marta (success banner)  |
+|                  | (footer note: toggle = disable/enable account)        |
++------------------+-------------------------------------------------------+
+* Users nav item: admin-only; disabled-user row = 3px strawberryRed-500 left bar
 ```
 
 Mobile: table → cards with role select + toggle. Admin consoles are
@@ -69,14 +73,15 @@ desktop-first; this page degrades to card list on <768px.
 | Element | Token |
 |---|---|
 | Canvas / row border | `#FFFFFF` / `blueSlate-200` |
-| Role select border / focus | `blueSlate-200` / `atomicTangerine-500` ring |
+| Role select border / focus | `blueSlate-200`, 44px min-height, 8px radius; focus ring 2px `atomicTangerine-500`, offset 2px |
 | Role select accent (admin value) | `atomicTangerine-600` text when admin selected |
-| Status pill: active / disabled | `willowGreen-100` / `strawberryRed-100`, text `blueSlate-900` |
-| Toggle (enable/disable) | on-state track `willowGreen-500`, off-state `blueSlate-200`; disabled-user row left bar `strawberryRed-500` |
-| Role change confirmation dialog | `strawberryRed-100` bg, heading `strawberryRed-700`, cancel ghost / confirm `atomicTangerine-500` (confirm label "Change role") |
+| Status pill: active / disabled | unified pills `willowGreen-100` / `strawberryRed-100` tints, text `blueSlate-900`, 12/600, padding 4×10 |
+| Role badge pills (buyer/staff/manager/admin) | color-tokens §5 role accents: accent-100 fill + accent-700 text + 1px accent-300 border (buyer `atomicTangerine`, staff `carrotOrange`, manager `seagrass`, admin `strawberryRed`), 12/600 pill |
+| Toggle (enable/disable) | 44px hit area; track 40×24 — on-state `willowGreen-500`, off-state `blueSlate-200`, white 20px thumb; disabled-user row 3px `strawberryRed-500` left bar |
+| Role change confirmation dialog | `strawberryRed-100` bg, heading `strawberryRed-700`, cancel secondary / confirm `atomicTangerine-600` filled stack (confirm label "Change role") |
 | Disable confirmation dialog | `strawberryRed-100` bg, confirm `strawberryRed-600` bg white text |
-| Success flash (row) | `willowGreen-100` tint, `willowGreen-600` text "Role updated to manager" |
-| Search input | standard `SearchInput` tokens (blueSlate-200 border, atomicTangerine-500 focus) |
+| Success flash (row) | `willowGreen-100` tint + `willowGreen-300` border, `willowGreen-700` text "Role updated to manager · ops_marta" |
+| Search input | standard `SearchInput` tokens: 44px min-height, `blueSlate-200` border, `atomicTangerine-500` focus ring, placeholder `blueSlate-500` |
 | Count summary line | `blueSlate-700` |
 
 ## INTERACTIONS
@@ -91,11 +96,12 @@ desktop-first; this page degrades to card list on <768px.
   management." Confirm / Cancel. Optimistic update + success flash;
   failure → `strawberryRed` toast + row reverts.
 - **Disable:** `ConfirmDialog` (danger styling): "Disable ops_dan?
-  They will not be able to log in." Confirm button `strawberryRed-600`.
-  Enabling is the reverse, `willowGreen-500` confirm, lighter copy.
+  They will not be able to log in." Confirm button `strawberryRed-600`
+  (hover `-700`, active `-800`). Enabling is the reverse, `willowGreen-500`
+  confirm, lighter copy. Toggles honor the 44px touch floor.
 - **Disabled (control level):** own-row controls **absent** (self-protect);
-  all other rows fully enabled. Loading: table skeletons; buttons
-  spinner-lock during saves.
+  all other rows fully enabled. Loading: static table skeletons (no shimmer
+  loops); buttons spinner-lock during saves.
 - **Error:** row-level failure = `strawberryRed` toast + revert; page
   load failure = `strawberryRed` panel + retry.
 - **Role-based visibility:** admin-only page AND admin-only nav item.

@@ -2,6 +2,8 @@
 
 Palette: `docs/color-tokens.md`. Roles/permissions: `Sheets-report.md` RBAC matrix.
 React component names are hints only — this is a design plan, not code.
+Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+unified pill badges, filled CTA stack).
 
 **SHARED LAYOUT (locked with Register, `docs/register/design.md`):** this page and Register share
 one layout — the two-panel `AuthLayout` below (brand panel + form card, same logo placement,
@@ -63,10 +65,10 @@ Mobile (<768px): brand panel collapses to a 64px top strip with the logo; card f
 | Page canvas | `#FFFFFF` |
 | Brand panel (desktop) | `blueSlate-900` bg, `tuscanSun-400` sun graphic, `blueSlate-50` tagline |
 | Card surface | canvas white, border `blueSlate-200`, radius 12px |
-| Labels / headings / input text | `blueSlate-950` |
+| Labels / headings / input text | `blueSlate-950` (labels 13/600; "Sign in" heading 26/36 w600) |
 | Input placeholder | `blueSlate-500` |
-| Input border idle / hover / focus ring | `blueSlate-200` / `blueSlate-300` / `atomicTangerine-500` |
-| Primary button idle → active | `atomicTangerine-500` → `atomicTangerine-600`, white label |
+| Inputs | 44px min height, radius 8px, 1px `blueSlate-200` border; focus ring 2px `atomicTangerine-500`, offset 2; "show" toggle 12/500 `blueSlate-500` |
+| Primary button ("Sign in →") | filled 44px: `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label; disabled = `blueSlate-100` bg + `blueSlate-400` text |
 | Register link | `atomicTangerine-600`, underline on hover |
 | Error text / banner | `strawberryRed-600` on `strawberryRed-100`, border `strawberryRed-300` |
 
@@ -75,13 +77,14 @@ Mobile (<768px): brand panel collapses to a 64px top strip with the logo; card f
 (React: shared `AuthLayout` two-panel container + brand panel; `LoginForm` on the form side;
 `InputField`, `PrimaryButton` reused by Register — see `docs/register/design.md`.)
 
-- **Idle:** fields empty; Submit disabled — `blueSlate-200` bg, `blueSlate-500` text (app-wide
-  disabled rule).
+- **Idle:** fields empty; Submit disabled — `blueSlate-100` bg, `blueSlate-400`
+  text (app-wide disabled rule).
 - **Validation:** email required + format on blur; password required, min 8 chars (assumption —
   sheet only says "input validation" on Register; applying the same rule here). Inline errors
   under fields, `strawberryRed-600`, tied via `aria-describedby`.
 - **Enabling logic:** Submit enabled only when email format valid AND password ≥8.
-- **Hover:** button `atomicTangerine-500`→`600`; link underlines. **Active:** `600`, no layout shift.
+- **Hover/active (button):** filled 44px stack — `atomicTangerine-600` → `-700` hover →
+  `-800` active, background-color 150ms only, no layout shift; link underlines.
 - **Loading:** button label swaps to spinner + "Signing in…"; inputs disabled; double-submit guarded.
 - **Error (server 401):** banner above form: "Email or password is incorrect."
   (`strawberryRed-100` bg, `strawberryRed-600` text, 1px `strawberryRed-300` border,
