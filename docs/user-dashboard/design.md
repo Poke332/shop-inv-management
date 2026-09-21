@@ -2,6 +2,7 @@
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Typography & spacing per docs/design-tokens-round3.md (Inter 400/500/600, 8pt grid, unified pill badges, filled CTA stack).
+App shell & gutter (v4): `docs/control-panel/design.md` — the ops sidebar is a 230px `--ops-sidebar-w` token and the sidebar-to-content gutter is an explicit `.ops-content` padding (`--ops-page-pad` 32px desktop / 24px mobile), reset-proof by class specificity. This page's content sits 32px off the sidebar; its internal table/panel layout is unchanged by the shell spec.
 Access: **admin only** (matrix: "manage user accounts" F/F/F/T). The sheet
 flags this as the "most sensitive feature" with strict route protection —
 the strongest guard in the app.
