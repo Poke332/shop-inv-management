@@ -2,7 +2,7 @@
 import sys, os, subprocess, shutil
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-ROOT = "/home/richie/projects/web-mobile-project"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # worktree-safe
 OUT = os.path.join(ROOT, "_mockup-build", "out")
 os.makedirs(OUT, exist_ok=True)
 
