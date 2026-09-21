@@ -112,6 +112,18 @@ ASCII wireframe (desktop, ≥1024px):
 +------------------------------------------------------------------+
 ```
 
+> **intended-redesign (v4):** the v3 "single Shop All grid" wireframe lines above
+> were intentionally redrawn into the v4 layout — header → hero banner → Browse
+> by category (six-tile rail) → Shop All → load-more (the round-3 §3.5 order,
+> extended with the v4 hero + category browsing). The v3 framework is **not**
+> eroded: every color is still an in-scale Sunset Glow §1 token, font weights
+> stay ≤ 600, and spacing stays on the 8pt grid with the framework-exempt
+> component px. The v4 hero banner, six-tile category rail, and the panel
+> 32/24px gutter are *structure* additions only; every value they use snaps to
+> the immutable v3 framework tokens in `docs/design-tokens-round3.md` and
+> `docs/color-tokens.md` (locked at 17da448). See VISUALIZATION below for the
+> concrete v4 values and their v3 token sources.
+
 ### Hero banner (v4) — concrete values
 
 - **Container:** full content width (1200px max at desktop), `border-radius: 8px`,
@@ -127,13 +139,14 @@ ASCII wireframe (desktop, ≥1024px):
 - **Copy overlay:** absolutely positioned block in the **right third**:
   `position: absolute; right: 48px; top: 50%; transform: translateY(-50%);
   max-width: 380px; text-align: left;`. Stack top→bottom with 12px gaps:
-  1. Eyebrow `NEW SEASON GEAR` — 13/600, 0.05em tracking, `tuscanSun-300` (#FBC98B —
-     warm over the dark blue-slate corner; 4.75:1 vs `#0D1216`-class dark ✓ AA).
+  1. Eyebrow `NEW SEASON GEAR` — 13/600, 0.05em tracking, `tuscanSun-300` (#FACF6B —
+     warm over the dark blue-slate corner; ≈ 11.9:1 vs `blueSlate-900` #131A20,
+     12.7:1 vs `blueSlate-950` #0D1216 ✓ AAA).
      Sentence-case rule: the label itself is short all-caps by style, tracking .05em.
   2. H2 `Power everything.` — 32/40 w600 `#FFFFFF` (the page H1 "Shop" above stays
      26/36; the hero is display size, **32px is a v4 addition to the type scale**,
-     one-off, not a new token). White on the image's right-third blue-slate
-     (≈ #16202E–#1B2A3F lightness): ≥ 10:1 ✓.
+     one-off, not a new token). White on the image's right-third blue-slate,
+     ≈ `blueSlate-900`–`blueSlate-950` lightness (`#131A20`–`#0D1216`): 17.6:1–18.8:1 ✓ AAA.
   3. Sub `Audio to wearables — new drops this week.` — 14/20 w400 `blueSlate-100`
      (#DFE6EC), 14.95:1 vs the dark corner ✓.
   4. CTA `Shop the drop` — **filled primary** (`atomicTangerine-600` → `-700` hover →
