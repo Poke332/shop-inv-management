@@ -4,7 +4,7 @@
 // Entry point is _mockup-build/verify_framework.sh (rebuilds out/, then execs this).
 //
 //   [1] framework lock: docs/design-tokens-round3.md + docs/color-tokens.md
-//       byte-identical to the lock commit (default 142e69a — round-7 60:30:10 spec)
+//       byte-identical to the lock commit (default 49b7610 — round-8 surface-rule spec)
 //   [2] no color outside the docs/color-tokens.md §1 scale (77 hex, parsed from the
 //       §1 table rows only — the anchor-note prose mentions the retired #F94144)
 //       + sanctioned canvas/surface hexes: #FEF7E6 (tuscanSun-50, the round-7 60%
@@ -37,7 +37,7 @@ const { execSync } = require("child_process");
 
 const args = process.argv.slice(2);
 const getArg = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
-const LOCK = getArg("--lock", "142e69a");
+const LOCK = getArg("--lock", "49b7610");
 const HEAD = getArg("--commit", "HEAD");
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.join(ROOT, "_mockup-build", "out");
