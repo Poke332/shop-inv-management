@@ -156,15 +156,31 @@ border-radius:var(--radius-pill);padding:4px 10px;color:var(--bs-900);white-spac
 .qty span.val{background:#fff;color:var(--bs-950);min-width:40px;cursor:default}
 input[type=range]{accent-color:var(--at-500)}
 svg{flex:none}
-/* ---- ops sidebar (§6 preserved) ---- */
-.oside{width:230px;background:var(--bs-900);color:var(--bs-50);padding:20px 14px;display:flex;flex-direction:column;gap:4px;flex:none}
-.oside .os-title{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--bs-50);margin:0 8px 12px}
-.oside .os-title b{color:var(--ts-400);font-weight:600}
+/* ---- ops app shell (v4, docs/control-panel/design.md) ---- */
+:root{
+  --ops-sidebar-w:230px;
+  --ops-page-pad:32px;          /* the sidebar↔content gutter (reset-proof class padding) */
+  --ops-page-pad-mobile:24px;
+}
+@media (max-width:767px){ :root{ --ops-page-pad:var(--ops-page-pad-mobile); } }
+.ops-shell{display:flex;min-height:100dvh}
+.ops-sidebar{width:var(--ops-sidebar-w);background:var(--bs-900);color:var(--bs-50);padding:20px 14px;
+display:flex;flex-direction:column;gap:4px;flex:none;overflow-y:auto}
+/* v4 gutter: class padding beats the *{padding:0} reset (specificity 0,1,0) */
+.ops-content{flex:1;min-width:0;padding:var(--ops-page-pad);overflow:auto}
+/* internal to multi-column pages (list|editor split); the shell gutter stays .ops-content's padding */
+.ops-page{display:flex;gap:24px;flex:1;min-height:0;overflow-x:auto}
+@media (max-width:767px){ /* mobile: sidebar off-canvas drawer, closed by default */
+  .ops-sidebar{position:fixed;top:0;bottom:0;left:0;transform:translateX(-100%);z-index:50}
+  .ops-sidebar.open{transform:none}
+  .ops-page{gap:0;flex-wrap:wrap}
+}
+.ops-sidebar .os-title{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--bs-50);margin:0 8px 12px}
+.ops-sidebar .os-title b{color:var(--ts-400);font-weight:600}
 .onav{display:flex;align-items:center;gap:8px;padding:0 10px;min-height:44px;border-radius:8px;font-size:14px;font-weight:500;color:var(--bs-50);border-left:3px solid transparent;cursor:pointer}
 .onav.active{background:var(--bs-800);border-left-color:var(--at-500);font-weight:600}
 .onav .nbadge{margin-left:auto;background:var(--sr-600);color:#fff;border-radius:var(--radius-pill);font-size:12px;line-height:16px;font-weight:600;padding:2px 7px}
 .foot{font-size:12px;color:var(--bs-500);margin:12px 8px 0;line-height:1.5}
-.ops-main{flex:1;padding:20px 24px;overflow:hidden}
 /* ---- timeline ---- */
 .timeline{display:flex;align-items:center;gap:0}
 .tl-step{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--bs-700)}
@@ -233,7 +249,8 @@ def onav(items, active, badges=()):
         cls = "onav active" if it == active else "onav"
         out.append(f'<div class="{cls}">{it}{badge}</div>')
     foot = '<div class="foot">Nav items are role-gated (RBAC matrix, Sheets-report.md): staff see Ongoing Orders + Inventory + Products read-only; manager/admin see all five; Users is admin-only.</div>'
-    return f'<aside class="oside"><div class="os-title">OPS <b>CONSOLE</b></div>' + "".join(out) + foot + '</aside>'
+    return (f'<aside class="ops-sidebar" aria-label="Ops navigation">'
+            f'<div class="os-title">OPS <b>CONSOLE</b></div>' + "".join(out) + foot + '</aside>')
 
 OPS_NAV = ["Ongoing Orders", "Inventory", "Products", "Reviews", "Users"]
 
