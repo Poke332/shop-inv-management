@@ -4,6 +4,8 @@ Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Order-flow step 3 (Cart → Checkout → **Orders Placed**). Also the buyer's order
 history + status tracking page, and — per the sheet's implementation notes —
 **home of the review form** (open decision #9 noted in Product Details).
+Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+unified pill badges, filled CTA stack).
 
 ## FEATURES
 
@@ -11,13 +13,15 @@ history + status tracking page, and — per the sheet's implementation notes —
   status" F for buyer → **read-only** on everything here).
 - Order list (newest first): order id, date, line summary, **status chip** using
   the locked machine `pending → processing → shipped → delivered` (chip colors
-  per color-tokens §3).
-- Order detail expand: lines, address, status **timeline** (4 steps, current
-  step highlighted `atomicTangerine-500`, completed `willowGreen-500`, upcoming
-  `blueSlate-200`).
+  per color-tokens §3; all chips carry a text label, never color-only).
+- Order detail expand: lines, status **timeline** (4 steps, 14px dots — current
+  step `atomicTangerine-500`, completed `willowGreen-500`, upcoming `blueSlate-200`;
+  connecting lines 44px wide, `willowGreen-500` where done), plus product
+  thumbnails + line prices + total.
 - **Review form (sheet: "review form lives here"; open decision #9):** for each
-  order in `delivered` status, a "Rate your purchase" affordance per purchased
-  product: star rating + optional text (matrix: "review products bought"
+  order in `delivered` status, a "Rate this purchase" block per purchased
+  product: star rating + optional comment, in a `blueSlate-50` inset card.
+  (matrix: "review products bought"
   buyer-only; reviews only for purchased items — locked). Rating scale
   **TBD (open decision #10)** — assume 1–5 stars, component `ReviewForm`
   scale-agnostic.
@@ -43,38 +47,41 @@ ASCII wireframe (desktop):
 
 ```
 +------------------------------------------------------------------+
-| LOGO  [ search bar................. ]   (cart:0)  (account)      |
+| Sunset Electronics [ search........ ]  (cart:0)  (account)       |
 +------------------------------------------------------------------+
-| MY ORDERS                                                        |
+| My orders                                                       |
 | +--------------------------------------------------------------+|
-| | #WB-1042  19 Sep 2026   [● pending  ]          [ Details ▾ ] ||
-| | +--------------------------------------------------------------||
-| | | pending → processing → shipped → delivered  (timeline)     ||
-| | | [img] Sony WF-C710N x1   Rp 1.290.000                     ||
-| | | [img] Anker 735 PB x1   Rp 380.000     Total Rp 1.670.000 ||
-| | +--------------------------------------------------------------||
-| | #WB-0987  12 Sep 2026   [✓ delivered]          [ Details ▾ ]||
-| |   … timeline (all complete, willowGreen)                    ||
-| | RATE THIS PURCHASE  Sony WF-C710N: [★ ★ ★ ★ ☆] [comment…] [Send]||
-| | +--------------------------------------------------------------||
-+------------------------------------------------------------------+
+| | #WB-1042  19 Sep 2026  [● pending]              [Details ▴] ||
+| | pending → processing → shipped → delivered (14px dots)      ||
+| | [40px] Sony WF-C710N ×1 Rp1.29jt  [40px] Anker 735 PB ×1 Rp380k  Total Rp1.67jt |
+| +--------------------------------------------------------------+|
+| | #WB-0987  12 Sep 2026  [✓ delivered]          [Details ▴]   ||
+| | timeline (all done: willowGreen-500 dots)                    ||
+| | [40px] Sony WF-C710N ×1 Rp1.29jt   Total Rp 1.290.000       ||
+| | +----------------------------------------------------------+ ||
+| | | Rate this purchase — Sony WF-C710N                        || |
+| | | [★★★★☆] [ comment (optional) .......... ] [ Send ]       || |
+| | +----------------------------------------------------------+ ||
+| +--------------------------------------------------------------+|
 ```
 
-Mobile: cards full-width, timeline compresses to a horizontal 4-dot strip with
-labels below; "Rate" expands into a bottom sheet.
+Mobile: cards full-width; timeline compresses to a horizontal 4-dot strip; the
+review block goes full-width inside its card (no bottom sheet in round 3).
 
 ## COLOR USAGE
 
 | Element | Token |
 |---|---|
-| Canvas / card border | `#FFFFFF` / `blueSlate-200` |
-| Order id / date | `blueSlate-950` / `blueSlate-700` |
-| Status chips (pending/processing/shipped/delivered) | per color-tokens §3: `tuscanSun-100` / `seagrass-100` / `blueSlate-100` / `willowGreen-100`, text `blueSlate-900` |
-| Timeline: done / current / upcoming | `willowGreen-500` / `atomicTangerine-500` / `blueSlate-200` |
-| "Details" toggle | `atomicTangerine-600` |
-| Rate link / Send button | `atomicTangerine-500` (btn), `tuscanSun-500` stars, `tuscanSun-200` empty stars |
+| Canvas / card border | `#FFFFFF` / `blueSlate-200`, radius 12px; card rows 16px 20px padding, 44px min header row |
+| Order id / date | `blueSlate-950` 14/600 / `blueSlate-700` 13/400 |
+| Status chips (pending/processing/shipped/delivered) | per color-tokens §3: `tuscanSun-100` / `seagrass-100` / `blueSlate-100` / `willowGreen-100` fills, `blueSlate-900` 12/600 label (● / ✓ glyph inside the pill) |
+| Timeline: done / current / upcoming | 14px dots `willowGreen-500` / `atomicTangerine-500` / `blueSlate-200`; 44px connector lines `blueSlate-200` (`willowGreen-500` where done); step labels `blueSlate-700` 13/500, current step `blueSlate-950` w600 |
+| Line thumbs / names / prices | 40×40 category-keyed gradient tiles; `blueSlate-950` 14/500 name, `atomicTangerine-600` 13/20 w600 price; "Total" `blueSlate-700` label + `blueSlate-950` w600 value |
+| "Details" toggle | `atomicTangerine-600` 14/500, underline on hover |
+| Stars (rate form) | filled `tuscanSun-500` / empty `tuscanSun-200` (**TBD: open decision — star-rating colors**) |
+| Review block | `blueSlate-50` bg, 1px `blueSlate-200` border, radius 10px; comment input 44px min, 1px `blueSlate-200` border, placeholder `blueSlate-500` |
+| "Send" button | filled 44px primary: `atomicTangerine-600` → `-700` hover → `-800` active, white 14/500 label |
 | Review-sent confirmation | `willowGreen-600` text on `willowGreen-100` tint |
-| Line product link | `blueSlate-950` underlined-on-hover |
 
 ## INTERACTIONS
 
@@ -89,13 +96,16 @@ labels below; "Rate" expands into a bottom sheet.
 - **Review form:** appears only when status = delivered AND not yet rated
   (server flag `reviewed`). Stars: hover fills to cursor, click sets;
   submitting with 0 stars → inline `strawberryRed-600` "Please pick a rating".
-  Success → form replaced by "Thanks — you rated Sony WF-C710N ★★★★☆"
+  Success → block replaced by "Thanks — you rated Sony WF-C710N ★★★★☆"
   (`willowGreen-600`), non-re-openable for that item.
-- **Disabled states:** review CTA absent for pending/processing/shipped
+- **Disabled states:** review block absent for pending/processing/shipped
   (purchase not complete — most likely interpretation; can be flipped to
   "after delivery", that IS delivered here).
-- **Loading:** row skeletons. **Error:** `strawberryRed` panel + retry.
-- **Empty:** "No orders yet" + "Start shopping" → Main Store.
+- **Loading:** static row skeletons (`blueSlate-100` blocks — no shimmer;
+  `prefers-reduced-motion` honored). **Error:** `strawberryRed-100` bg /
+  `strawberryRed-700` text panel + "Try again" filled `strawberryRed-600` button.
+- **Empty:** "No orders yet" + "Start shopping" filled primary button → Main Store.
 - **Role-based visibility:** any non-buyer → redirect; guards at route level.
 - **a11y:** status chip text never conveys state by color alone (label +
-  icon: ● / ◐ / → / ✓); timeline is a `list` with `aria-current="step"`.
+  icon inside the pill); timeline is a `list` with `aria-current="step"`;
+  focus ring 2px `atomicTangerine-500` offset 2; all tap targets ≥ 44px.

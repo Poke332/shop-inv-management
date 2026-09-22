@@ -1,6 +1,8 @@
 # Page: Inventory Dashboard — Design Spec (Sunset Glow)
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
+Typography & spacing per docs/design-tokens-round3.md (Inter 400/500/600, 8pt grid, unified pill badges, filled CTA stack).
+App shell & gutter (v4): `docs/control-panel/design.md` — the ops sidebar is a 230px `--ops-sidebar-w` token and the sidebar-to-content gutter is an explicit `.ops-content` padding (`--ops-page-pad` 32px desktop / 24px mobile), reset-proof by class specificity. This page's content sits 32px off the sidebar; its internal table/panel layout is unchanged by the shell spec.
 Ops panel page. Access: **staff/manager/admin** (page-list column), with
 matrix-driven feature gating inside:
 
@@ -51,29 +53,28 @@ matrix-driven feature gating inside:
 ![Inventory dashboard mockup](mockup.png)
 
 
-ASCII wireframe (desktop):
+ASCII wireframe (desktop — vertical 230px dark ops sidebar, not a top bar):
 
 ```
-+------------------------------------------------------------------+
-| OPS CONSOLE   [Ongoing Orders] [Inventory (3)] [Products] […]*  |
-+------------------------------------------------------------------+
-| INVENTORY                                                    + 5|
-|  ! NEEDS ATTENTION (3)  (carrotOrange banner)               0|
-|  +----------------------------------------------------------+  |
-|  | Sony WF-C710N · Audio · stock 0 · OUT  [ + set ] [Open edit] |
-|  | Logi MX Keys S · Gaming · stock 3 · LOW [ + set ] [Open edit] |
-|  +----------------------------------------------------------+  |
-|  ALL PRODUCTS (48)                                             |
-|  +----------------------------------------------------------+  |
-|  | Sony WF-C710N | Audio | Rp 1.290.000 | [ - 34 + ] | In stock |
-|  | Anker 735 PB  | Access| Rp 380.000   | [ -  5 + ] | Low      |
-|  | Razer V3      | Gaming| Rp 240.000   | [ -  2 + ] | Low      |
-|  | …        |        |            |          |          |  |
-|  +----------------------------------------------------------+  |
-* ops nav items are role-gated: staff sees Ongoing Orders +          |
-  Inventory(read-only) + Products(read-only); manager/admin all;     |
-  User Dashboard = admin only.                                       |
-+------------------------------------------------------------------+
++------------------+-------------------------------------------------------+
+| OPS CONSOLE      | INVENTORY        48 products · 3 need attention        |
+|------------------+-------------------------------------------------------|
+| Ongoing Orders [4]|| NEEDS ATTENTION [3]   (carrotOrange-100 banner)     |
+| > Inventory [3]  ||  ASUS RT-AX58 · Smart Home · stock 0 · OUT [Open editor] |
+| Products         ||  Logi MX Keys S · Gaming · stock 3 · LOW [Open editor]  |
+| Reviews          ||  Anker 735 PB · Accessories · stock 5 · LOW [Open editor]|
+| Users            |+-------------------------------------------------------|
+| (foot: role-gated| ALL PRODUCTS (48)                 [ Search name / category… ]|
+|  note)           |+-------------------------------------------------------|
+|                  | | Sony WF-C710N | Audio | Rp 1.290.000 | [- 34 +] | In stock |
+|                  | | Anker 735 PB  | Access| Rp 380.000   | [-  5 +] | Low |
+|                  | | Razer V3      | Gaming| Rp 240.000   | [-  2 +] | Low |
+|                  | … 43 more products · stock ≤ 5 flagged LOW            |
+|                  | (row actions: [ Set stock ] [ Open editor ] right-aligned)|
++------------------+-------------------------------------------------------+
+* ops nav items are role-gated: staff sees Ongoing Orders +
+  Inventory(read-only) + Products(read-only); manager/admin all;
+  User Dashboard = admin only.
 ```
 
 Mobile (<768px): table → card list (one product per card, stepper inside);
@@ -85,15 +86,15 @@ desktop-first (staff workstation) — mobile is a supported-but-degraded view.
 | Element | Token |
 |---|---|
 | Page canvas / table bg | `#FFFFFF` |
-| Ops sidebar / active item | `blueSlate-900` sidebar bg, `blueSlate-50` text; active item `atomicTangerine-500` left bar |
-| "Needs attention" banner | `carrotOrange-100` bg, `blueSlate-950` text, count in `carrotOrange-600` badge (low-stock warning role per color-tokens §3; t_1007e199 handoff) |
+| Ops sidebar (shared `OpsSidebar`) | 230px vertical, `blueSlate-900` bg, `blueSlate-50` text; active item `blueSlate-800` bg + 3px `atomicTangerine-500` left bar, weight 600; alert badge (`nbadge`) `strawberryRed-600` fill, white 12/600 count; sidebar title 12/600, `.1em` tracking |
+| "Needs attention" banner | `carrotOrange-100` bg + `carrotOrange-300` border, `blueSlate-950` text, count in `carrotOrange-600` badge (low-stock warning role per color-tokens §3; t_1007e199 handoff) |
 | Table row border / zebra | `blueSlate-200`; zebra `blueSlate-50` |
-| Status pill: in / low / out | `willowGreen-100` / `carrotOrange-100` / `strawberryRed-100`, text `blueSlate-900` (no color-only conveyance: pill has label text — see below) |
-| Stock stepper | `blueSlate-200` border, `blueSlate-950` value |
+| Status pill: in / low / out | `willowGreen-100` / `carrotOrange-100` / `strawberryRed-100` tints, text `blueSlate-900`, 12/600, padding 4×10 (no color-only conveyance: pill has label text — see below) |
+| Stock stepper | 44px cells, `blueSlate-200` border, `blueSlate-950` value; disabled side `blueSlate-100` bg + `blueSlate-500` |
 | "Open editor" link | `atomicTangerine-600` |
-| "Set stock" quick action | `atomicTangerine-500` bg white text |
+| "Set stock" quick action | filled `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label, radius 8px |
 | Save confirmation flash | `willowGreen-600` text on `willowGreen-100` row tint |
-| Alert badge (nav) | `strawberryRed-500` bg, white count |
+| Alert badge (nav `nbadge`) | `strawberryRed-600` bg, white count, 12/600 pill |
 
 Pills always carry text labels ("In stock", "Low", "Out of stock") — status is
 never color-only (a11y rule from ui-ux-pro-max).
@@ -107,11 +108,18 @@ never color-only (a11y rule from ui-ux-pro-max).
 - **Stepper:** change commits on blur / Enter (`PATCH /products/:id/stock`
   — high-level assumption); success row tint `willowGreen-100` for ~1s;
   failure inline `strawberryRed-600` "Save failed — retry" link. Min 0.
+- **Button state stack (round-3):** filled `atomicTangerine-600` idle →
+  `-700` hover → `-800` active; disabled = `blueSlate-100` fill +
+  `blueSlate-400` label; 44px min-height, 8px radius.
 - **Alerts:** banner items sort out-of-stock first, then low, by stock asc;
   clicking a row scrolls to / expands its table row.
 - **Search/filter inside table** (by name/category) — assumption, reuses
-  `SearchInput` pattern from Search/Browse (debounced 300ms).
-- **Loading:** table skeleton rows. **Error:** `strawberryRed` panel + retry.
+  `SearchInput` pattern from Search/Browse (debounced 300ms). Inputs: 44px
+  min-height, 8px radius, `blueSlate-200` border, placeholder `blueSlate-500`,
+  labels 13/600 `blueSlate-950`.
+- **Loading:** static table skeleton rows (no shimmer loops; skeletons stay
+  still under `prefers-reduced-motion`). **Error:** `strawberryRed` panel +
+  retry.
 - **Role-based visibility (summary):** staff = read-only + alerts;
   manager/admin = + steppers + editor links; User Dashboard nav item
   admin-only (separate doc).

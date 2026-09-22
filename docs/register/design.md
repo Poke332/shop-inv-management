@@ -2,6 +2,8 @@
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md` RBAC matrix.
 React component names are hints only — this is a design plan, not code.
+Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+unified pill badges, filled CTA stack).
 
 **SHARED LAYOUT (locked with Login, `docs/login/design.md`):** this page and Login share
 one layout — the two-panel `AuthLayout` below (brand panel + form card, same logo placement,
@@ -68,10 +70,10 @@ link, error). Register-only extras are marked below.
 | Page canvas | `#FFFFFF` |
 | Brand panel (desktop) | `blueSlate-900` bg, `tuscanSun-400` sun graphic, `blueSlate-50` tagline |
 | Card surface | canvas white, border `blueSlate-200`, radius 12px |
-| Labels / headings / input text | `blueSlate-950` |
+| Labels / headings / input text | `blueSlate-950` (labels 13/600; "Create account" heading 26/36 w600) |
 | Input placeholder | `blueSlate-500` |
-| Input border idle / hover / focus ring | `blueSlate-200` / `blueSlate-300` / `atomicTangerine-500` |
-| Primary button idle → active | `atomicTangerine-500` → `atomicTangerine-600`, white label |
+| Inputs | 44px min height, radius 8px, 1px `blueSlate-200` border; focus ring 2px `atomicTangerine-500`, offset 2; "show" toggle 12/500 `blueSlate-500` |
+| Primary button ("Create account →") | filled 44px: `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label; disabled = `blueSlate-100` bg + `blueSlate-400` text |
 | Sign-in link | `atomicTangerine-600`, underline on hover |
 | Error text / banner | `strawberryRed-600` on `strawberryRed-100`, border `strawberryRed-300` |
 

@@ -2,6 +2,8 @@
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Order flow: **Cart → Checkout → Orders Placed** (locked by the sheet's checkout use case).
+Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+unified pill badges, filled CTA stack).
 
 ## FEATURES
 
@@ -39,20 +41,20 @@ ASCII wireframe (desktop):
 
 ```
 +------------------------------------------------------------------+
-| LOGO  [ search bar................. ]   (cart:2)  (account)      |
+| Sunset Electronics [ search........ ]  (cart:2)  (account)       |
 +------------------------------------------------------------------+
-| CART (2)                                                         |
-| +--------------------------------------------------------+ ------|
-| | [img]  Sony WF-C710N — Rp 1.290.000                    |      |
-| |        Wireless Earbuds · Audio · Sony  [ -1+ ] Rp 1.29jt [x] |
-| | [img]  Anker 735 Power Bank — Rp 380.000               |      |
-| |        20 000 mAh · USB-C PD 140 W      [ -1+ ] Rp 380rb [x] |
-| +--------------------------------------------------------+ ------|
-| Summary panel (right col ≥768px):                              |
-|   Subtotal   Rp 1.670.000                                      |
-|   (payment/total TBD — see §FEATURES)                          |
-|   [ Proceed to checkout → ]  (primary, full width)            |
-|   Continue shopping                                             |
+| Cart (2 items)                                                  |
+| +--------------------------------------------+ +--------------+ |
+| | [84×84 tile] Sony WF-C710N — Rp 1.290.000  | | Subtotal      | |
+| |            Wireless Earbuds · Audio · Sony | | Rp 1.670.000 | |
+| |            [ − 1 + ]  Rp 1.290.000   [trash]| | (20/28 w600) | |
+| | -------------------------------------------| | Payment TBD  | |
+| | [84×84 tile] Anker 735 Power Bank — Rp380k | | [ Proceed to | |
+| |            20 000 mAh · USB-C PD 140 W     | |  checkout → ] | |
+| |            Low · 5 left  [ − 1 + ] Rp380k   | | Continue     | |
+| +--------------------------------------------+ + shopping     | |
+|  lines in one bordered card, 24px pad, 24px between lines;    | |
+|  summary panel 320px, blueSlate-50 bg, 32px gutter            | |
 +------------------------------------------------------------------+
 ```
 
@@ -64,15 +66,16 @@ the primary CTA must be reachable without scrolling on 390px.
 | Element | Token |
 |---|---|
 | Canvas / line border | `#FFFFFF` / `blueSlate-200` |
-| Product name / line total | `blueSlate-950` |
-| Unit price | `blueSlate-700` |
-| Quantity stepper | `blueSlate-200` border; disabled side `blueSlate-100`/`blueSlate-500` |
-| Remove (×) icon | `blueSlate-500` → hover `strawberryRed-600` |
+| Product name | `blueSlate-950` 15/24 w600; unit price in name line muted `blueSlate-700` 13/400 |
+| Line total / unit price value | `atomicTangerine-600` 14/20 w600 |
+| Low-stock line hint ("Low · 5 left") | `carrotOrange-600` 13/400 |
+| Quantity stepper | `blueSlate-200` border, radius 8px, 44px cells; value `blueSlate-950`; disabled side `blueSlate-100`/`blueSlate-500` |
+| Remove (trash) icon button | 44×44, `blueSlate-500` glyph → hover `strawberryRed-600` |
 | Stock-clamp note | `strawberryRed-600` |
-| Summary panel bg / border | `blueSlate-50` / `blueSlate-200` |
-| Subtotal label / value | `blueSlate-700` / `blueSlate-950` (value 20px) |
-| "Proceed to checkout" | `atomicTangerine-500` → `atomicTangerine-600` hover, white label |
-| "Continue shopping" link | `atomicTangerine-600` |
+| Summary panel bg / border | `blueSlate-50` / `blueSlate-200`, radius 12px |
+| Subtotal label / value | `blueSlate-700` 13/400 / `blueSlate-950` 20/28 w600 |
+| "Proceed to checkout" | filled 44px primary: `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label; disabled = `blueSlate-100` bg + `blueSlate-400` text |
+| "Continue shopping" link | `atomicTangerine-600` 13px, underline on hover |
 | Empty-cart icon + heading | `blueSlate-300` icon, `blueSlate-950` heading, helper `blueSlate-700` |
 
 ## INTERACTIONS
@@ -80,20 +83,26 @@ the primary CTA must be reachable without scrolling on 390px.
 (React: `CartPage`, `CartLine`, `QuantityStepper` (shared with Product Details),
 `CartSummary`.)
 
-- **Idle:** lines render in insertion order (assumption — most natural).
+- **Idle:** lines render in insertion order (assumption — most natural); each line is
+  44px-min touch height, row rhythm inside the lines card is 24px.
 - **Quantity:** `POST /cart/items/:id/qty` (assumption); stepper max = current stock
-  (fetched per line); at 1 the "−" disables.
-- **Remove:** line animates out; subtotal updates; header badge updates.
+  (fetched per line); at 1 the "−" disables (`blueSlate-100`/`blueSlate-500`).
+- **Remove:** line animates out (color-only when `prefers-reduced-motion`); subtotal
+  updates; header badge updates.
 - **Stock clamp:** if server returns reduced qty → line shows `strawberryRed` note;
   stepper max lowered.
 - **Empty state:** "Your cart is empty" + `blueSlate-300` outline cart icon +
-  "Start shopping" button (`atomicTangerine-500`).
+  "Start shopping" filled primary button (`atomicTangerine-600` → `-700` → `-800`
+  stack, white label).
 - **Checkout CTA enabling:** enabled only when ≥1 line AND no unresolved stock
-  conflict; empty → CTA removed (see empty state).
-- **Loading:** line skeletons; summary values show "…" placeholders.
+  conflict; disabled state = `blueSlate-100` bg + `blueSlate-400` label; empty → CTA
+  removed (see empty state).
+- **Loading:** static line skeletons (`blueSlate-100` blocks — no shimmer); summary
+  values show "…" placeholders.
 - **Error:** per-line retry link (`strawberryRed-600`) on quantity/remove failure;
-  page-level `strawberryRed` panel on cart load 5xx.
+  page-level `strawberryRed-100` bg / `strawberryRed-700` text panel on cart load 5xx.
 - **Role-based visibility:** staff/manager/admin have no route to this page
   (matrix F). If mis-routed → redirect to their dashboard.
 - **a11y:** each line a list item with name + total exposed; stepper buttons
-  labeled "Decrease/increase quantity for X"; badge count via `aria-label`.
+  labeled "Decrease/increase quantity for X"; badge count via `aria-label`;
+  focus ring 2px `atomicTangerine-500` offset 2.
