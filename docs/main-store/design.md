@@ -73,17 +73,20 @@ unified pill badges, filled CTA stack).
 
 ## VISUALIZATION
 
-![Main store homepage mockup](mockup.png)
+![Main store — top: header + full-bleed hero banner](mockup.png)
 
-> mockup.png rendered from _mockup-build/out/main-store.html via headless Chromium @ 2026-09-22
-> **Render caveat:** the tracked generator on this branch (`_mockup-build/lib.py` /
-> `pages_storefront.py`) renders main-store **grid-only** — no hero banner, no
-> 6-tile category rail. The v4 hero + rail HTML lives on the unmerged orphan
-> chain `f7ca077→680850e→b80abfe→11612b9` (merge-base 17da448, NOT an ancestor
-> of this branch), so the mockup above intentionally shows the tracked generator's
-> output, not the hero-composite asset. The hero banner and category rail remain
-> **spec-only** in this document (wireframe below + `docs/main-store/hero-banner.png`
-> asset), to be restored as the committed mockup only when that chain is merged.
+![Main store — bottom: category rail + Shop All grid + See more](mockup-bottom.png)
+
+> `mockup.png` = top viewport (1312×736): header + the full-bleed hero banner.
+> `mockup-bottom.png` = everything **below the banner** (Browse-by-category rail,
+> the Shop All product grid, and the "See more" button), captured with the CDP
+> clip harness `_mockup-build/capture_bottom.cjs` (region = from the hero's
+> bottom edge to end-of-content; the banner itself is already shown by mockup.png).
+> Both rendered from `_mockup-build/out/main-store.html` via headless Chromium.
+> The page no longer has a "Shop" page title — the hero banner leads the page
+> directly under the header, and the hero is **full-bleed** (edge-to-edge,
+> no rounded outer corners, no side inset); the category rail and product grid
+> below it stay in the centered `content-max` container.
 
 
 ASCII wireframe (desktop, ≥1024px):
@@ -92,16 +95,16 @@ ASCII wireframe (desktop, ≥1024px):
 +------------------------------------------------------------------+
 | Sunset Electronics [ pill search 44px min.... ]   (cart:3) (acct)|
 +------------------------------------------------------------------+
-| Shop                                                             |
-| +--------------------------------------------------------------+ |
-| | HERO BANNER  (full content width, 16:9, rounded 8px)         | |
-| |  [hero-banner.png]   ── copy block, right third ──          | |
-| |   eyebrow  "NEW SEASON GEAR"        (13/600, 0.05em track)  | |
-| |   H1       "Power everything."          (32/40 w600 white)  | |
-| |   sub      "Audio to wearables — new drops this week."      | |
-| |             (14/20 w400, blueSlate-100)                     | |
-| |   [ Shop the drop ]  (filled atomicTangerine-600, 44px)     | |
-| +--------------------------------------------------------------+ |
++------------------------------------------------------------------+  <- FULL-BLEED
+| HERO BANNER  (100vw, edge-to-edge, 16:9, NO rounded outer corners)|      hero
+|  [hero-banner.png]   ── copy block, right third ──               |      image
+|   eyebrow  "NEW SEASON GEAR"        (13/600, 0.05em track)      |      starts here
+|   H1       "Power everything."          (32/40 w600 white)      |      (no "Shop"
+|   sub      "Audio to wearables — new drops this week."           |       title above)
+|             (14/20 w400, blueSlate-100)                         |
+|   [ Shop the drop ]  (filled atomicTangerine-600, 44px)         |
++------------------------------------------------------------------+
+  (centered content-max container resumes below the banner)
 | Browse by category                     (section label 16/600)   |
 | +-------+ +-------+ +-------+ +-------+ +-------+ +-------+     |
 | | 40px  | | 40px  | | 40px  | | 40px  | | 40px  | | 40px  |     |
@@ -109,7 +112,7 @@ ASCII wireframe (desktop, ≥1024px):
 | | Audio | |Smart  | |Gaming | |Laptop | |Access | |Wear  |     |
 | | [12]  | |Home[8]| | [10]  | |& PC[9]| |ories[7]| |ables[5]|    |
 | +-------+ +-------+ +-------+ +-------+ +-------+ +-------+     |
-|              (6 tiles, card-gutter 32px, scrollable row)        |
+|              (6 tiles, card-gutter 32px, scrollable row)         |
 | Shop All                                                    (v4) |
 | +--------+ +--------+ +--------+ +--------+                    |
 | | [tile] | | [tile] | | [tile] | | [tile] |  grid4, 32px gutter |
@@ -121,6 +124,14 @@ ASCII wireframe (desktop, ≥1024px):
 |                        [ See more ]  (filled, 320px, 44px min)  |
 +------------------------------------------------------------------+
 ```
+
+> Round-8 note: the "Shop" page title was removed (the hero now leads the page
+> under the header) and the hero banner is **full-bleed** — it is laid out
+> *outside* the centered `.mstore` container, spanning 100vw edge-to-edge with
+> no rounded outer corners. `mockup.png` (top viewport) shows header + the
+> full-bleed banner; `mockup-bottom.png` (CDP clip from the hero's bottom edge
+> to end-of-content) shows the Browse-by-category rail + Shop All grid +
+> "See more" — the region the single 736px top shot previously cut off.
 
 > **intended-redesign (v4):** the v3 "single Shop All grid" wireframe lines above
 > were intentionally redrawn into the v4 layout — header → hero banner → Browse

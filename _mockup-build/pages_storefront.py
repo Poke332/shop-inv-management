@@ -33,9 +33,8 @@ display:flex;align-items:center;justify-content:center;cursor:pointer;transition
 
 # v4 main-store: hero banner + category rail (docs/main-store/design.md)
 MAINSTORE_CSS = """
-.mstore{max-width:var(--content-max);margin:0 auto;padding:40px 48px 0}
-.shop-h1{margin-bottom:var(--section-rhythm)}
-.hero{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;margin-bottom:var(--section-rhythm)}
+.mstore{max-width:var(--content-max);margin:0 auto;padding:0 48px}
+.hero{position:relative;aspect-ratio:16/9;width:100%;overflow:hidden;margin-bottom:var(--section-rhythm)}
 .hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center right}
 .hero-copy{position:absolute;right:48px;top:50%;transform:translateY(-50%);max-width:380px;text-align:left}
 .hero-copy>*+*{margin-top:12px}
@@ -145,17 +144,16 @@ SHOP_ALL = [
 
 PAGES["main-store"] = page_wrap(
     f'''{shead("3")}
-<div class="mstore">
-  <h1 class="h1 shop-h1">Shop</h1>
-  <div class="hero">
-    <img src="../../docs/main-store/hero-banner.png" alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface" loading="eager" fetchpriority="high">
-    <div class="hero-copy">
-      <div class="hero-eyebrow">NEW SEASON GEAR</div>
-      <h2 class="hero-h2">Power everything.</h2>
-      <div class="hero-sub">Audio to wearables — new drops this week.</div>
-      <a class="btn-p" href="#shop-all">Shop the drop</a>
-    </div>
+<div class="hero">
+  <img src="../../docs/main-store/hero-banner.png" alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface" loading="eager" fetchpriority="high">
+  <div class="hero-copy">
+    <div class="hero-eyebrow">NEW SEASON GEAR</div>
+    <h2 class="hero-h2">Power everything.</h2>
+    <div class="hero-sub">Audio to wearables — new drops this week.</div>
+    <a class="btn-p" href="#shop-all">Shop the drop</a>
   </div>
+</div>
+<div class="mstore">
   <div style="margin-bottom:var(--section-label-gap)">
     <div class="sec-label">Browse by category</div>
   </div>
