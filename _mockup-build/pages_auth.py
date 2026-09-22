@@ -23,7 +23,9 @@ def auth_layout(title, h1, fields_html, submit_label, link_html):
         <div style="margin-top:20px;font-size:14px;line-height:20px;font-weight:400;color:var(--bs-700);text-align:center">{link_html}</div>
       </div>
     </div>'''
-    body = f'<div style="display:flex;min-height:736px;background:#fff">{brand}{form}</div>'
+    # R7 §11.2: auth pages take the dominant-ground treatment — form side sits
+    # on the tuscanSun-50 ground; the 450px form card above stays #fff (30% surface).
+    body = f'<div style="display:flex;min-height:736px;background:var(--canvas)">{brand}{form}</div>'
     return page_wrap(body, "", title)
 
 def text_field(label, ph):
