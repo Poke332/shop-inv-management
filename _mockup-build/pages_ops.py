@@ -50,10 +50,15 @@ padding:0 12px;font-size:14px;font-weight:500;color:var(--bs-950);background:#ff
 .hint{color:var(--sr-700);font-size:13px;font-weight:500}
 .btn-c{min-height:44px;padding:0 16px}
 .btn-s{min-height:44px;padding:0 16px}
-.approve{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 16px;
-border-radius:8px;border:none;cursor:pointer;background:var(--wg-600);color:#fff;
-font-family:var(--font-sans);font-size:14px;line-height:20px;font-weight:500;transition:background-color 150ms ease}
-.approve:hover{background:var(--wg-700)} .approve:active{background:var(--wg-800)}
+/* round 6 (docs/per-product-review-panel/design.md): no .approve — reviews are public on
+   submission; the only actions are hide/unhide + seller comment. Unhide is reversible,
+   non-destructive → willowGreen-600 text on the secondary shape, not danger-colored. */
+.btn-sec.unhide{color:var(--wg-600)}
+/* seller-comment composer: full-width textarea, 1px bs-200 border radius 10px;
+   Save = filled atomicTangerine-600 CTA (44px, .btn-p), Cancel = secondary */
+.scomposer{margin-top:12px;padding-top:12px;border-top:1px solid var(--bs-200)}
+/* "Edit comment" dot: a comment already exists (blueSlate-500, spec) */
+.sc-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--bs-500);margin-left:4px}
 """
 
 def ops_shell(active, badges, content_html, title):
@@ -156,31 +161,56 @@ PAGES["per-product-dashboard"] = ops_shell(
     "Per Product Dashboard")
 
 # ---------------- review panel ----------------
-def rv_card(stars_n, quote, buyer, order, actions):
+# round 6 (docs/per-product-review-panel/design.md): auto-approve — no pending/approved queue,
+# no approve, no delete. Two sections: PUBLIC (newest first) + HIDDEN (collapsed, clearly
+# labelled so a manager can confirm what the public is NOT seeing). Every row: stars,
+# anonymized buyer + order, description, state pill, [Hide|Unhide] + [Add|Edit comment]
+# (composer opens inline under the row — .scomposer).
+def rv_card(stars_n, quote, buyer, order, state, comment=None, show_composer=False, composer_val=""):
+    pillcls = "pill-rv-public" if state == "public" else "pill-rv-hidden"
+    toggle = ('<button class="btn-sec btn-s">Hide</button>' if state == "public"
+             else '<button class="btn-sec btn-s unhide">Unhide</button>')
+    if comment:
+        cbtn = f'<button class="btn-sec btn-s">Edit comment<span class="sc-dot" aria-hidden="true"></span></button>'
+    else:
+        cbtn = '<button class="btn-sec btn-s">Add comment</button>'
+    composer = ""
+    if show_composer:
+        composer = f'''<div class="scomposer">
+        <label class="label" for="sc">Seller comment</label>
+        <textarea class="input wfull" id="sc" style="min-height:66px;border-radius:10px;margin-top:8px" aria-label="Seller comment">{composer_val}</textarea>
+        <div style="display:flex;gap:12px;margin-top:12px"><button class="btn-p btn-c">Save comment</button><button class="btn-sec btn-s">Cancel</button></div>
+      </div>'''
     return f'''<div class="rvcard">
-    <div style="display:flex;align-items:center;gap:10px">{stars(stars_n)}<span class="rvtext">“{quote}”</span></div>
+    <div style="display:flex;align-items:center;gap:10px">{stars(stars_n)}<span class="rvtext">“{quote}”</span>
+      <span class="pill {pillcls}" style="margin-left:auto" aria-label="{state}">{"Public" if state == "public" else "Hidden"}</span></div>
     <div class="rvmeta">— {buyer} (order {order})</div>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">{actions}</div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">{toggle}{cbtn}</div>
+    {composer}
   </div>'''
 
 PAGES["per-product-review-panel"] = ops_shell(
     "Reviews",
-    {"Reviews": 7},
+    {"Reviews": 128},
     f'''<div style="flex:1;min-width:0;display:flex;flex-direction:column">
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
       <h1 class="h1">Reviews</h1>
       <span class="muted">Product:</span>
       <div class="selectbox">Sony WF-C710N (P-231) ▾</div>
-      <span class="meta" style="margin-left:auto">7 pending / 42 total</span>
+      <span class="meta" style="margin-left:auto">122 public / 6 hidden · 128 total</span>
     </div>
-    <div class="secthead"><div class="bar" style="background:var(--ts-500)"></div><span class="sec-label" style="font-size:13px">Pending</span><span class="count-badge">7</span></div>
-    {rv_card(4,"Solid build, ANC keeps up on the train…","buyer_102 · Sony WF-C710N ×1","#WB-0987",
-        '<button class="approve">Approve</button><button class="btn-sec btn-s">Hide</button><button class="btn-del btn-c">Delete</button>')}
-    {rv_card(5,"Fast charge, great for travel","buyer_207 · Anker 735 PB ×1","#WB-0951",
-        '<button class="approve">Approve</button><button class="btn-sec btn-s">Hide</button><button class="btn-del btn-c">Delete</button>')}
-    <div class="secthead" style="margin-top:16px"><div class="bar" style="background:var(--wg-500)"></div><span class="sec-label" style="font-size:13px">Approved</span><span class="count-badge">34</span><a class="link" style="margin-left:auto">Expand ▾</a></div>
-    <div class="secthead" style="margin-top:12px"><div class="bar" style="background:var(--bs-400)"></div><span class="sec-label" style="font-size:13px">Hidden</span><span class="count-badge">6</span><a class="link" style="margin-left:auto">Expand ▾</a></div>
-    <div class="meta" style="margin-top:auto;padding-top:12px">Moderation: pending → approve / hide / delete · hidden → restore / delete · staff have no access to this panel</div>
+    <!-- PUBLIC: reviews are public on submission (round 6); newest first. -->
+    <div class="secthead"><div class="bar" style="background:var(--wg-500)"></div><span class="sec-label" style="font-size:13px">Public</span><span class="count-badge">122</span><span class="meta" style="margin-left:auto">shown on product page ↓</span></div>
+    {rv_card(4,"Solid build, ANC keeps up on the train…","buyer_102 · Sony WF-C710N ×1","#WB-0987","public",
+             comment="Thanks — firmware 2.1 improved ANC.", show_composer=True, composer_val="Thanks — firmware 2.1 improved ANC.")}
+    {rv_card(5,"Fast charge, great for travel","buyer_207 · Anker 735 PB ×1","#WB-0951","public",
+             comment="We ship the 20 000 mAh variant — 36 h max.")}
+    {rv_card(3,"OK sound, case is bulkier than expected","buyer_348 · Sony WF-C710N ×1","#WB-0922","public")}
+    <!-- HIDDEN: not public, still counts in the 128 total; collapsed behind its count header. -->
+    <div class="secthead" style="margin-top:16px"><div class="bar" style="background:var(--bs-400)"></div><span class="sec-label" style="font-size:13px">Hidden</span><span class="count-badge">6</span><span class="meta" style="margin-left:auto">not public · still counts in total</span><a class="link" style="margin-left:8px">Expand ▾</a></div>
+    {rv_card(2,"Arrived cracked in the mail","buyer_311 · Sony WF-C710N ×1","#WB-0890","hidden",
+             comment="Replacement shipped — order #WB-0901.")}
+    <div class="meta" style="margin-top:auto;padding-top:12px">Reviews are public on submission (no approval step) · actions per row: hide/unhide + seller comment · a seller comment renders publicly beneath the review while it is public · hidden reviews keep counting in the total (128 = 122 public + 6 hidden; stars counted in the average — TBD) · staff have no access to this panel</div>
   </div>''',
     "Per Product Review Panel")
 

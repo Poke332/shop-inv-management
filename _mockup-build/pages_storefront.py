@@ -219,9 +219,9 @@ PAGES["search-browse"] = page_wrap(
 PAGES["product-details"] = page_wrap(
     f'''{shead("2")}
 <div style="padding:20px 24px">
-  <a class="meta" href="#" style="color:var(--at-600);margin-bottom:16px;display:inline-block">← Back to shop</a>
-  <div style="display:flex;gap:32px">
-    <div style="width:440px;flex:none;min-width:0">
+<a class="meta" href="#" style="color:var(--at-600);margin-bottom:16px;display:inline-block">← Back to shop</a>
+<div class="pd-flex">
+  <div class="pd-media">
       <div style="position:relative">
         <div class="ptile" style="height:330px;background:{TILE_GRADS['audio']};border:1px solid var(--bs-200)">{glyph("earbuds")}</div>
         <span class="tb tb-sale" style="top:8px;left:8px">On sale</span>
@@ -233,7 +233,7 @@ PAGES["product-details"] = page_wrap(
         <div class="pimg" style="width:84px;height:64px;background:{TILE_GRADS['wear']}">{glyph("watch",32)}</div>
       </div>
     </div>
-    <div style="flex:1;min-width:0">
+    <div class="pd-info">
       <div class="meta">Sony</div>
       <h1 class="h1" style="margin:4px 0 8px">Sony WF-C710N Wireless Earbuds</h1>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -273,22 +273,42 @@ PAGES["product-details"] = page_wrap(
       </div>
     </div>
   </div>
+  <!-- round 6 (docs/product-details/design.md): count = public + hidden; list shows public
+       reviews only (no approve/deny affordance anywhere); hidden reviews never render here.
+       Seller comment block beneath a review — absent when the seller hasn't commented. -->
   <div style="margin-top:40px">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="sec-label">Reviews (128)</div>
-      <span class="meta">filter: all / ★1 / ★2 / ★3 / ★4 / ★5</span>
-    </div>
-    <div style="border:1px solid var(--bs-200);border-radius:10px;padding:16px;margin-top:16px">
+    <div class="sec-label" style="margin-bottom:16px">Reviews (128)</div>
+    <div style="border:1px solid var(--bs-200);border-radius:10px;padding:16px">
       <div style="display:flex;align-items:center;gap:10px">
         {stars(4)}
         <span style="font-weight:500;color:var(--bs-950)">“Solid build, ANC keeps up on the train”</span>
         <span class="meta" style="margin-left:auto">12 Sep 2026</span>
       </div>
       <div class="meta" style="margin-top:8px">buyer_102 · purchased Sony WF-C710N ×1</div>
+      <div class="scomment">
+        <div class="lbl">Seller</div>
+        <div class="body">Thanks — firmware 2.1 improved ANC.</div>
+        <div class="dt">14 Sep</div>
+      </div>
     </div>
   </div>
 </div>''',
-    "", "Product Details")
+    '''/* round 6: seller comment — indented 16px beneath the review, 2px blueSlate-200 left border
+   (spec §COMPONENTS: label bs-950 13/600 · body bs-700 14/22 w400 · date bs-500 13/400) */
+.scomment{margin:12px 0 0 16px;padding:4px 0 4px 16px;border-left:2px solid var(--bs-200)}
+.scomment .lbl{font-size:13px;line-height:20px;font-weight:600;color:var(--bs-950)}
+.scomment .body{font-size:14px;line-height:22px;font-weight:400;color:var(--bs-700);margin-top:2px}
+.scomment .dt{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-500);margin-top:4px}
+/* mobile (<768px): image stacks on top (4:3 crop), info column below; grid gap 32px → 24px
+   (spec §COMPONENTS, mobile line). The desktop row keeps the 440px media column. */
+.pd-flex{display:flex;gap:32px}
+.pd-media{width:440px;flex:none;min-width:0}
+.pd-info{flex:1;min-width:0}
+@media (max-width:767px){
+  .pd-flex{flex-direction:column;gap:24px}
+  .pd-media{width:100%}
+}
+''', "Product Details")
 
 # ---------------- cart ----------------
 PAGES["cart"] = page_wrap(

@@ -110,6 +110,10 @@ letter-spacing:.02em;color:var(--bs-900);white-space:nowrap;background:var(--bs-
 .pill-shipped{background:var(--bs-100)} .pill-delivered{background:var(--wg-100)}
 .pill-in{background:var(--wg-100)} .pill-low{background:var(--co-100)} .pill-out{background:var(--sr-100)}
 .pill-active{background:var(--wg-100)} .pill-disabled{background:var(--sr-100)}
+/* round 6 review state pills (docs/per-product-review-panel/design.md): reuse existing scale
+   tokens, no new colors. Public = willowGreen-100/700; Hidden = strawberryRed-100/700 (soft). */
+.pill-rv-public{background:var(--wg-100);color:var(--wg-700)}
+.pill-rv-hidden{background:var(--sr-100);color:var(--sr-700)}
 /* card badge pills (on tiles; §3.1 fills + borders) */
 .tb{position:absolute;display:inline-flex;align-items:center;gap:4px;border-radius:var(--radius-pill);
 padding:var(--badge-pad-y) var(--badge-pad-x);font-size:12px;line-height:16px;font-weight:600;letter-spacing:.02em;
