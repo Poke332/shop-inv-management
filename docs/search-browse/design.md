@@ -88,9 +88,12 @@ Wireless Earbuds", "Anker 735 Power Bank 20 000 mAh", "Razer BlackWidow V3",
 
 ## COLOR USAGE
 
+> **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/panel/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA / price) · `strawberryRed-600` (sale / error / destructive) · `carrotOrange-500` (low-stock / secondary) · `tuscanSun-500` (featured / star) — used sparingly, ~10% of the surface.
+> **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Control-panel / ops pages are **out of scope**: their dark `blueSlate-900` sidebar + content gutter chrome is unchanged.
+
 | Element | Token |
 |---|---|
-| Canvas / cards | `#FFFFFF`, card border `blueSlate-200` |
+| **Canvas / page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — result cards and the filter rail sit on it as `#FFFFFF` / `blueSlate-50` 30% surface; card border `blueSlate-200` |
 | Result count, helper text | `blueSlate-700` 13/400 |
 | Rail section titles ("Filters", "Category", "Brand", "Price") | `blueSlate-950` 16/24 w600, .05em tracking, sentence case |
 | Filter option idle / active-selected | `blueSlate-950` / selected row `atomicTangerine-50` bg with `atomicTangerine-600` text (category rows); brand checkboxes `accent-color` `atomicTangerine-500` |

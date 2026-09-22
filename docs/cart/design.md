@@ -65,9 +65,12 @@ the primary CTA must be reachable without scrolling on 390px.
 
 ## COLOR USAGE
 
+> **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/panel/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA / price) · `strawberryRed-600` (sale / error / destructive) · `carrotOrange-500` (low-stock / secondary) · `tuscanSun-500` (featured / star) — used sparingly, ~10% of the surface.
+> **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Control-panel / ops pages are **out of scope**: their dark `blueSlate-900` sidebar + content gutter chrome is unchanged.
+
 | Element | Token |
 |---|---|
-| Canvas / line border | `#FFFFFF` / `blueSlate-200` |
+| **Canvas / page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — the cart lines card and the 30% summary panel (`#FFFFFF` / `blueSlate-50` fill) sit on it; line border `blueSlate-200` |
 | Product name | `blueSlate-950` 15/24 w600; unit price in name line muted `blueSlate-700` 13/400 |
 | Line total / unit price value | `atomicTangerine-600` 14/20 w600 |
 | Low-stock line hint ("Low · 5 left") | `carrotOrange-600` 13/400 |

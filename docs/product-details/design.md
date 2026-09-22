@@ -98,9 +98,12 @@ Mobile: image stacks on top (4:3 crop), info column below; grid gap 32px → 24p
 
 ## COLOR USAGE
 
+> **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/panel/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA / price) · `strawberryRed-600` (sale / error / destructive) · `carrotOrange-500` (low-stock / secondary) · `tuscanSun-500` (featured / star) — used sparingly, ~10% of the surface.
+> **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Control-panel / ops pages are **out of scope**: their dark `blueSlate-900` sidebar + content gutter chrome is unchanged.
+
 | Element | Token |
 |---|---|
-| Canvas | `#FFFFFF` |
+| **Canvas / page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — the hero-info column, spec/description/review cards and the quantity/CTA row sit on it as `#FFFFFF` 30% surface (border `blueSlate-200`) |
 | Product name | `blueSlate-950` h1 26/36 w600; brand subline `blueSlate-700` 13/400 |
 | Hero price | `atomicTangerine-600` 24/32 w600 |
 | Strike price | `blueSlate-600` 13/400, line-through |

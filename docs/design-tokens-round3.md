@@ -4,7 +4,9 @@ Source of truth for every pixel decision in Round-3 mockups and the future React
 Colors: `docs/color-tokens.md` (Sunset Glow 50–950, 7 families). Role-accent + RBAC gating:
 color-tokens §5. This document adds the **typography, spacing, and component layers** on top of
 the color tokens. No value here may introduce a color outside the 77-value scale + `#FFFFFF`
-canvas.
+surface. (Round 7, §11: `#FFFFFF` is demoted from the dominant canvas to the
+30% surface layer; the new 60% dominant ground is `tuscanSun-50` #FEF7E6 —
+itself an in-scale 77-value tone, so no out-of-scale color is introduced.)
 
 Round-3 goal: look built, not templated — real type hierarchy, 8pt rhythm, filled CTAs, badge
 pills, and product tiles that don't read as line-art placeholders.
@@ -372,3 +374,99 @@ Known limits (by design, documented): bare `tuscanSun-500` and `carrotOrange-500
 `blueSlate-200` card borders are decorative framing (1.62:1 vs white) — they never carry
 meaning; state chips use tint+text instead. `blueSlate-500` placeholder text is 4.05:1 →
 large-text/decorative only, per color-tokens §6.
+
+## 11. Color usage ratio — 60 : 30 : 10 (Round 7)
+
+Round 3 shipped on a pure `#FFFFFF` canvas, which reads flat/blank. Round 7 applies the
+classic **60 : 30 : 10** distribution to the buyer-facing storefront so the surface is layered
+and warm. This is a **usage-ratio change, not a new palette** — every value below is one of
+the 77 in-scale tones + the demoted white. Nothing out-of-scale is introduced.
+
+### 11.1 The three layers (exact tokens, all in-scale)
+
+| Layer | Share | Token | Hex | Role |
+|---|---|---|---|---|
+| **Dominant ground** | **60%** | `tuscanSun-50` | `#FEF7E6` | page background — the warm light ground that replaces the `#FFFFFF` canvas; carries the "Sunset Glow" warmth without competing with content |
+| **Secondary surface** | **30%** | `#FFFFFF` (card/panel/form-field fill) | `#FFFFFF` | now sits **on** the warm ground (was the canvas itself); depth reads as a bright panel floating on the tinted ground. `blueSlate-50` stays the alternate soft surface where the design already called for it |
+| **Accent** | **10%** | `atomicTangerine-600` `#C14B0B` (primary CTA/price), `strawberryRed-600` `#C60609` (sale/error/destructive), `carrotOrange-500` `#F78B08` (low-stock/secondary), `tuscanSun-500` `#F6AF09` (featured/star) | — | highest-attention elements only: primary buttons, sale/discount badges, stock alerts, featured marks. Kept to ~10% of the surface so the eye lands on it |
+
+- **60% ground:** set as the `body`/page background. Replaces `--canvas:#FFFFFF` in the
+  generator (`_mockup-build/lib.py`) and the "Canvas" row in each storefront page doc's
+  COLOR-USAGE table. A subtle warm wash built from in-scale tones is also acceptable where a
+  flat fill feels too static, but it must stay within the 77-value scale (e.g. a
+  `tuscanSun-50 → blueSlate-50` wash). No gradient may introduce a hue outside the scale.
+- **30% surfaces:** cards, panels, form fields, and badge tints keep their existing white /
+  `blueSlate-50` / `blueSlate-100` fills; they become visually *distinct* from the new warm
+  ground, which is the whole point of the ratio. No surface token changes — only its
+  relationship to the ground changes.
+- **10% accent:** unchanged from color-tokens §3/§5 (primary `atomicTangerine-600` stack,
+  destructive/sale `strawberryRed-600`, low-stock `carrotOrange`, featured `tuscanSun-500`).
+  The ratio is a *discipline on how much* accent may appear, not a new set of colors.
+
+### 11.2 On-ground contrast deltas (recomputed on `tuscanSun-50` #FEF7E6 — do not eyeball)
+
+The ground is near-white warm, so most on-ground pairs barely move. Pairs that **change** vs
+the white-canvas baseline, computed per WCAG 2.1 (formula self-tested against the §10 ledger
+anchors, all exact):
+
+| Pair | On white (R3) | On ground (R7) | Verdict on ground |
+|---|---|---|---|
+| `blueSlate-950` text | 18.83 | **17.63** | AAA ✓ |
+| `blueSlate-700` text | 8.63 | **8.08** | AA ✓ |
+| `blueSlate-600` strike/meta | 5.82 | **5.45** | AA ✓ |
+| `blueSlate-500` placeholder | 4.05 | **3.79** | still large/decorative only (consistent with the §10 limit — placeholder text was already <4.5 on white; no regression, no new text use allowed) |
+| `atomicTangerine-600` price/link (text) | — | **4.60** | AA ✓ for ≥ 14px text; for small labels the price stays 600 weight + size per §1 |
+| `strawberryRed-700` (error text) | — | **8.61** | AAA ✓ |
+| `atomicTangerine-500` focus ring (non-text) | 3.33 | **3.11** | still ≥ 3:1 ✓ (WCAG 1.4.11 non-text) |
+
+**Documented limit on ground (by design, carries the existing "decorative borders" rule):**
+`blueSlate-200` card borders drop from 1.62:1 (vs white) to **1.52:1** vs the warm ground, and
+`atomicTangerine-400` hover borders drop to **2.49:1** — both remain **decorative framing that
+carries no meaning** (state is always tint + text, never border alone), matching the §10
+"known limits" note. No new meaning is conveyed by any border, so the WCAG 1.4.11 3:1 requirement
+for *meaning-bearing* UI-component boundaries is not violated. White surface-on-ground edge is
+**1.07:1** — an intentional soft warm halo, not a boundary that must clear 3:1 (the card is a
+surface, not a control; focus rings and badges carry the meaningful boundaries, and those
+clear 3:1 per above).
+
+### 11.3 Which pages are in scope
+
+- **In scope (buyer-facing storefront):** main-store, search-browse, product-details, cart,
+  checkout, orders-placed, login, register. All eight COLOR-USAGE tables get their "Canvas"
+  row switched to the `tuscanSun-50` ground and the surface layer made explicit (see each page
+  doc).
+- **Out of scope (ops / control-panel):** inventory-dashboard, per-product-dashboard,
+  per-product-review-panel, ongoing-orders, user-dashboard — and the shared `control-panel`
+  app-shell. These keep their dark `blueSlate-900` `.ops-sidebar` + `.ops-content` gutter
+  chrome **unchanged**; if a panel's content area happens to sit on the same warm ground that
+  is acceptable, but **no layout or chrome change** is made to them. The 60:30:10 ratio is a
+  storefront-bias: the ops shell is intentionally high-density and dark, not a warm ground.
+
+### 11.4 Conformance-gate re-baselining requirement
+
+This section **changes the framework spec** (`docs/design-tokens-round3.md`), so the
+conformance-gate framework lock must be **re-baselined** to the commit that introduces it:
+
+- Gate check `[1]` (framework byte-identical to lock) will FAIL against the old lock
+  `356edf3` by design — that is the re-baseline trigger, not a drift error.
+- Gate check `[2]` (color conformance) already whitelists the 77-value scale; `tuscanSun-50`
+  `#FEF7E6` is in-scale, so it passes **without a scanner change**. The gate's mental
+  "canvas = `#FFFFFF`" assumption is the only thing to update: the dominant ground is now
+  `tuscanSun-50`, and `#FFFFFF` is a sanctioned 30% surface tone, not the background. The gate
+  must keep catching out-of-scale hexes and weight > 600 and off-8pt spacing — no relaxation.
+- Re-baseline happens **after** the `design-tokens-round3.md` + page-doc changes land: point
+  `verify_framework.sh` / `verify_framework.cjs` `LOCK` at the new commit, re-run, expect GREEN.
+- The 30% white surface and 10% accents are already in the sanctioned set, so **no scanner
+  whitelist change** is required — only the lock re-baseline + the §11 documentation of the
+  on-ground "known limits" above.
+
+### 11.5 What changed vs Round 3 (the diff)
+
+| Element | Round 3 | Round 7 |
+|---|---|---|
+| Page background (dominant) | `#FFFFFF` canvas (flat) | `tuscanSun-50` `#FEF7E6` warm ground (60%) |
+| Card/panel/form fill | `#FFFFFF` canvas (invisible on same bg) | `#FFFFFF` surface (30%, now reads as depth on warm ground) |
+| Accent share | unmapped, ad hoc | disciplined to ~10% (CTA / sale / stock / featured) |
+| Framework lock | `356edf3` | re-baseline to the commit that adds this §11 |
+| Ops / control panels | white + dark sidebar | **unchanged** (out of scope for the ratio) |
+

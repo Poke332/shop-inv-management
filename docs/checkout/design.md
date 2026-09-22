@@ -82,9 +82,12 @@ load), sticky bottom bar with "Place order" + total on 390px.
 
 ## COLOR USAGE
 
+> **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/panel/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA / price) · `strawberryRed-600` (sale / error / destructive) · `carrotOrange-500` (low-stock / secondary) · `tuscanSun-500` (featured / star) — used sparingly, ~10% of the surface.
+> **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Control-panel / ops pages are **out of scope**: their dark `blueSlate-900` sidebar + content gutter chrome is unchanged.
+
 | Element | Token |
 |---|---|
-| Canvas / form border | `#FFFFFF` / `blueSlate-200`, radius 12px, card padding 24px |
+| **Canvas / page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — the two shipping/review cards and the order-review summary panel sit on it as `#FFFFFF` 30% surface (border `blueSlate-200`, card padding 24px, radius 12px) |
 | Section step numbers | 26px circles, `atomicTangerine-600` fill, white 13/600 digit |
 | Section titles ("Shipping address", "Review your order") | `blueSlate-950` 16/24 w600 |
 | Labels | `blueSlate-950` 13/600; input text 14px, placeholder `blueSlate-500` |

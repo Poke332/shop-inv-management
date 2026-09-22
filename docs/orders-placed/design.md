@@ -72,9 +72,12 @@ review block goes full-width inside its card (no bottom sheet in round 3).
 
 ## COLOR USAGE
 
+> **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/panel/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA / price) · `strawberryRed-600` (sale / error / destructive) · `carrotOrange-500` (low-stock / secondary) · `tuscanSun-500` (featured / star) — used sparingly, ~10% of the surface.
+> **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Control-panel / ops pages are **out of scope**: their dark `blueSlate-900` sidebar + content gutter chrome is unchanged.
+
 | Element | Token |
 |---|---|
-| Canvas / card border | `#FFFFFF` / `blueSlate-200`, radius 12px; card rows 16px 20px padding, 44px min header row |
+| **Canvas / page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — order cards and the review-form inset sit on it: card border `blueSlate-200`, radius 12px; rows keep their 16px 20px padding and 44px min header row; the review block's `blueSlate-50` inset is the alternate 30% surface |
 | Order id / date | `blueSlate-950` 14/600 / `blueSlate-700` 13/400 |
 | Status chips (pending/processing/shipped/delivered) | per color-tokens §3: `tuscanSun-100` / `seagrass-100` / `blueSlate-100` / `willowGreen-100` fills, `blueSlate-900` 12/600 label (● / ✓ glyph inside the pill) |
 | Timeline: done / current / upcoming | 14px dots `willowGreen-500` / `atomicTangerine-500` / `blueSlate-200`; 44px connector lines `blueSlate-200` (`willowGreen-500` where done); step labels `blueSlate-700` 13/500, current step `blueSlate-950` w600 |

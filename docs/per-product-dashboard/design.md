@@ -3,6 +3,15 @@
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Typography & spacing per docs/design-tokens-round3.md (Roboto 400/500/600, 8pt grid, unified pill badges, filled CTA stack).
 App shell & gutter (v4): `docs/control-panel/design.md` — the ops sidebar is a 230px `--ops-sidebar-w` token and the sidebar-to-content gutter is an explicit `.ops-content` padding (`--ops-page-pad` 32px desktop / 24px mobile), reset-proof by class specificity. This page's content sits 32px off the sidebar; its internal table/panel layout is unchanged by the shell spec.
+
+> **Round-7 scope note (out of scope — layout unchanged):** the round-7
+> 60:30:10 storefront color-ratio change (`design-tokens-round3.md` §11 — warm
+> `tuscanSun-50` #FEF7E6 dominant ground) applies **only to the buyer-facing
+> storefront**. This ops page is **out of scope for layout changes**: the dark
+> `blueSlate-900` sidebar + `.ops-content` gutter stay exactly as
+> `docs/control-panel/design.md` specifies. If the `.ops-content` area sits on
+> the warm ground, that is acceptable; the panel chrome is unchanged.
+
 Access: **manager/admin only** (matrix: add new product / update stock
 quantity / change product details all F for buyer+staff). This is the
 product CRUD console: list, add, edit (pre-filled form per the sheet).
