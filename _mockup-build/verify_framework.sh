@@ -2,7 +2,7 @@
 # verify_framework.sh — v3-framework conformance gate (entry point).
 #
 # Validates the current checkout (repo root or git worktree) against the v3
-# framework lock (commit 17da448 by default):
+# framework lock (commit 356edf3 by default):
 #   [1] docs/design-tokens-round3.md + docs/color-tokens.md byte-identical to the lock
 #   [2] 13 out/*.html + 13 docs/<page>/design.md: no hex outside the Sunset Glow 50–950 scale (+ #FFFFFF canvas)
 #   [3] no font-weight > 600
@@ -19,7 +19,7 @@
 set -u
 cd "$(dirname "$0")/.."   # repo/worktree root
 
-LOCK="${LOCK:-17da448}"
+LOCK="${LOCK:-356edf3}"
 COMMIT="${COMMIT:-HEAD}"
 
 # --- 0) rebuild out/*.html from the tracked generator source (always — out/ is

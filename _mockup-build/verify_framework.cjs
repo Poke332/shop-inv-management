@@ -35,7 +35,7 @@ const { execSync } = require("child_process");
 
 const args = process.argv.slice(2);
 const getArg = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
-const LOCK = getArg("--lock", "17da448");
+const LOCK = getArg("--lock", "356edf3");
 const HEAD = getArg("--commit", "HEAD");
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.join(ROOT, "_mockup-build", "out");
