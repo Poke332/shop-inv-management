@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # verify_framework.sh — v3-framework conformance gate (entry point).
 #
-# Validates the current checkout (repo root or git worktree) against the v3
-# framework lock (commit 356edf3 by default):
+# Validates the current checkout (repo root or git worktree) against the framework
+# lock (commit 142e69a by default — round-7 60:30:10 design-tokens spec):
 #   [1] docs/design-tokens-round3.md + docs/color-tokens.md byte-identical to the lock
-#   [2] 13 out/*.html + 13 docs/<page>/design.md: no hex outside the Sunset Glow 50–950 scale (+ #FFFFFF canvas)
+#   [2] 13 out/*.html + 13 docs/<page>/design.md: no hex outside the Sunset Glow 50–950 scale
+#       (+ sanctioned canvas #FEF7E6 tuscanSun-50 warm ground + #FFFFFF 30% surface)
 #   [3] no font-weight > 600
 #   [4] padding/margin/gap on the 8pt grid (framework-exempt component px values allowed)
 #   [5] framework-referencing lines deleted from design.md since the lock must be
@@ -14,12 +15,12 @@
 # out/*.html from tracked generator source (no Chromium, no PNGs) before scanning.
 #
 # Usage:  _mockup-build/verify_framework.sh
-#         LOCK=17da448 COMMIT=HEAD _mockup-build/verify_framework.sh   (overrides)
+#         LOCK=356edf3 COMMIT=HEAD _mockup-build/verify_framework.sh   (override — e.g. re-run vs the pre-round-7 lock)
 # Exit:   0 clean · 1 drift found · 2 environment / missing-input error
 set -u
 cd "$(dirname "$0")/.."   # repo/worktree root
 
-LOCK="${LOCK:-356edf3}"
+LOCK="${LOCK:-142e69a}"
 COMMIT="${COMMIT:-HEAD}"
 
 # --- 0) rebuild out/*.html from the tracked generator source (always — out/ is
