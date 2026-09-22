@@ -84,7 +84,7 @@ async function main() {
       })()`);
     }
 
-    report.interLoaded = await c.eval(`document.fonts.check('600 16px Inter')`);
+    report.interLoaded = await c.eval(`document.fonts.check('600 16px Roboto')`);
     report.mobile390 = await c.eval(`new Promise((resolve)=>{
       const f=document.createElement('iframe');
       f.style.cssText='width:390px;height:844px;border:0';

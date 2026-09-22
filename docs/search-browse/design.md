@@ -3,7 +3,7 @@
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Filtered catalog view — same `ProductCard`/`ProductGrid` as Main Store, plus a filter rail.
 Shared shell: `StorefrontHeader` (search bar pre-filled on arrival from header search).
-Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
 ## FEATURES

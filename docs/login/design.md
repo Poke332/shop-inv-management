@@ -2,7 +2,7 @@
 
 Palette: `docs/color-tokens.md`. Roles/permissions: `Sheets-report.md` RBAC matrix.
 React component names are hints only — this is a design plan, not code.
-Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
 **SHARED LAYOUT (locked with Register, `docs/register/design.md`):** this page and Register share

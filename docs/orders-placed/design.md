@@ -4,7 +4,7 @@ Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Order-flow step 3 (Cart → Checkout → **Orders Placed**). Also the buyer's order
 history + status tracking page, and — per the sheet's implementation notes —
 **home of the review form** (open decision #9 noted in Product Details).
-Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
 ## FEATURES

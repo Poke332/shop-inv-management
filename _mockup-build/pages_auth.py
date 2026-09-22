@@ -1,4 +1,4 @@
-# Page builders for 13 mockups — Round-3 (docs/design-tokens-round3.md): Inter 400/500/600,
+# Page builders for 13 mockups — Round-3 (docs/design-tokens-round3.md): Roboto 400/500/600,
 # §1 type scale, §2 8pt spacing + 44px touch floor, §3.2 filled CTAs.
 import sys
 sys.path.insert(0, ".")

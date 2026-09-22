@@ -3,7 +3,7 @@
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Storefront page (buyer home). Shared shell: `StorefrontHeader` + `ProductCard` (defined here,
 reused on Search/Browse and Product Details list contexts).
-Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
 ## FEATURES

@@ -4,7 +4,7 @@ Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Matrix: "view product details" T for **all 4 roles** — this page is the only storefront
 page that staff/manager/admin legitimately open (e.g. to check stock or see pending
 reviews). The two variants are in §INTERACTIONS.
-Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
 ## FEATURES

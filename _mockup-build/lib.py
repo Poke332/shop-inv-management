@@ -1,5 +1,5 @@
 # Sunset Glow token CSS (exact hexes from docs/color-tokens.md — 77 scale values + white canvas)
-# Round-3: implements docs/design-tokens-round3.md — Inter 400/500/600, 8pt spacing, pill badges,
+# Round-3: implements docs/design-tokens-round3.md — Roboto 400/500/600, 8pt spacing, pill badges,
 # filled 44px CTAs, gradient product tiles, 1-line-clamped card titles.
 TOK = {
  "sr": ["#FEE6E7","#FDCECE","#FC9C9E","#FA6B6D","#F9393C","#F7080C","#C60609","#940507","#630305","#310202","#230102"],
@@ -34,8 +34,8 @@ BASE_CSS = """
 :root{
 /*__VARS__*/
   --canvas:#FFFFFF;
-  /* Inter (400/500/600 only) + system fallback */
-  --font-sans:"Inter","system-ui","-apple-system","Segoe UI","Roboto","sans-serif";
+  /* Roboto (400/500/600 only) + system fallback */
+  --font-sans:"Roboto","system-ui","-apple-system","Segoe UI","sans-serif";
   /* type scale (§1) */
   --text-h1:26px; --lh-h1:36px;
   --text-section:16px; --lh-section:24px; --track-section:.05em;
@@ -201,7 +201,7 @@ display:flex;flex-direction:column;gap:4px;flex:none;overflow-y:auto}
 
 HEAD_LINKS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
               '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-              '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n')
+              '<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">\n')
 
 ICONS = {
 "search":'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bs-500)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',

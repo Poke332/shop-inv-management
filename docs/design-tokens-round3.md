@@ -11,7 +11,7 @@ pills, and product tiles that don't read as line-art placeholders.
 
 ## 1. Typography
 
-One family: **Inter**, weights **400 / 500 / 600 only** — no 700+, no 300. Headings carry the
+One family: **Roboto**, weights **400 / 500 / 600 only** — no 700+, no 300. Headings carry the
 hierarchy via size + weight, never via decorative fonts.
 
 Font loading (put in every HTML head / app entry):
@@ -19,7 +19,7 @@ Font loading (put in every HTML head / app entry):
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap"
       rel="stylesheet">
 ```
 
@@ -47,8 +47,8 @@ size to regular prices — weight and color do the work, not scaling.
 
 ```css
 :root {
-  /* Inter via the <link> above; system fallback when it fails */
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Roboto via the <link> above; system fallback when it fails */
+  --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 20px;
@@ -74,7 +74,7 @@ size to regular prices — weight and color do the work, not scaling.
 ```js
 theme: {
   extend: {
-    fontFamily: { sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"] },
+    fontFamily: { sans: ["Roboto", "system-ui", "-apple-system", "Segoe UI", "sans-serif"] },
     fontSize: {
       h1: ["26px", { lineHeight: "36px", fontWeight: "600" }],
       section: ["16px", { lineHeight: "24px", fontWeight: "600", letterSpacing: "0.05em" }],
@@ -348,7 +348,7 @@ Mobile header: logo left, cart + account right, search row on its own line below
 
 | Element | Round 2 | Round 3 |
 |---|---|---|
-| Font | default sans stack | Inter 400/500/600, fixed type scale (§1) |
+| Font | default sans stack | Roboto 400/500/600, fixed type scale (§1) |
 | Section labels | ~12px, heavy tracking, often uppercase | 16px/600, 0.05em, sentence case (§1) |
 | Card gaps | 12px | 32px desktop / 24px mobile, section rhythm 48px (§2) |
 | Prices | size-based emphasis | 14px/600 `atomicTangerine-600`, color+weight only (§1) |

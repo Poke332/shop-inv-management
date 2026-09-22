@@ -11,7 +11,7 @@
 //       against the scale (alpha-tinting a scale color is sanctioned; a new hue is
 //       not). hsl() is always drift.
 //       Audited in: _mockup-build/out/*.html (13) + docs/<page>/design.md (13+1)
-//   [3] no font-weight > 600 (framework §1: Inter 400/500/600 only)
+//   [3] no font-weight > 600 (framework §1: Roboto 400/500/600 only)
 //   [4] spacing tokens on the 8pt grid:
 //       - HTML: the seven framework spacing-token declarations (:root + @media block)
 //         must equal the 17da448 framework values exactly (card-gutter 32/24,
@@ -53,7 +53,7 @@ const FRAMEWORK_FILES = ["docs/design-tokens-round3.md", "docs/color-tokens.md"]
 
 // A deleted line is "framework-referencing" only when it carries concrete framework
 // substance: a scale hex, a token family name, or weight/px/typography values.
-const FRAME_RE = /#([0-9A-Fa-f]{6})\b|strawberryRed|atomicTangerine|carrotOrange|tuscanSun|willowGreen|seagrass|blueSlate|font-weight|Inter\b|8pt|8px|px\b|\bw\d{3}\b|letter-spacing|border-radius|min-height|44px|400\/500\/600/;
+const FRAME_RE = /#([0-9A-Fa-f]{6})\b|strawberryRed|atomicTangerine|carrotOrange|tuscanSun|willowGreen|seagrass|blueSlate|font-weight|Roboto\b|8pt|8px|px\b|\bw\d{3}\b|letter-spacing|border-radius|min-height|44px|400\/500\/600/;
 
 // framework §2–§3 sanctioned off-grid component px values
 const EXEMPT_PX = new Set([0, 1, 2, 4, 10, 12, 14, 20, 44]);
