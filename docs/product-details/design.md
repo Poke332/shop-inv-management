@@ -2,8 +2,9 @@
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
 Matrix: "view product details" T for **all 4 roles** — this page is the only storefront
-page that staff/manager/admin legitimately open (e.g. to check stock or see pending
-reviews). The two variants are in §INTERACTIONS.
+page that staff/manager/admin legitimately open (e.g. to check stock or read reviews;
+moderation itself lives on the Per Product Review Panel — round 6). The two variants
+are in §INTERACTIONS.
 Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
@@ -14,9 +15,24 @@ unified pill badges, filled CTA stack).
   public for buyers — most likely interpretation; a "low stock" threshold of 5 assumed).
 - **Review placement (open decision #9, conflict: notes say order-history page, page
   list attaches it here):** this doc designs reviews **read-only on Product Details**
-  (list, average, moderation state) and the **review form** living on Orders Placed.
-  Marked **TBD** — if the team flips it, the review list component (`ReviewList`)
-  moves; the form stays on Orders Placed either way (purchase-gating is cleaner there).
+  (list + average; moderation now lives entirely on the Per Product Review Panel —
+  round 6) and the **review form** living on Orders Placed. Marked **TBD** — if the
+  team flips it, the review list component (`ReviewList`) moves; the form stays on
+  Orders Placed either way (purchase-gating is cleaner there).
+- **Reviews (round-6 auto-approve — intended-redesign: round-6 review
+  auto-approve):** every review is **public on submission**; there is no
+  approval/denial step anywhere and this page carries no approve/deny
+  affordance. (Supersedes the sheet's "moderate reviews: approve/remove
+  incoming reviews (spam)" — see §PERMISSION MATRIX DELTA.) The public list
+  shows **only public reviews**: description + rating + optional seller
+  comment rendered beneath the review. **Hidden reviews are not publicly
+  viewable** (no description, no stars), but they **still count in the
+  visible "N reviews" total** (total = public + hidden).
+- **Rating average over hidden reviews: TBD.** Design assumes the most
+  likely interpretation — a hidden review's stars **still count in the
+  average** (only its description is hidden). Flagged for team decision;
+  the UI (average + count display) is built so flipping this decision is a
+  data-layer change, not a layout change.
 - **Rating scale (open decision #10): TBD.** Most likely interpretation: 1–5 star
   scale, half-star display, average shown as `4.3 / 5 (128)`. Component
   `StarRating` is built scale-agnostic (props: `value`, `count`, `readOnly`, `onRate`).
@@ -47,6 +63,11 @@ unified pill badges, filled CTA stack).
 ![Product detail page mockup](mockup.png)
 
 > mockup.png rendered from _mockup-build/out/product-details.html via headless Chromium @ 2026-09-22
+>
+> **Mockup note (round 6):** `mockup.png` above is the pre-round-6 render.
+> The next card regenerates it from the updated generator source; this spec
+> — public-only list, hidden-inclusive count, seller-comment block, no
+> approve/deny affordance — is the target.
 
 
 ASCII wireframe (desktop):
@@ -66,9 +87,10 @@ ASCII wireframe (desktop):
 |                        |----------------------------------------+
 |  Specs (label)         [ 2-col key/value table, 1px border ]    |
 |  Description (label)   [ body text …  Read more ]              |
-|  Reviews (128) + filter row                                      |
-|  [ ★★★★☆ "Solid build, ANC keeps up…"  12 Sep 2026             |
-|    buyer_102 · purchased Sony WF-C710N ×1 ]                     |
+|  Reviews (128)  — count = public + hidden (round 6)              |
+|  [ ★★★★☆ "Solid build, ANC keeps up…"  12 Sep 2026               |
+|    buyer_102 · purchased Sony WF-C710N ×1                        |
+|    ↳ Seller: "Thanks — firmware 2.1 improved ANC." (14 Sep)      |
 +------------------------------------------------------------------+
 ```
 
@@ -92,6 +114,7 @@ Mobile: image stacks on top (4:3 crop), info column below; grid gap 32px → 24p
 | Quantity stepper | `blueSlate-200` border, radius 8px, 44px cells; value `blueSlate-950`; disabled side `blueSlate-100` bg, `blueSlate-500` glyph |
 | Add to cart button | filled 44px: `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label; disabled = `blueSlate-100` bg + `blueSlate-400` text |
 | Review card | border `blueSlate-200`, radius 10px; review text `blueSlate-950` 14/500; meta line `blueSlate-700` 13/400 |
+| Seller comment (round 6) | indented 16px beneath the review, left border 2px `blueSlate-200`; "Seller" label `blueSlate-950` 13/600, body `blueSlate-700` 14/22 w400, date `blueSlate-500` 13/400; absent when no comment (no placeholder) |
 
 ## INTERACTIONS
 
@@ -113,8 +136,14 @@ Mobile: image stacks on top (4:3 crop), info column below; grid gap 32px → 24p
 - **Loading:** static image skeleton + line skeletons (`blueSlate-100` blocks — no
   shimmer; `prefers-reduced-motion` honored). **Error:** panel `strawberryRed-100` bg,
   `strawberryRed-700` text + "Try again" filled `strawberryRed-600` button.
-- **Reviews:** only approved reviews render (moderation handled server-side — most
-  likely). Hidden reviews are invisible to buyers (not "shown as hidden").
+- **Reviews (round-6 auto-approve):** only **public** reviews render —
+  description + rating + optional seller comment (indented block beneath the
+  review; absent when the seller hasn't commented). No approval step exists:
+  a review submitted on Orders Placed becomes public immediately. Hidden
+  reviews are not listed at all (no description, no stars, no placeholder)
+  — but the section header count **includes hidden reviews** ("Reviews (128)"
+  where 128 = public + hidden). Rating average likewise assumes hidden stars
+  still count (**TBD**, see §FEATURES).
 - **a11y:** stock line has `aria-live="polite"`; image swap updates
   `alt` text; stars have `aria-label="Rated 4.3 out of 5, 128 reviews"`;
   focus ring 2px `atomicTangerine-500` offset 2; all touch targets ≥ 44px.
@@ -123,6 +152,25 @@ Mobile: image stacks on top (4:3 crop), info column below; grid gap 32px → 24p
 
 - Same layout, minus: Add to Cart, quantity stepper, cart badge in header.
 - Stock line gets a link "Manage stock →" → Per Product Dashboard (manager/admin) or
-  Ongoing Orders (staff). Reviews with `pending` status show an extra
-  "Awaiting moderation" chip (`tuscanSun-100` bg, `blueSlate-900` text).
+  Ongoing Orders (staff).
+  **intended-redesign: round-6 review auto-approve** — the former "Awaiting
+  moderation" chip on `pending` reviews is deleted: there is no pending state
+  under auto-approve, so staff/manager/admin see the identical public review
+  list (public-only, count incl. hidden) and, for manager/admin, an extra link
+  "Review panel →" → Per Product Review Panel (the only place moderation
+  happens). No approve/deny affordance on this page in any role.
 - No purchase CTA of any kind — matrix: "purchase product" F for all non-buyers.
+
+## PERMISSION MATRIX DELTA (round-6 override of the sheet)
+
+- The Sheets-report row **"moderate reviews" (staff F / manager T / admin T)**
+  is **re-scoped by round 6** and documented here as a made decision
+  (TBD-free): staff F; manager/admin T, meaning **view all reviews incl.
+  hidden, add seller comments, hide/unhide** — NOT the sheet's original
+  "approve/remove incoming reviews (spam)". (intended-redesign: round-6
+  review auto-approve — the gate's deletion audit passes on this marker.)
+- **No delete** of reviews anywhere (the sheet's delete action is dropped;
+  the sheet's status enum `pending/approved/hidden` collapses to
+  `public/hidden` under auto-approve).
+- Buyers are unaffected: submission stays purchase-gated; a submitted review
+  is public on arrival.
