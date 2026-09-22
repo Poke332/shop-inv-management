@@ -31,6 +31,8 @@ typography, spacing, colors, and mobile collapse). They differ **only in the for
 
 ![Register page mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/register.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop, ≥768px) — **identical to Login's wireframe; only the form and copy differ:**
 

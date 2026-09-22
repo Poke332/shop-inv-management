@@ -42,6 +42,8 @@ unified pill badges, filled CTA stack).
 
 ![My orders page mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/orders-placed.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop):
 

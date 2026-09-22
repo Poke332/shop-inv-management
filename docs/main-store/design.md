@@ -75,6 +75,16 @@ unified pill badges, filled CTA stack).
 
 ![Main store homepage mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/main-store.html via headless Chromium @ 2026-09-22
+> **Render caveat:** the tracked generator on this branch (`_mockup-build/lib.py` /
+> `pages_storefront.py`) renders main-store **grid-only** — no hero banner, no
+> 6-tile category rail. The v4 hero + rail HTML lives on the unmerged orphan
+> chain `f7ca077→680850e→b80abfe→11612b9` (merge-base 17da448, NOT an ancestor
+> of this branch), so the mockup above intentionally shows the tracked generator's
+> output, not the hero-composite asset. The hero banner and category rail remain
+> **spec-only** in this document (wireframe below + `docs/main-store/hero-banner.png`
+> asset), to be restored as the committed mockup only when that chain is merged.
+
 
 ASCII wireframe (desktop, ≥1024px):
 

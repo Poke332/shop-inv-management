@@ -45,6 +45,8 @@ ops mirror of Orders Placed.
 
 ![Ongoing orders dashboard mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/ongoing-orders.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop, list variant — assumption, kanban is a flagged alt;
 vertical 230px dark ops sidebar, not a top bar):

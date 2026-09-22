@@ -37,6 +37,8 @@ moderation console: approve / hide / delete reviews, scoped per product.
 
 ![Review moderation panel mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/per-product-review-panel.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop — vertical 230px dark ops sidebar, not a top bar):
 

@@ -47,6 +47,8 @@ unified pill badges, filled CTA stack).
 
 ![Search & browse results page mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/search-browse.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop, ≥768px):
 

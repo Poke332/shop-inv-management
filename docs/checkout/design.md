@@ -50,6 +50,8 @@ unified pill badges, filled CTA stack).
 
 ![Checkout page mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/checkout.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop):
 

@@ -37,6 +37,8 @@ the layout in that doc is identical to this one.
 
 ![Login page mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/login.html via headless Chromium @ 2026-09-22
+
 ASCII wireframe (desktop, ≥768px):
 
 ```

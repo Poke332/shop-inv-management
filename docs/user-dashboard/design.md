@@ -44,6 +44,8 @@ the strongest guard in the app.
 
 ![User management dashboard mockup](mockup.png)
 
+> mockup.png rendered from _mockup-build/out/user-dashboard.html via headless Chromium @ 2026-09-22
+
 
 ASCII wireframe (desktop — vertical 230px dark ops sidebar, not a top bar):
 
