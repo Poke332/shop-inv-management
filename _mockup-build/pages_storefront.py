@@ -31,6 +31,35 @@ display:flex;align-items:center;justify-content:center;cursor:pointer;transition
 .cadd[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
 """
 
+# v4 main-store: hero banner + category rail (docs/main-store/design.md)
+MAINSTORE_CSS = """
+.mstore{max-width:var(--content-max);margin:0 auto;padding:40px 48px 0}
+.shop-h1{margin-bottom:var(--section-rhythm)}
+.hero{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;margin-bottom:var(--section-rhythm)}
+.hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center right}
+.hero-copy{position:absolute;right:48px;top:50%;transform:translateY(-50%);max-width:380px;text-align:left}
+.hero-copy>*+*{margin-top:12px}
+.hero-eyebrow{font-size:13px;line-height:20px;font-weight:600;letter-spacing:.05em;color:var(--ts-300)}
+.hero-h2{font-size:32px;line-height:40px;font-weight:600;color:#fff}
+.hero-sub{font-size:14px;line-height:20px;font-weight:400;color:var(--bs-100)}
+#shop-all{scroll-margin-top:80px}
+.cats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--card-gutter);margin-bottom:var(--section-rhythm)}
+.cat-tile{display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid var(--bs-200);border-radius:8px;background:#fff;transition:border-color 150ms ease}
+.cat-tile:hover{border-color:var(--at-400);text-decoration:none}
+.cat-swatch{width:56px;height:56px;border-radius:12px;display:grid;place-items:center}
+.cat-swatch svg{width:40px;height:40px;stroke:1.5;color:var(--bs-900)}
+.cat-label{font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950)}
+.cat-count{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
+@media (max-width:767px){
+  .mstore{padding:32px 16px 0}
+  .hero-copy{right:16px;left:16px;top:auto;bottom:16px;transform:none;max-width:100%}
+  .hero-h2{font-size:26px;line-height:36px}
+  .hero-copy .btn-p{width:100%}
+  .cats{display:flex;overflow-x:auto;gap:24px}
+  .cat-tile{min-width:148px;flex:none}
+}
+"""
+
 CAT_MAP = {"Audio": "audio", "Smart Home": "smart", "Gaming": "gaming",
            "Laptops": "laptops", "Laptops & PC": "laptops", "Accessories": "acc",
            "Wearables": "wear"}
@@ -71,6 +100,31 @@ def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=
 
 CAT = ["All", "Audio", "Smart Home", "Gaming", "Laptops", "Accessories", "Wearables"]
 
+# v4 category rail: label, glyph (round-3 §3.3), gradient key, count (illustrative mockup data),
+# deep link per docs/main-store/design.md URL contract.
+CATS = [
+    ("Audio", "earbuds", "audio", 12),
+    ("Smart Home", "router", "smart", 8),
+    ("Gaming", "gamepad", "gaming", 10),
+    ("Laptops & PC", "laptop", "laptops", 9),
+    ("Accessories", "powerbank", "acc", 7),
+    ("Wearables", "watch", "wear", 5),
+]
+
+def cat_tiles():
+    out = []
+    for label, icon, key, n in CATS:
+        slug = {"Audio": "audio", "Smart Home": "smart-home", "Gaming": "gaming",
+                "Laptops & PC": "laptops", "Accessories": "accessories",
+                "Wearables": "wearables"}[label]
+        out.append(
+            f'<a class="cat-tile" href="/search?category={slug}">'
+            f'<div class="cat-swatch" style="background:{TILE_GRADS[key]}">{glyph(icon)}</div>'
+            f'<div class="cat-label">{label}</div>'
+            f'<div class="cat-count">{n} products</div></a>')
+    return "\n".join(out)
+
+
 # §3.5 curation — one SHOP ALL grid, featured first (tile-marked); the two rows never share a product.
 FEATURED = [
     ("Sony WF-C710N Wireless Earbuds", "Noise-cancelling · Audio · Sony", "1.290.000", "earbuds", dict(sale=True, featured=True)),
@@ -91,9 +145,24 @@ SHOP_ALL = [
 
 PAGES["main-store"] = page_wrap(
     f'''{shead("3")}
-<div style="max-width:var(--content-max);margin:0 auto;padding:40px 48px 0">
-  <h1 class="h1" style="margin-bottom:20px">Shop</h1>
-  <div class="sec-label" style="margin-bottom:20px">Shop All</div>
+<div class="mstore">
+  <h1 class="h1 shop-h1">Shop</h1>
+  <div class="hero">
+    <img src="../../docs/main-store/hero-banner.png" alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface" loading="eager" fetchpriority="high">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">NEW SEASON GEAR</div>
+      <h2 class="hero-h2">Power everything.</h2>
+      <div class="hero-sub">Audio to wearables — new drops this week.</div>
+      <a class="btn-p" href="#shop-all">Shop the drop</a>
+    </div>
+  </div>
+  <div style="margin-bottom:var(--section-label-gap)">
+    <div class="sec-label">Browse by category</div>
+  </div>
+  <div class="cats">
+    {cat_tiles()}
+  </div>
+  <div class="sec-label" id="shop-all" style="margin-bottom:var(--section-label-gap)">Shop All</div>
   <div class="grid4">
     {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in FEATURED)}
     {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in SHOP_ALL)}
@@ -102,7 +171,7 @@ PAGES["main-store"] = page_wrap(
     <button class="btn-p btn-loadmore">See more</button>
   </div>
 </div>''',
-    CARD_CSS, "Main Store")
+    MAINSTORE_CSS + CARD_CSS, "Main Store")
 
 PAGES["search-browse"] = page_wrap(
     f'''{shead("2","sony audio")}

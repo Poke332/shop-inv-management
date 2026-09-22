@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+# Mockup build output — regenerable via _mockup-build/build_html.py +
+# rebuild_docs_png.sh (recipe: docs/RENDER.md); keep out of git.
+_mockup-build/out/
+_mockup-build/verify/
+_mockup-build/final/
+_mockup-build/recheck/

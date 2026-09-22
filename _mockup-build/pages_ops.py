@@ -8,9 +8,7 @@ from pages_storefront import PAGES
 
 OPS_CSS = """
 /* §7.2 ops touch floor: 44px rows via padding+min-height, compact controls via hit area */
-.ops-shell{display:flex;min-height:736px}
-.ops-body{flex:1;min-width:0;display:flex;flex-direction:column}
-.ops-page{display:flex;gap:24px;flex:1;min-height:0;overflow-x:auto}
+/* shell rules (.ops-shell/.ops-sidebar/.ops-content/.ops-page) live in lib.py v4 app-shell block */
 .oprow{display:flex;align-items:center;gap:16px;padding:10px 16px;min-height:64px;border-bottom:1px solid var(--bs-200)}
 .oprow:last-child{border-bottom:none}
 .opname{font-weight:600;color:var(--bs-950);font-size:14px;min-width:190px}
@@ -59,8 +57,11 @@ font-family:var(--font-sans);font-size:14px;line-height:20px;font-weight:500;tra
 """
 
 def ops_shell(active, badges, content_html, title):
+    """v4 app-shell (docs/control-panel/design.md): .ops-content carries the gutter
+    as an explicit --ops-page-pad class padding — reset-proof, token-driven."""
     return page_wrap(
-        f'<div class="ops-shell">{onav(OPS_NAV, active, badges)}<div class="ops-body"><div class="ops-page">{content_html}</div></div></div>',
+        f'<div class="ops-shell">{onav(OPS_NAV, active, badges)}'
+        f'<main class="ops-content"><div class="ops-page">{content_html}</div></main></div>',
         OPS_CSS, title)
 
 # ---------------- inventory dashboard ----------------

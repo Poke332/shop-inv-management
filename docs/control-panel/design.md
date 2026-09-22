@@ -11,6 +11,13 @@ collapsing to 0px.
 Palette: `docs/color-tokens.md`. Typography & spacing:
 `docs/design-tokens-round3.md`.
 
+> **Render sync @ 2026-09-22:** this document is layout-only (no own mockup); its
+> app-shell gutter spec is verified visually by the 5 panel-page renders —
+> `docs/{ongoing-orders,inventory-dashboard,per-product-dashboard,
+> per-product-review-panel,user-dashboard}/mockup.png`, each re-rendered from
+> `_mockup-build/out/<page>.html` via headless Chromium the same day. Re-render
+> recipe: `docs/RENDER.md`.
+
 ## THE BUG (diagnosis)
 
 Round-3 mockups rendered the 230px `blueSlate-900` sidebar and the white

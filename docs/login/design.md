@@ -2,7 +2,7 @@
 
 Palette: `docs/color-tokens.md`. Roles/permissions: `Sheets-report.md` RBAC matrix.
 React component names are hints only — this is a design plan, not code.
-Typography & spacing per `docs/design-tokens-round3.md` (Inter 400/500/600, 8pt grid,
+Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 
 **SHARED LAYOUT (locked with Register, `docs/register/design.md`):** this page and Register share
@@ -36,6 +36,8 @@ the layout in that doc is identical to this one.
 ## VISUALIZATION
 
 ![Login page mockup](mockup.png)
+
+> mockup.png rendered from _mockup-build/out/login.html via headless Chromium @ 2026-09-22
 
 ASCII wireframe (desktop, ≥768px):
 

@@ -1,7 +1,7 @@
 # Page: Inventory Dashboard — Design Spec (Sunset Glow)
 
 Palette: `docs/color-tokens.md`. Roles: `Sheets-report.md`.
-Typography & spacing per docs/design-tokens-round3.md (Inter 400/500/600, 8pt grid, unified pill badges, filled CTA stack).
+Typography & spacing per docs/design-tokens-round3.md (Roboto 400/500/600, 8pt grid, unified pill badges, filled CTA stack).
 App shell & gutter (v4): `docs/control-panel/design.md` — the ops sidebar is a 230px `--ops-sidebar-w` token and the sidebar-to-content gutter is an explicit `.ops-content` padding (`--ops-page-pad` 32px desktop / 24px mobile), reset-proof by class specificity. This page's content sits 32px off the sidebar; its internal table/panel layout is unchanged by the shell spec.
 Ops panel page. Access: **staff/manager/admin** (page-list column), with
 matrix-driven feature gating inside:
@@ -51,6 +51,8 @@ matrix-driven feature gating inside:
 ## VISUALIZATION
 
 ![Inventory dashboard mockup](mockup.png)
+
+> mockup.png rendered from _mockup-build/out/inventory-dashboard.html via headless Chromium @ 2026-09-22
 
 
 ASCII wireframe (desktop — vertical 230px dark ops sidebar, not a top bar):

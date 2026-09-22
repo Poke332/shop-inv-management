@@ -1,5 +1,5 @@
 # Sunset Glow token CSS (exact hexes from docs/color-tokens.md — 77 scale values + white canvas)
-# Round-3: implements docs/design-tokens-round3.md — Inter 400/500/600, 8pt spacing, pill badges,
+# Round-3: implements docs/design-tokens-round3.md — Roboto 400/500/600, 8pt spacing, pill badges,
 # filled 44px CTAs, gradient product tiles, 1-line-clamped card titles.
 TOK = {
  "sr": ["#FEE6E7","#FDCECE","#FC9C9E","#FA6B6D","#F9393C","#F7080C","#C60609","#940507","#630305","#310202","#230102"],
@@ -34,8 +34,8 @@ BASE_CSS = """
 :root{
 /*__VARS__*/
   --canvas:#FFFFFF;
-  /* Inter (400/500/600 only) + system fallback */
-  --font-sans:"Inter","system-ui","-apple-system","Segoe UI","Roboto","sans-serif";
+  /* Roboto (400/500/600 only) + system fallback */
+  --font-sans:"Roboto","system-ui","-apple-system","Segoe UI","sans-serif";
   /* type scale (§1) */
   --text-h1:26px; --lh-h1:36px;
   --text-section:16px; --lh-section:24px; --track-section:.05em;
@@ -156,15 +156,31 @@ border-radius:var(--radius-pill);padding:4px 10px;color:var(--bs-900);white-spac
 .qty span.val{background:#fff;color:var(--bs-950);min-width:40px;cursor:default}
 input[type=range]{accent-color:var(--at-500)}
 svg{flex:none}
-/* ---- ops sidebar (§6 preserved) ---- */
-.oside{width:230px;background:var(--bs-900);color:var(--bs-50);padding:20px 14px;display:flex;flex-direction:column;gap:4px;flex:none}
-.oside .os-title{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--bs-50);margin:0 8px 12px}
-.oside .os-title b{color:var(--ts-400);font-weight:600}
+/* ---- ops app shell (v4, docs/control-panel/design.md) ---- */
+:root{
+  --ops-sidebar-w:230px;
+  --ops-page-pad:32px;          /* the sidebar↔content gutter (reset-proof class padding) */
+  --ops-page-pad-mobile:24px;
+}
+@media (max-width:767px){ :root{ --ops-page-pad:var(--ops-page-pad-mobile); } }
+.ops-shell{display:flex;min-height:100dvh}
+.ops-sidebar{width:var(--ops-sidebar-w);background:var(--bs-900);color:var(--bs-50);padding:20px 14px;
+display:flex;flex-direction:column;gap:4px;flex:none;overflow-y:auto}
+/* v4 gutter: class padding beats the *{padding:0} reset (specificity 0,1,0) */
+.ops-content{flex:1;min-width:0;padding:var(--ops-page-pad);overflow:auto}
+/* internal to multi-column pages (list|editor split); the shell gutter stays .ops-content's padding */
+.ops-page{display:flex;gap:24px;flex:1;min-height:0;overflow-x:auto}
+@media (max-width:767px){ /* mobile: sidebar off-canvas drawer, closed by default */
+  .ops-sidebar{position:fixed;top:0;bottom:0;left:0;transform:translateX(-100%);z-index:50}
+  .ops-sidebar.open{transform:none}
+  .ops-page{gap:0;flex-wrap:wrap}
+}
+.ops-sidebar .os-title{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--bs-50);margin:0 8px 12px}
+.ops-sidebar .os-title b{color:var(--ts-400);font-weight:600}
 .onav{display:flex;align-items:center;gap:8px;padding:0 10px;min-height:44px;border-radius:8px;font-size:14px;font-weight:500;color:var(--bs-50);border-left:3px solid transparent;cursor:pointer}
 .onav.active{background:var(--bs-800);border-left-color:var(--at-500);font-weight:600}
 .onav .nbadge{margin-left:auto;background:var(--sr-600);color:#fff;border-radius:var(--radius-pill);font-size:12px;line-height:16px;font-weight:600;padding:2px 7px}
 .foot{font-size:12px;color:var(--bs-500);margin:12px 8px 0;line-height:1.5}
-.ops-main{flex:1;padding:20px 24px;overflow:hidden}
 /* ---- timeline ---- */
 .timeline{display:flex;align-items:center;gap:0}
 .tl-step{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--bs-700)}
@@ -185,7 +201,7 @@ svg{flex:none}
 
 HEAD_LINKS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
               '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-              '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n')
+              '<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">\n')
 
 ICONS = {
 "search":'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bs-500)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
@@ -233,7 +249,8 @@ def onav(items, active, badges=()):
         cls = "onav active" if it == active else "onav"
         out.append(f'<div class="{cls}">{it}{badge}</div>')
     foot = '<div class="foot">Nav items are role-gated (RBAC matrix, Sheets-report.md): staff see Ongoing Orders + Inventory + Products read-only; manager/admin see all five; Users is admin-only.</div>'
-    return f'<aside class="oside"><div class="os-title">OPS <b>CONSOLE</b></div>' + "".join(out) + foot + '</aside>'
+    return (f'<aside class="ops-sidebar" aria-label="Ops navigation">'
+            f'<div class="os-title">OPS <b>CONSOLE</b></div>' + "".join(out) + foot + '</aside>')
 
 OPS_NAV = ["Ongoing Orders", "Inventory", "Products", "Reviews", "Users"]
 
