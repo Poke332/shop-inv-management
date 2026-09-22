@@ -104,7 +104,7 @@ PAGES["inventory-dashboard"] = ops_shell(
         <div style="display:flex;gap:16px;font-size:14px;color:var(--bs-950);font-weight:500"><b>Anker 735 PB</b><span class="opsub">Accessories</span><span class="hint">stock 5 · low</span><a style="margin-left:auto;color:var(--at-600);font-weight:500" href="#">Open editor</a></div>
       </div>
     </div>
-    <div style="border:1px solid var(--bs-200);border-radius:10px;overflow:hidden">
+    <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;overflow:hidden">
       <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bs-200);background:var(--bs-50)">
         <span class="sec-label" style="font-size:13px">All products (48)</span>
         <span style="margin-left:auto;width:220px;display:block"><input class="input wfull" style="padding:9px 12px;min-height:44px" placeholder="Search name / category…"></span>
@@ -127,7 +127,7 @@ PAGES["per-product-dashboard"] = ops_shell(
         <h1 class="h1">Products</h1>
       </div>
       <input class="input wfull" style="margin-bottom:16px" placeholder="Search products…">
-      <div style="border:1px solid var(--bs-200);border-radius:10px;overflow:hidden;flex:1">
+      <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;overflow:hidden;flex:1">
         <div class="urow" style="border-left:3px solid var(--at-500);background:var(--at-100)"><span class="opname">P-231 Sony WF-C710N</span><span style="margin-left:auto" class="pill pill-in">In · 34</span></div>
         <div class="urow"><span class="opname">P-198 Anker 735 PB</span><span style="margin-left:auto" class="pill pill-low">Low · 5</span></div>
         <div class="urow"><span class="opname">P-140 Logi MX Keys S</span><span style="margin-left:auto" class="pill pill-low">Low · 3</span></div>
@@ -141,7 +141,7 @@ PAGES["per-product-dashboard"] = ops_shell(
         <h1 class="h1" style="font-size:16px;line-height:24px">Product editor</h1>
         <span class="muted">#P-231</span>
       </div>
-      <div style="border:1px solid var(--bs-200);border-radius:12px;padding:24px">
+      <div style="background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px">
         <div style="display:grid;grid-template-columns:130px 1fr;gap:16px 24px;align-items:center">
           <label class="label">Name</label><input class="input wfull" value="Sony WF-C710N Wireless Earbuds">
           <label class="label">Price</label><input class="input wfull" value="1290000">
@@ -218,7 +218,7 @@ PAGES["per-product-review-panel"] = ops_shell(
 def orow(oid, dt, lines_n, total, chipcls, chipicon, chiptext, action, expanded=False, detail=None):
     exp = f'<div style="padding:12px 16px 16px;font-size:13px;color:var(--bs-700);background:var(--bs-50);border-radius:0 0 8px 8px">{detail}</div>' if expanded else ""
     act = f'<button class="btn-p btn-c">{action}</button>' if action else ""
-    return f'''<div style="border:1px solid var(--bs-200);border-radius:10px;overflow:hidden;margin-bottom:16px">
+    return f'''<div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;overflow:hidden;margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;min-height:64px">
       <span style="font-weight:600;color:var(--bs-950)">{oid}</span>
       <span class="opsub">{dt}</span>
@@ -277,7 +277,7 @@ PAGES["user-dashboard"] = ops_shell(
       <span style="width:260px;display:block"><input class="input wfull" placeholder="Search name / email…"></span>
       <span class="muted">128 users · 3 staff · 2 managers · 1 admin</span>
     </div>
-    <div style="border:1px solid var(--bs-200);border-radius:10px;overflow:hidden">
+    <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;overflow:hidden">
       {urow2("buyer_102","buyer",True,"2d")}
       {urow2("ops_marta","staff",True,"1h")}
       {urow2("ops_dan","manager",False,"40d")}

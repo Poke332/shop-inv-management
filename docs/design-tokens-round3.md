@@ -470,3 +470,44 @@ conformance-gate framework lock must be **re-baselined** to the commit that intr
 | Framework lock | `356edf3` | re-baseline to the commit that adds this §11 |
 | Ops / control panels | white + dark sidebar | **unchanged** (out of scope for the ratio) |
 
+## 12. Surface Rule — white content surfaces on the warm ground (Round 8)
+
+When the 60% ground flipped to `tuscanSun-50` `#FEF7E6` in Round 7, some content surfaces
+inherited the tint instead of staying white, and the 30% layer stopped reading as depth.
+The rule is permanent:
+
+- **Content surfaces** — cards, panels, forms, tables, sidebars — are **`#FFFFFF`**
+  (the 30% layer) **on** the `tuscanSun-50` dominant warm ground (60% layer).
+- **Accents** — ~10% — stay with the highest-attention elements only:
+  `atomicTangerine-600` primary CTA, `strawberryRed-600` sale/error/destructive,
+  `carrotOrange-500` low-stock pill. (Same accent set as §11.1; this rule does not
+  change it.)
+- Restoring a surface is a **fill-only change**: borders, shadows, and token
+  references are preserved — only the fill returns to `#FFFFFF`. `#FFFFFF` is already
+  in the gate's allowed set, so no scanner change is required.
+
+Governed component groups (the 8 named surfaces, generator files where they live):
+
+| # | Component group | Page | Surface |
+|---|---|---|---|
+| 1 | Cart item rows/cards | cart (`pages_storefront.py`) | cart items |
+| 2 | Checkout shipping-address card **and** review-order card | checkout (`pages_storefront.py`) | both cards on the page |
+| 3 | Product list (table) container | inventory-dashboard (`pages_ops.py`) | the table panel |
+| 4 | Order cards | ongoing-orders (`pages_ops.py`) | each order card |
+| 5 | Product card **and** product editor form panel | per-product-dashboard (`pages_ops.py`) | both panels |
+| 6 | Specifications card **and** description card | product-details (`pages_storefront.py`) | both section cards |
+| 7 | Filters sidebar panel | search-browse (`pages_storefront.py`) | the sidebar |
+| 8 | User list (table) container | user-dashboard (`pages_ops.py`) | the table panel |
+
+**Chrome stays untouched:** the control-panel shell — dark `.ops-sidebar`,
+`.ops-content` 32/24 gutter, and nav — is **out of scope**; only the 8 named content
+surfaces get white fills. (Consistent with §11.3: ops shell is dense/dark by design.)
+
+### 12.1 What changed vs Round 7
+
+| Element | Round 7 | Round 8 |
+|---|---|---|
+| Content-surface fills | 30% layer partly tinted to the `tuscanSun-50` ground | **all** content surfaces `#FFFFFF` over the ground (explicit rule) |
+| Ground / accents | `tuscanSun-50` 60% / accents ~10% | unchanged |
+| Control-panel chrome | unchanged | unchanged |
+

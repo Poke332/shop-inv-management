@@ -176,7 +176,7 @@ PAGES["main-store"] = page_wrap(
 PAGES["search-browse"] = page_wrap(
     f'''{shead("2","sony audio")}
 <div style="display:flex;gap:0;height:calc(736px - 56px)">
-  <aside class="sfilters" style="width:220px;border-right:1px solid var(--bs-200);padding:20px 16px;overflow:hidden">
+  <aside class="sfilters" style="width:220px;background:#fff;border-right:1px solid var(--bs-200);padding:20px 16px;overflow:hidden">
     <div class="sec-label" style="margin-bottom:16px">Filters</div>
     <div style="font-size:14px;font-weight:600;color:var(--bs-950);margin:16px 0 8px">Category</div>
     <div style="display:flex;flex-direction:column;gap:4px">
@@ -252,7 +252,7 @@ PAGES["product-details"] = page_wrap(
       </div>
       <div style="margin-top:40px">
         <div class="sec-label" style="margin-bottom:20px">Specs</div>
-        <div style="border:1px solid var(--bs-200);border-radius:10px">
+        <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px">
           <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--bs-200)">
             <div style="padding:12px 16px;border-right:1px solid var(--bs-200)"><span class="meta">Model</span><div style="font-weight:500;color:var(--bs-950)">WF-C710N</div></div>
             <div style="padding:12px 16px"><span class="meta">Bluetooth</span><div style="font-weight:500;color:var(--bs-950)">5.3, multipoint</div></div>
@@ -269,7 +269,9 @@ PAGES["product-details"] = page_wrap(
       </div>
       <div style="margin-top:40px">
         <div class="sec-label" style="margin-bottom:16px">Description</div>
-        <div style="font-size:14px;line-height:22px;font-weight:400;color:var(--bs-700)">Active noise cancellation with ambient sound mode, Bluetooth 5.3 multipoint and up to 13 hours of battery with the charging case. IPX4 water resistance for everyday use. <a class="link" href="#">Read more</a></div>
+        <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;padding:16px">
+          <div style="font-size:14px;line-height:22px;font-weight:400;color:var(--bs-700)">Active noise cancellation with ambient sound mode, Bluetooth 5.3 multipoint and up to 13 hours of battery with the charging case. IPX4 water resistance for everyday use. <a class="link" href="#">Read more</a></div>
+        </div>
       </div>
     </div>
   </div>
@@ -318,7 +320,7 @@ PAGES["cart"] = page_wrap(
     <h1 class="h1">Cart</h1><span class="meta">(2 items)</span>
   </div>
   <div style="display:flex;gap:32px">
-    <div style="flex:1;min-width:0;border:1px solid var(--bs-200);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:24px">
+    <div style="flex:1;min-width:0;background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:24px">
       <div style="display:flex;gap:16px">
         {prod_img("earbuds",84,84,grad="audio")}
         <div style="flex:1;min-width:0">
@@ -370,13 +372,13 @@ PAGES["checkout"] = page_wrap(
   <h1 class="h1" style="margin-bottom:24px">Checkout</h1>
   <div style="display:flex;gap:32px">
     <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:24px">
-      <div style="border:1px solid var(--bs-200);border-radius:12px;padding:24px">
+      <div style="background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><span class="step-num">1</span><span style="font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950)">Shipping address</span></div>
         {co_input("Name","Jordan Wijaya")}
         {co_input("Phone","+62 812-3456-7890")}
         {co_input("Address","Jl. Kemang Selatan 12, RT 4 / RW 9, Jakarta Selatan, DKI Jakarta 12730",area=True)}
       </div>
-      <div style="border:1px solid var(--bs-200);border-radius:12px;padding:24px">
+      <div style="background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><span class="step-num">2</span><span style="font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950)">Review your order</span></div>
         <div style="font-size:14px;font-weight:400;color:var(--bs-700)">Sony WF-C710N Wireless Earbuds ×1 · Anker 735 Power Bank ×1 — read-only; edit in Cart.</div>
       </div>
