@@ -37,13 +37,21 @@ product CRUD console: list, add, edit (pre-filled form per the sheet).
 - **Delete product:** matrix has no "delete product" permission; product
   CRUD in the sheet = add/edit. **Out of scope — do not ship a delete
   button in v1** (flagged).
-- **Spec fields (electronics domain, TBD):** Product Details designs a
-  per-product spec table (model number, Bluetooth version, battery,
-  compatibility, …). The sheet's locked field set has **no specs** — if
-  the team adds them, this form gains a repeatable name/value spec pair
-  (ordered list) and the list view gains a "specs" column or detail
-  affordance. No layout change designed here until decided (flagged,
-  same decision as the Product Details doc).
+- **Specs editor (round 9 — resolves the former spec-fields TBD note;
+  superseded by this decision):** the form gains a repeatable
+  **name/value spec-pair section** between Description and the footer
+  (P-231 pre-filled: Model / Bluetooth /
+  Battery / ANC / IP rating / Weight — same 6 pairs as the
+  product-details specs table). Rendering: white surface card
+  (`#FFFFFF`, 1px `blueSlate-200`, 12px radius — same card tokens as the
+  editor card, round-8 §12 surface rule), rows are a 2-col grid
+  (`130px 1fr`, row min-height 44px) of `.input` name + `.input` value,
+  each row carries a 44px trash-glyph remove control (`.btn-del`,
+  `strawberryRed-600`), and a "Add spec" secondary button (`.btn-sec` +
+  plus glyph) appends an empty pair row.
+  **intended-redesign: round-9 user decision — repeatable name/value
+  spec-pair section replaces the previous "no layout change until decided"
+  placeholder; the editor card gains a Specs card inside it.**
 
 ## LINKS / NAVIGATION
 
@@ -67,18 +75,26 @@ master/detail split: list left, pre-filled editor right):
 +------------------+------------------------+-----------------------------+
 | OPS CONSOLE      | PRODUCTS (330px)       | Product editor  #P-231      |
 |------------------+------------------------+-----------------------------|
-| Ongoing Orders   | [ Search products… ]   | Name        [Sony WF-C710N…]|
+| Ongoing Orders   | [ Search products… ]   | Name        [Sony WF-C710N…] |
 | Inventory        |+------------------------| Price       [1290000]      |
 | > Products       | | P-231 Sony WF-C710N [In · 34]  | Category  [ Audio ▾ ]|
-| Reviews          | | P-198 Anker 735 PB  [Low · 5]  | Image     [ thumb | Replace ]|
+| Reviews          | | P-198 Anker 735 PB  [Low · 5]  | Image     [ thumb | Replace ]
 | Users            | | P-140 Logi MX Keys S [Low · 3] | Description [textarea………]   |
 | (foot: role-gated| | P-087 Razer V3      [Out · 0]  | Initial stock [34]        |
-|  note)           | | … 44 more                | +--------------------------------+|
-|                  |+------------------------| Auto-decremented on each order …   |
-|                  | [ + New product ] (full) |                 [ Save changes ]  |
+|  note)           | | … 44 more                | +--------------------------------+
+|                  |+------------------------| | Specs            (round 9)  |
+|                  | [ + New product ] (full) | | [Model][WF-C710N] [×]      |
+|                  |                          | | [Bluetooth][5.3…] [×]     |
+|                  |                          | | … 4 more rows …           |
+|                  |                          | | [+ Add spec]                |
+|                  |                          | +--------------------------------+
+|                  |                          | Auto-decremented on each order …   |
+|                  |                          |              [ Save changes ]  |
 +------------------+------------------------+-----------------------------+
 * selected list row: 3px atomicTangerine-500 left bar + atomicTangerine-100 bg
 * stock badges on list rows: unified pills (In · 34 / Low · 5 / Out · 0)
+* Specs card: white surface (round-8 §12), 130px label col × input rows,
+  44px trash remove per row ("×" = trash glyph), "+ Add spec" secondary button
 ```
 
 Mobile (<768px): list and form stack; form becomes the primary view when an
@@ -97,6 +113,9 @@ item is selected (back link to list). Admin consoles are desktop-first.
 | Image upload dropzone | dashed `blueSlate-300` border, `blueSlate-700` helper; invalid image → `strawberryRed` variant |
 | "Save changes" CTA | filled `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label, 44px min-height, 8px radius; disabled = `blueSlate-100` fill + `blueSlate-400` label |
 | "New product" button | full-width primary, same `atomicTangerine-600` filled stack |
+| Specs card (round 9) | `#FFFFFF` surface (round-8 §12: 30% layer on the warm ops content ground), 1px `blueSlate-200` border, 12px radius — same card tokens as the editor card; rows: 130px `blueSlate-950` 13/600 name input col + 1fr value input, 44px min-height row floor, 16px/24px grid gaps |
+| "Add spec" button | `.btn-sec` secondary: `#FFFFFF` fill, 1px `blueSlate-200` border, `blueSlate-950` 14/500 label + plus glyph, `blueSlate-100` hover, 44px min-height, 8px radius |
+| Spec row remove control | `.btn-del` destructive: filled `strawberryRed-600` idle → `-700` hover → `-800` active, white 16px trash glyph, 44×44px target (touch floor), 8px radius; `aria-label="Remove spec"` on each row |
 | Success flash (row / form) | `willowGreen-100` bg, `willowGreen-600` text |
 
 ## INTERACTIONS
