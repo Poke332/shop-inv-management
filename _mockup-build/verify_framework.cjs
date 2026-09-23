@@ -4,17 +4,19 @@
 // Entry point is _mockup-build/verify_framework.sh (rebuilds out/, then execs this).
 //
 //   [1] framework lock: docs/design-tokens-round3.md + docs/color-tokens.md
-//       byte-identical to the lock commit (default 17da448)
+//       byte-identical to the lock commit (default 49b7610 — round-8 surface-rule spec)
 //   [2] no color outside the docs/color-tokens.md §1 scale (77 hex, parsed from the
 //       §1 table rows only — the anchor-note prose mentions the retired #F94144)
-//       + #FFFFFF canvas. rgba()/rgb() are resolved to their base hex and checked
-//       against the scale (alpha-tinting a scale color is sanctioned; a new hue is
-//       not). hsl() is always drift.
+//       + sanctioned canvas/surface hexes: #FEF7E6 (tuscanSun-50, the round-7 60%
+//       warm ground; also a scale value, re-declared here as the canvas of record)
+//       and #FFFFFF (30% secondary surface). rgba()/rgb() are resolved to their
+//       base hex and checked against the scale (alpha-tinting a scale color is
+//       sanctioned; a new hue is not). hsl() is always drift.
 //       Audited in: _mockup-build/out/*.html (13) + docs/<page>/design.md (13+1)
 //   [3] no font-weight > 600 (framework §1: Roboto 400/500/600 only)
 //   [4] spacing tokens on the 8pt grid:
 //       - HTML: the seven framework spacing-token declarations (:root + @media block)
-//         must equal the 17da448 framework values exactly (card-gutter 32/24,
+//         must equal the framework lock's values exactly (card-gutter 32/24,
 //         card-padding 24, section-rhythm 48/40, section-label-gap 20, touch-min 44,
 //         content-max 1200, page-gutter 48/24)
 //       - design.md: any px literal attached to a spacing property (padding/margin/
@@ -35,7 +37,7 @@ const { execSync } = require("child_process");
 
 const args = process.argv.slice(2);
 const getArg = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
-const LOCK = getArg("--lock", "356edf3");
+const LOCK = getArg("--lock", "49b7610");
 const HEAD = getArg("--commit", "HEAD");
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.join(ROOT, "_mockup-build", "out");
@@ -85,10 +87,11 @@ function main() {
     const tableRows = doc.split("\n").filter(l => /^\| `/.test(l));
     scale = new Set();
     for (const row of tableRows) for (const m of row.matchAll(/#[0-9A-Fa-f]{6}\b/g)) scale.add(m[0].toUpperCase());
-    scale.add("#FFFFFF"); // declared neutral canvas (color-tokens §2)
+    scale.add("#FFFFFF");  // 30% secondary surface (white card/panel fills on the warm ground)
+    scale.add("#FEF7E6");  // round-7 60% dominant warm ground / canvas of record (tuscanSun-50, in-scale)
   } catch (e) { console.log("ERROR cannot parse docs/color-tokens.md §1: " + e.message); process.exit(2); }
   if (scale.size - 1 !== 77) fail(`[2] color-tokens §1 table parsed ${scale.size - 1} scale hex, expected 77 — table format changed?`);
-  else console.log(`      color scale parsed: 77 scale hex + #FFFFFF canvas (${scale.size} total)`);
+  else console.log(`      color scale parsed: 77 scale hex + #FFFFFF 30% surface (${scale.size} total); #FEF7E6 warm canvas is in-scale (tuscanSun-50)`);
   const allowed = scale;
 
   // ---------- required inputs ----------
@@ -146,7 +149,7 @@ function main() {
   for (const f of htmlFiles) audit(path.join(OUT, f), "_mockup-build/out/" + f);
   for (const f of mdFiles) audit(f, path.relative(ROOT, f));
 
-  // [4] HTML spacing-token declarations vs the 17da448 framework values
+  // [4] HTML spacing-token declarations vs the lock-commit framework values
   try {
     const fwDoc = sh(`git show ${LOCK}:docs/design-tokens-round3.md`);
     const TOKENS = ["card-gutter", "card-padding", "section-rhythm", "section-label-gap", "touch-min", "content-max", "page-gutter"];
@@ -170,7 +173,7 @@ function main() {
     if (es.length) { fails++; console.log(`FAIL  [${n}]${note}\n${es.map(e => `      ${e.file}${e.lines[0] ? ":" + e.lines.join(", ") : ""}  ${e.what}${e.count > 1 ? `  (×${e.count})` : ""}`).join("\n")}`); }
     else console.log(`PASS  [${n}]${note}`);
   };
-  section("2", "hx", " color conformance — 77-value scale + #FFFFFF canvas");
+  section("2", "hx", " color conformance — 77-value scale + #FFFFFF 30% surface + #FEF7E6 warm canvas (in-scale)");
   section("3", "fw", " font-weight ≤ 600");
   section("4", "sp", " spacing conformance — framework token values + 8pt grid (exempt px: " + [...EXEMPT_PX].sort((a, b) => a - b).join("/") + ")");
 

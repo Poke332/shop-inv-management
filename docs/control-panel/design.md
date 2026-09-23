@@ -18,6 +18,17 @@ Palette: `docs/color-tokens.md`. Typography & spacing:
 > `_mockup-build/out/<page>.html` via headless Chromium the same day. Re-render
 > recipe: `docs/RENDER.md`.
 
+> **Round-7 scope note (out of scope — layout unchanged):** the round-7
+> 60 : 30 : 10 storefront color-ratio change
+> (`docs/design-tokens-round3.md` §11 — warm `tuscanSun-50` #FEF7E6 dominant
+> ground on buyer-facing pages) applies **only to the storefront pages**
+> (main-store, search-browse, product-details, cart, checkout, orders-placed,
+> login, register). This ops app shell and its 5 pages are **out of scope for
+> layout changes**: the dark `blueSlate-900` `.ops-sidebar` and the `.ops-content`
+> gutter stay exactly as specified here. If a panel's `.ops-content` area sits on
+> the new warm ground, that is acceptable; the panel **chrome is unchanged** —
+> the ops shell is intentionally high-density and dark, not a warm 60% ground.
+
 ## THE BUG (diagnosis)
 
 Round-3 mockups rendered the 230px `blueSlate-900` sidebar and the white

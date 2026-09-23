@@ -1,6 +1,8 @@
-# Sunset Glow token CSS (exact hexes from docs/color-tokens.md — 77 scale values + white canvas)
+# Sunset Glow token CSS (exact hexes from docs/color-tokens.md — 77 scale values)
 # Round-3: implements docs/design-tokens-round3.md — Roboto 400/500/600, 8pt spacing, pill badges,
 # filled 44px CTAs, gradient product tiles, 1-line-clamped card titles.
+# Round-7 (design-tokens §11): 60:30:10 color-usage ratio on the storefront — 60% dominant warm
+# ground (tuscanSun-50), 30% secondary white surface, 10% accent (no out-of-scale hex anywhere).
 TOK = {
  "sr": ["#FEE6E7","#FDCECE","#FC9C9E","#FA6B6D","#F9393C","#F7080C","#C60609","#940507","#630305","#310202","#230102"],
  "at": ["#FEEFE7","#FCDFCF","#F9BE9F","#F79E6E","#F47E3E","#F15D0E","#C14B0B","#913808","#602506","#301303","#220D02"],
@@ -33,7 +35,10 @@ TILE_GRADS = {
 BASE_CSS = """
 :root{
 /*__VARS__*/
-  --canvas:#FFFFFF;
+  /* R7 §11: 60% dominant warm ground — tuscanSun-50 replaces the #FFFFFF canvas.
+     #FFFFFF survives as the 30% secondary surface (cards/panels/fields below, in-scale);
+     accents stay ~10% (at-600 CTA/price, sr-600 sale/error, co-500 low-stock, ts-500 featured/star). */
+  --canvas:#FEF7E6;
   /* Roboto (400/500/600 only) + system fallback */
   --font-sans:"Roboto","system-ui","-apple-system","Segoe UI","sans-serif";
   /* type scale (§1) */

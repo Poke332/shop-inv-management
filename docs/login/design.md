@@ -62,11 +62,14 @@ Mobile (<768px): brand panel collapses to a 64px top strip with the logo; card f
 
 ## COLOR USAGE
 
+> **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA) · `strawberryRed-600` (error) · `carrotOrange-500` (secondary) · `tuscanSun-500` (star/featured) — used sparingly, ~10% of the surface.
+> **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Auth pages take the same dominant-ground treatment for visual consistency. Control-panel / ops pages are **out of scope**.
+
 | Element | Token |
 |---|---|
-| Page canvas | `#FFFFFF` |
+| **Page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — the form card sits on it as the 30% `#FFFFFF` surface; the dark brand panel `blueSlate-900` is unchanged (it is a panel, not the ground) |
 | Brand panel (desktop) | `blueSlate-900` bg, `tuscanSun-400` sun graphic, `blueSlate-50` tagline |
-| Card surface | canvas white, border `blueSlate-200`, radius 12px |
+| Card surface (30%) | `#FFFFFF` on the warm ground, border `blueSlate-200`, radius 12px |
 | Labels / headings / input text | `blueSlate-950` (labels 13/600; "Sign in" heading 26/36 w600) |
 | Input placeholder | `blueSlate-500` |
 | Inputs | 44px min height, radius 8px, 1px `blueSlate-200` border; focus ring 2px `atomicTangerine-500`, offset 2; "show" toggle 12/500 `blueSlate-500` |

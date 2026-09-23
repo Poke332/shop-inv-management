@@ -23,19 +23,27 @@ display:flex;flex-direction:column;min-width:0;min-height:300px}
 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .csub{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
 .cprice{height:20px}
-.crow{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
-.cadd{width:44px;height:44px;border-radius:999px;border:none;background:var(--at-600);color:#fff;
-display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background-color 150ms ease}
-.cadd:hover{background:var(--at-700)} .cadd:active{background:var(--at-800)}
-.cadd svg{width:20px;height:20px}
-.cadd[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
+/* round-11: .crow = two 44px buttons side by side (equal flex split, 8px gap) —
+   "Buy now" primary filled (btn-p style) + "Add to cart" outline (btn-sec style,
+   plus glyph kept before the label so it stays recognizable). Mobile (<768px):
+   labels shrink to 13px and "Add to cart" folds to a 44px icon-only button. */
+.crow{display:flex;gap:8px;margin-top:auto}
+.crow .cbuy,.crow .ccart{flex:1 1 0;min-width:0;height:44px;border-radius:8px;cursor:pointer;
+display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 8px;
+font-family:var(--font-sans);font-size:14px;line-height:20px;font-weight:500;white-space:nowrap}
+.cbuy{border:0;background:var(--at-600);color:#fff;transition:background-color 150ms ease}
+.cbuy:hover{background:var(--at-700)} .cbuy:active{background:var(--at-800)}
+.ccart{background:#fff;border:1px solid var(--bs-200);color:var(--bs-950);transition:background-color 150ms ease}
+.ccart:hover{background:var(--bs-100)}
+.ccart svg{width:16px;height:16px;flex:none}
+.cbuy[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
+.ccart[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
 """
 
 # v4 main-store: hero banner + category rail (docs/main-store/design.md)
 MAINSTORE_CSS = """
-.mstore{max-width:var(--content-max);margin:0 auto;padding:40px 48px 0}
-.shop-h1{margin-bottom:var(--section-rhythm)}
-.hero{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;margin-bottom:var(--section-rhythm)}
+.mstore{max-width:var(--content-max);margin:0 auto;padding:0 48px}
+.hero{position:relative;aspect-ratio:16/9;width:100%;overflow:hidden;margin-bottom:var(--section-rhythm)}
 .hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center right}
 .hero-copy{position:absolute;right:48px;top:50%;transform:translateY(-50%);max-width:380px;text-align:left}
 .hero-copy>*+*{margin-top:12px}
@@ -43,20 +51,32 @@ MAINSTORE_CSS = """
 .hero-h2{font-size:32px;line-height:40px;font-weight:600;color:#fff}
 .hero-sub{font-size:14px;line-height:20px;font-weight:400;color:var(--bs-100)}
 #shop-all{scroll-margin-top:80px}
-.cats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--card-gutter);margin-bottom:var(--section-rhythm)}
-.cat-tile{display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid var(--bs-200);border-radius:8px;background:#fff;transition:border-color 150ms ease}
-.cat-tile:hover{border-color:var(--at-400);text-decoration:none}
-.cat-swatch{width:56px;height:56px;border-radius:12px;display:grid;place-items:center}
-.cat-swatch svg{width:40px;height:40px;stroke:1.5;color:var(--bs-900)}
-.cat-label{font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950)}
-.cat-count{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
+/* round-11: category section = 6 clickable IMAGES (cat-<slug>.png, 1200x300, no
+   baked text) in a 3x2 grid on desktop (larger tiles than round-10's 6-across
+   row); the title sits on the white bar below the image; the product count
+   line is dropped */
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--card-gutter);margin-bottom:var(--section-rhythm)}
+.cat-strip{display:block;background:#fff;border:1px solid var(--bs-200);border-radius:8px;overflow:hidden;transition:border-color 150ms ease}
+.cat-strip:hover{border-color:var(--at-400);text-decoration:none}
+.cat-cimg{position:relative}
+.cat-cimg>img{width:100%;aspect-ratio:4/1;object-fit:cover;display:block}
+/* round-11: title moved OFF the image onto the white bar below it;
+   the .cat-count product-count line is dropped */
+.cat-lab{padding:12px 16px;font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950)}
+/* heading row: "Our Products" left, "See more" right (round-10 — button moved off its centered-bottom position) */
+.shop-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--section-label-gap)}
+/* round-11: mobile (<768px) — the category row becomes a horizontal-scroll rail
+   (min-width 320px tiles — larger than round-10's 240px); the heading row stacks
+   so the full-width "See more" (lib .btn-loadmore → 100% on <768px) sits under
+   the "Our Products" label */
 @media (max-width:767px){
   .mstore{padding:32px 16px 0}
   .hero-copy{right:16px;left:16px;top:auto;bottom:16px;transform:none;max-width:100%}
   .hero-h2{font-size:26px;line-height:36px}
   .hero-copy .btn-p{width:100%}
   .cats{display:flex;overflow-x:auto;gap:24px}
-  .cat-tile{min-width:148px;flex:none}
+  .cat-strip{min-width:320px;flex:none}
+  .shop-head{flex-direction:column;align-items:stretch;gap:12px}
 }
 """
 
@@ -71,9 +91,11 @@ def grad_for(sub):
     return "unmapped"
 
 def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=False, featured=False, w="auto"):
-    """§3.4 card: clamped 1-line title, 13px metadata, 14px/600 at-600 price, pinned 44px add-to-cart.
-    §3.3 tile: 4:3 aspect-ratio gradient swatch, blueSlate-900 glyph. Badge pills (§3.1):
-    sale/out-of-stock top-left, featured top-right, low-stock bottom-left."""
+    """§3.4 card: clamped 1-line title, 13px metadata, 14px/600 at-600 price.
+    round-11: .crow row = 'Buy now' (btn-p filled) + 'Add to cart' (btn-sec outline,
+    plus glyph) side by side; OOS → both aria-disabled. §3.3 tile: 4:3 aspect-ratio
+    gradient swatch, blueSlate-900 glyph. Badge pills (§3.1): sale/out-of-stock
+    top-left, featured top-right, low-stock bottom-left."""
     th = "aspect-ratio:4/3" if h == "auto" else f"height:{h}px"
     tiles = (f'<div class="ptile" style="{th};background:{TILE_GRADS[grad_for(sub)]}">{glyph(icon)}</div>')
     btl = f'<span class="tb tb-sale" style="top:8px;left:8px">On sale</span>' if (sale and not oos) else ""
@@ -84,9 +106,14 @@ def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=
     elif only:
         bbl = f'<span class="tb tb-low" style="bottom:8px;left:8px">Only {only} left</span>'
     op = "0.4" if oos else "1"
-    add = ('<button class="cadd" aria-disabled="true" aria-label="Add to cart (out of stock)">'
-           f'{ICONS["plus"]}</button>') if oos else \
-          f'<button class="cadd" aria-label="Add {name} to cart">{ICONS["plus"]}</button>'
+    if oos:
+        buy = '<button class="cbuy" aria-disabled="true" aria-label="Buy now (out of stock)">Buy now</button>'
+        cadd = (f'<button class="ccart" aria-disabled="true" aria-label="Add to cart (out of stock)">'
+                f'{ICONS["plus"]}<span class="clbl">Add to cart</span></button>')
+    else:
+        buy = f'<button class="cbuy" aria-label="Buy {name} now">Buy now</button>'
+        cadd = (f'<button class="ccart" aria-label="Add {name} to cart">'
+                f'{ICONS["plus"]}<span class="clbl">Add to cart</span></button>')
     wstyle = "" if w == "auto" else f"max-width:{w}px;"
     return f'''<a class="pcard" style="{wstyle}" href="#product-details" aria-label="{name}">
   <div style="position:relative;opacity:{op}">{tiles}{btl}{btr}{bbl}</div>
@@ -94,7 +121,8 @@ def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=
     <div class="ttl"><div class="cname">{name}</div><div class="csub">{sub}</div></div>
     <div class="cprice"><span class="price">Rp {price}</span></div>
     <div class="crow">
-      {add}
+      {buy}
+      {cadd}
     </div>
   </div></a>'''
 
@@ -111,17 +139,24 @@ CATS = [
     ("Wearables", "watch", "wear", 5),
 ]
 
-def cat_tiles():
+def cat_strips():
+    """Round-11: category section = 6 clickable IMAGES in a 3x2 desktop grid
+    (docs/main-store/cat-<slug>.png, 1200x300, no baked-in text) — the title
+    sits on the white bar below the image; the round-10 image overlay label
+    and the product-count line are both dropped (the CATS array is kept as-is:
+    search-browse/filter docs still reference it). Same deep-link contract as
+    the old cat_tiles()."""
     out = []
-    for label, icon, key, n in CATS:
+    for label, icon, key, _n in CATS:
         slug = {"Audio": "audio", "Smart Home": "smart-home", "Gaming": "gaming",
                 "Laptops & PC": "laptops", "Accessories": "accessories",
                 "Wearables": "wearables"}[label]
         out.append(
-            f'<a class="cat-tile" href="/search?category={slug}">'
-            f'<div class="cat-swatch" style="background:{TILE_GRADS[key]}">{glyph(icon)}</div>'
-            f'<div class="cat-label">{label}</div>'
-            f'<div class="cat-count">{n} products</div></a>')
+            f'<a class="cat-strip" href="/search?category={slug}">'
+            f'<div class="cat-cimg">'
+            f'<img src="../../docs/main-store/cat-{slug}.png" alt="{label}">'
+            f'</div>'
+            f'<div class="cat-lab">{label}</div></a>')
     return "\n".join(out)
 
 
@@ -145,30 +180,31 @@ SHOP_ALL = [
 
 PAGES["main-store"] = page_wrap(
     f'''{shead("3")}
-<div class="mstore">
-  <h1 class="h1 shop-h1">Shop</h1>
-  <div class="hero">
-    <img src="../../docs/main-store/hero-banner.png" alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface" loading="eager" fetchpriority="high">
-    <div class="hero-copy">
-      <div class="hero-eyebrow">NEW SEASON GEAR</div>
-      <h2 class="hero-h2">Power everything.</h2>
-      <div class="hero-sub">Audio to wearables — new drops this week.</div>
-      <a class="btn-p" href="#shop-all">Shop the drop</a>
-    </div>
+<div class="hero">
+  <img src="../../docs/main-store/hero-banner.png" alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface" loading="eager" fetchpriority="high">
+  <div class="hero-copy">
+    <div class="hero-eyebrow">NEW SEASON GEAR</div>
+    <h2 class="hero-h2">Power everything.</h2>
+    <div class="hero-sub">Audio to wearables — new drops this week.</div>
+    <a class="btn-p" href="#shop-all">Shop the drop</a>
   </div>
+</div>
+<div class="mstore">
   <div style="margin-bottom:var(--section-label-gap)">
     <div class="sec-label">Browse by category</div>
   </div>
   <div class="cats">
-    {cat_tiles()}
+    {cat_strips()}
   </div>
-  <div class="sec-label" id="shop-all" style="margin-bottom:var(--section-label-gap)">Shop All</div>
-  <div class="grid4">
-    {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in FEATURED)}
-    {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in SHOP_ALL)}
-  </div>
-  <div style="display:flex;justify-content:center;margin-top:40px">
+  <div class="shop-head" id="shop-all">
+    <div class="sec-label">Our Products</div>
     <button class="btn-p btn-loadmore">See more</button>
+  </div>
+  <div class="grid4">
+    <!-- round-10: exactly the first 8 items (4 FEATURED tile-marked + first 4 of SHOP_ALL)
+         so the grid4 shows 2 rows on desktop; the data arrays stay intact — the
+         "See more" affordance implies the rest exist. -->
+    {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in FEATURED + SHOP_ALL[:4])}
   </div>
 </div>''',
     MAINSTORE_CSS + CARD_CSS, "Main Store")
@@ -176,7 +212,7 @@ PAGES["main-store"] = page_wrap(
 PAGES["search-browse"] = page_wrap(
     f'''{shead("2","sony audio")}
 <div style="display:flex;gap:0;height:calc(736px - 56px)">
-  <aside class="sfilters" style="width:220px;border-right:1px solid var(--bs-200);padding:20px 16px;overflow:hidden">
+  <aside class="sfilters" style="width:220px;background:#fff;border-right:1px solid var(--bs-200);padding:20px 16px;overflow:hidden">
     <div class="sec-label" style="margin-bottom:16px">Filters</div>
     <div style="font-size:14px;font-weight:600;color:var(--bs-950);margin:16px 0 8px">Category</div>
     <div style="display:flex;flex-direction:column;gap:4px">
@@ -252,7 +288,7 @@ PAGES["product-details"] = page_wrap(
       </div>
       <div style="margin-top:40px">
         <div class="sec-label" style="margin-bottom:20px">Specs</div>
-        <div style="border:1px solid var(--bs-200);border-radius:10px">
+        <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px">
           <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--bs-200)">
             <div style="padding:12px 16px;border-right:1px solid var(--bs-200)"><span class="meta">Model</span><div style="font-weight:500;color:var(--bs-950)">WF-C710N</div></div>
             <div style="padding:12px 16px"><span class="meta">Bluetooth</span><div style="font-weight:500;color:var(--bs-950)">5.3, multipoint</div></div>
@@ -269,7 +305,9 @@ PAGES["product-details"] = page_wrap(
       </div>
       <div style="margin-top:40px">
         <div class="sec-label" style="margin-bottom:16px">Description</div>
-        <div style="font-size:14px;line-height:22px;font-weight:400;color:var(--bs-700)">Active noise cancellation with ambient sound mode, Bluetooth 5.3 multipoint and up to 13 hours of battery with the charging case. IPX4 water resistance for everyday use. <a class="link" href="#">Read more</a></div>
+        <div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;padding:16px">
+          <div style="font-size:14px;line-height:22px;font-weight:400;color:var(--bs-700)">Active noise cancellation with ambient sound mode, Bluetooth 5.3 multipoint and up to 13 hours of battery with the charging case. IPX4 water resistance for everyday use. <a class="link" href="#">Read more</a></div>
+        </div>
       </div>
     </div>
   </div>
@@ -318,7 +356,7 @@ PAGES["cart"] = page_wrap(
     <h1 class="h1">Cart</h1><span class="meta">(2 items)</span>
   </div>
   <div style="display:flex;gap:32px">
-    <div style="flex:1;min-width:0;border:1px solid var(--bs-200);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:24px">
+    <div style="flex:1;min-width:0;background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:24px">
       <div style="display:flex;gap:16px">
         {prod_img("earbuds",84,84,grad="audio")}
         <div style="flex:1;min-width:0">
@@ -357,31 +395,211 @@ PAGES["cart"] = page_wrap(
     "", "Cart")
 
 # ---------------- checkout ----------------
-def co_input(label, val, ph="", area=False):
-    if area:
-        return f'''<div style="margin-bottom:16px"><label class="label">{label}</label>
-        <div style="margin-top:8px"><div class="input wfull" style="min-height:66px">{val}</div></div></div>'''
+# 3-step wizard (round-9): Personal info → Shipping address → Payment.
+# _STEP (module global) is the rendered step; the capture script overrides it for
+# the step-2 / step-3 / progress-bar captures. default = 1.
+# "Place order" is ONLY a step-3 CTA: desktop renders it inside the payment card,
+# mobile (≤767px) hides the order panel and shows it in a fixed bottom CTA bar.
+_STEP = 1
+CO_CSS = """
+/* 3-step progress indicator (pinned above the form): numbered circles + labels + track */
+.co-progress{display:flex;align-items:flex-start;background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px}
+.co-pstep{display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;width:96px}
+.co-pnum{width:32px;height:32px;border-radius:50%;border:2px solid var(--bs-200);background:#fff;
+display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--bs-500)}
+.co-pstep.active .co-pnum{background:var(--at-600);border-color:var(--at-600);color:#fff}
+.co-pstep.done .co-pnum{background:var(--at-600);border-color:var(--at-600);color:#fff}
+.co-plabel{font-size:13px;line-height:16px;font-weight:500;color:var(--bs-700)}
+.co-pstep.active .co-plabel{color:var(--bs-950);font-weight:600}
+.co-track{flex:1;height:2px;background:var(--bs-200);margin:16px 8px 0}
+.co-track.done{background:var(--at-600)}
+.co-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:24px}
+.co-card{background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px}
+.co-card-t{display:flex;align-items:center;gap:12px;margin-bottom:24px;font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950)}
+.co-actions{display:flex;justify-content:space-between;gap:24px;margin-top:24px}
+/* payment radio-cards: 44px rows, selected = blueSlate-200 border + tint */
+.co-pay{border:1px solid var(--bs-200);border-radius:8px;padding:10px 16px;min-height:44px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;background:#fff}
+.co-pay.sel{border:1px solid var(--bs-200);background:var(--bs-100)}
+.co-pay .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--bs-300);background:#fff;flex:none;position:relative}
+.co-pay.sel .dot{border-color:var(--at-600)}
+.co-pay.sel .dot::after{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--at-600)}
+.co-pay-m{font-size:14px;line-height:20px;font-weight:500;color:var(--bs-950)}
+.co-pay-s{font-size:13px;line-height:16px;font-weight:400;color:var(--bs-700);margin-top:4px}
+.co-cond{margin:16px 0 0;padding:24px;border:1px dashed var(--bs-200);border-radius:8px;background:var(--bs-50)}
+.co-qr{display:grid;place-items:center;margin:8px 0 16px;width:64px;height:64px;border:1px dashed var(--bs-300);border-radius:8px;background:#fff}
+/* compact receipt block (step 3) */
+.co-rhead{font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950);margin-bottom:16px}
+.co-rrow{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bs-200)}
+.co-rrow .nm{flex:1;font-size:14px;line-height:20px;font-weight:500;color:var(--bs-950)}
+.co-rtot{display:flex;justify-content:space-between;padding:16px 0 0;font-size:14px;line-height:20px;font-weight:400;color:var(--bs-700)}
+.co-rtot .v{font-size:20px;line-height:28px;font-weight:600;color:var(--bs-950)}
+/* mobile (≤767px): the order-review panel drops; a fixed bottom CTA bar takes over */
+.co-sticky{display:none;position:fixed;bottom:0;left:0;right:0;z-index:40;background:#fff;
+border-top:1px solid var(--bs-200);padding:16px 24px;gap:16px;align-items:center;justify-content:space-between}
+.co-sticky .t{font-size:20px;line-height:28px;font-weight:600;color:var(--bs-950)}
+.co-sticky .l{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700);margin-bottom:4px}
+@media (max-width:767px){
+  .co-order{display:none}
+  .co-sticky{display:flex}
+}
+@media (max-width:389px){
+  .co-plabel{display:none}
+  .co-pstep{width:48px}
+}
+/* "Place order" (.co-place) is step-3-only: it is rendered structurally only for
+   step 3 (payment-card CTA, mobile sticky bar, order-panel button) and is absent
+   from the step-1 / step-2 / step-4 (receipt) DOM */
+/* step-4 receipt confirmation view */
+.co-check{width:26px;height:26px;border-radius:50%;background:var(--wg-500);display:flex;align-items:center;justify-content:center;flex:none}
+.co-receipt{background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:24px}
+.co-rtbl{border:1px solid var(--bs-200);border-radius:8px;overflow:hidden;margin:16px 0}
+.co-rtr{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#fff}
+.co-rtr+.co-rtr{border-top:1px solid var(--bs-200)}
+.co-rtr .nm{flex:1;min-width:0;font-size:14px;line-height:20px;font-weight:500;color:var(--bs-950)}
+.co-rtr .q{width:40px;flex:none;text-align:center;font-size:14px;line-height:20px;font-weight:400;color:var(--bs-700)}
+.co-rtr .am{width:96px;flex:none;text-align:right;font-size:14px;line-height:20px;font-weight:600;color:var(--bs-950)}
+.co-rth{display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--bs-50);font-size:13px;line-height:16px;font-weight:600;color:var(--bs-700);border-bottom:1px solid var(--bs-200)}
+.co-rth .q,.co-rth .am{font-weight:600}
+.co-rtbl .co-rtot{display:flex;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--bs-200);background:var(--bs-50);
+font-size:14px;line-height:20px;font-weight:600;color:var(--bs-700)}
+.co-rtbl .co-rtot .v{font-size:20px;line-height:28px;color:var(--bs-950)}
+.co-rpay{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--bs-200);
+font-size:14px;line-height:20px;font-weight:500;color:var(--bs-950)}
+"""
+
+def co_input(label, val, ph=""):
     return f'''<div style="margin-bottom:16px"><label class="label">{label}</label>
         <div style="margin-top:8px"><input class="input wfull" value="{val}" placeholder="{ph}"></div></div>'''
 
-PAGES["checkout"] = page_wrap(
-    f'''{shead("2")}
-<div style="padding:24px">
-  <h1 class="h1" style="margin-bottom:24px">Checkout</h1>
-  <div style="display:flex;gap:32px">
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:24px">
-      <div style="border:1px solid var(--bs-200);border-radius:12px;padding:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><span class="step-num">1</span><span style="font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950)">Shipping address</span></div>
+def co_note(val):
+    return f'''<div style="margin-bottom:16px"><label class="label">Note (optional)</label>
+        <div style="margin-top:8px"><div class="input wfull" style="min-height:66px">{val}</div></div></div>'''
+
+def co_progress(n):
+    labels = ["Personal info", "Shipping address", "Payment"]
+    out = []
+    for i, lab in enumerate(labels, 1):
+        cls = "active" if i == n else ("done" if i < n else "up")
+        out.append(f'<div class="co-pstep {cls}" aria-current={"step" if i == n else "false"}">'
+                   f'<div class="co-pnum">{i}</div><div class="co-plabel">{lab}</div></div>')
+        if i < 3:
+            out.append(f'<div class="co-track{" done" if i < n else ""}" role="presentation"></div>')
+    return ('<div class="co-progress" role="group" aria-label="Checkout progress">'
+            + "".join(out) + "</div>")
+
+def co_cardopt(label, sub, sel, icon):
+    d = " sel" if sel else ""
+    dot = f'<span class="dot" aria-hidden="true"></span>'
+    return (f'<div class="co-pay{d}" data-method="{label}">{dot}'
+            f'<div style="flex:1;min-width:0">{icon}<div class="co-pay-m">{label}</div>'
+            f'<div class="co-pay-s">{sub}</div></div></div>')
+
+def co_receipt():
+    return f'''<div class="co-card">
+      <div class="co-rhead">Receipt</div>
+      <div class="co-rrow">
+        <div class="pimg" style="width:24px;height:24px;background:{TILE_GRADS['audio']};border-radius:4px">{glyph("earbuds",12)}</div>
+        <div class="nm">Sony WF-C710N ×1</div>
+        <div class="price">Rp 1.290.000</div>
+      </div>
+      <div class="co-rrow">
+        <div class="pimg" style="width:24px;height:24px;background:{TILE_GRADS['acc']};border-radius:4px">{glyph("powerbank",12)}</div>
+        <div class="nm">Anker 735 PB ×1</div>
+        <div class="price">Rp 380.000</div>
+      </div>
+      <div class="co-rtot"><span>Subtotal</span><span style="color:var(--bs-950);font-weight:600">Rp 1.670.000</span></div>
+      <div class="co-rtot"><span>Total (to be settled)*</span><span class="v">Rp 1.670.000</span></div>
+      <div class="meta" style="margin-top:8px">*payment TBD — order stays pending until settled</div>
+    </div>'''
+
+CARD_IC = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--at-600)" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>'
+BANK_IC = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--at-600)" aria-hidden="true"><path d="M3 9l9-6 9 6M5 9v10M9 9v10M15 9v10M19 9v10M3 21h18"/></svg>'
+QR_IC = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--at-600)" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v3M14 21h3v-3M21 21h-3"/></svg>'
+
+CHECK_IC = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>'
+
+def co_receipt_table():
+    """Step-4 confirmation: receipt-style line-item table (item / qty / line amount
+    + total) with the payment-method summary line."""
+    return f'''<div class="co-rtbl">
+      <div class="co-rtr co-rth"><div class="nm">Item</div><div class="q">Qty</div><div class="am">Amount</div></div>
+      <div class="co-rtr"><div class="nm">Sony WF-C710N Wireless Earbuds</div><div class="q">1</div><div class="am">Rp 1.290.000</div></div>
+      <div class="co-rtr"><div class="nm">Anker 735 Power Bank</div><div class="q">1</div><div class="am">Rp 380.000</div></div>
+      <div class="co-rtot"><span>Total (to be settled)</span><span class="v">Rp 1.670.000</span></div>
+      <div class="co-rpay">{CARD_IC}<div style="flex:1">Card ending in <b style="font-weight:600">•••• 9999</b> — charged on delivery</div></div>
+    </div>'''
+
+def co_steps(n):
+    """The active step's card; 'Place order' is rendered ONLY for step 3."""
+    if n == 1:
+        card = f'''<div class="co-card">
+        <div class="co-card-t"><span class="step-num">1</span>Personal information</div>
         {co_input("Name","Jordan Wijaya")}
         {co_input("Phone","+62 812-3456-7890")}
-        {co_input("Address","Jl. Kemang Selatan 12, RT 4 / RW 9, Jakarta Selatan, DKI Jakarta 12730",area=True)}
-      </div>
-      <div style="border:1px solid var(--bs-200);border-radius:12px;padding:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><span class="step-num">2</span><span style="font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950)">Review your order</span></div>
-        <div style="font-size:14px;font-weight:400;color:var(--bs-700)">Sony WF-C710N Wireless Earbuds ×1 · Anker 735 Power Bank ×1 — read-only; edit in Cart.</div>
-      </div>
+        {co_input("Email","jordan.w@example.com")}
+        {co_note("Please deliver after 5 PM — fragile item, extra packaging")}
+        <div class="co-actions"><div></div><button class="btn-p">Continue</button></div>
+      </div>'''
+        return card
+    if n == 2:
+        card = f'''<div class="co-card">
+        <div class="co-card-t"><span class="step-num">2</span>Shipping address</div>
+        {co_input("Address","Jl. Kemang Selatan 12, RT 4 / RW 9, Jakarta Selatan")}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+          {co_input("District","Kemang")}
+          {co_input("City","Jakarta Selatan")}
+          {co_input("Province","DKI Jakarta")}
+          {co_input("Postal code","12730")}
+        </div>
+        <div class="co-actions"><button class="btn-sec">Back</button><button class="btn-p">Continue</button></div>
+      </div>'''
+        return card
+    if n == 4:
+        card = f'''<div class="co-receipt">
+        <div class="co-card-t" style="margin-bottom:8px"><span class="co-check">{CHECK_IC}</span><span>Order placed<span style="font-weight:400;color:var(--bs-700)"> · Order <b style="font-weight:600;color:var(--bs-950)">#WB-1043</b></span></span><span class="pill pill-pending" style="margin-left:auto">pending</span></div>
+        {co_receipt_table()}
+        <div class="meta" style="margin-bottom:24px">Ships from Sunset Electronics — estimated delivery 24 Sep 2026, 10:00–14:00. Payment settles after the order is confirmed.</div>
+        <div class="co-actions"><div></div><a class="btn-p" href="#orders-placed" style="text-decoration:none;color:#fff">View my orders</a></div>
+      </div>'''
+        return card
+    pay = "".join([
+        co_cardopt("Card", "Visa · Mastercard · JCB — charge on delivery", True, CARD_IC),
+        co_cardopt("Bank transfer", "VA number generated after the order is placed", False, BANK_IC),
+        co_cardopt("QRIS", "Scan &amp; pay from any e-wallet app", False, QR_IC),
+    ])
+    cond = f'''<div class="co-cond">
+        {co_input("Card number","4444 2222 1111 9999")}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+          {co_input("Expiry","MM/YY")}
+          {co_input("CVV","•••")}
+        </div>
+      </div>'''
+    receipt = co_receipt()
+    card = f'''<div class="co-card">
+      <div class="co-card-t"><span class="step-num">3</span>Payment</div>
+      <fieldset style="border:0;padding:0;margin:0"><legend class="label" style="margin-bottom:8px">Payment method</legend>{pay}</fieldset>
+      {cond}
+      {receipt}
+      <div class="co-actions"><button class="btn-sec">Back</button><button class="btn-p co-place">Place order</button></div>
+      <div style="margin-top:24px;text-align:center"><a class="link" href="#">Edit cart</a></div>
+    </div>'''
+    return card
+
+def _co_page(step):
+    """Full checkout page for the given wizard step (module global _STEP drives the capture set)."""
+    # "Place order" is step-3-only: the order-review panel renders its CTA button
+    # structurally only on step 3 (panel_cta), matching the sticky bar + payment card.
+    panel_cta = ('<button class="btn-p full co-place" style="margin-top:16px">Place order</button>'
+                 if step == 3 else '')
+    head = f'''{shead("2")}
+<div style="padding:24px">
+  <h1 class="h1" style="margin-bottom:24px">Checkout</h1>
+  <div style="display:flex;gap:32px;align-items:flex-start">
+    <div class="co-body">
+      {co_progress(step)}
+      {co_steps(step)}
     </div>
-    <div style="width:340px;flex:none;background:var(--bs-50);border:1px solid var(--bs-200);border-radius:12px;padding:24px;height:fit-content">
+    <div class="co-order" style="width:340px;flex:none;background:var(--bs-50);border:1px solid var(--bs-200);border-radius:12px;padding:24px;height:fit-content">
       <div style="font-size:16px;line-height:24px;font-weight:600;color:var(--bs-950);margin-bottom:16px">Order review</div>
       <div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bs-200)">
         <div class="pimg" style="width:44px;height:44px;background:{TILE_GRADS['audio']}">{glyph("earbuds",20)}</div>
@@ -395,13 +613,25 @@ PAGES["checkout"] = page_wrap(
       </div>
       <div style="display:flex;justify-content:space-between;padding:12px 0;font-size:14px;color:var(--bs-700);font-weight:400"><span>Subtotal</span><span style="color:var(--bs-950);font-weight:600">Rp 1.670.000</span></div>
       <div style="display:flex;justify-content:space-between;padding:8px 0 0"><span style="font-size:14px;color:var(--bs-700);font-weight:400">Total (to be settled)*</span><span style="font-size:20px;line-height:28px;font-weight:600;color:var(--bs-950)">Rp 1.670.000</span></div>
-      <div class="meta" style="margin-top:8px">*payment TBD — no payment step in v1</div>
-      <button class="btn-p full" style="margin-top:16px">Place order</button>
+      <div class="meta" style="margin-top:8px">*payment TBD — order stays pending until settled</div>
       <div style="text-align:center;margin-top:16px"><button class="btn-sec" style="width:100%">Edit cart</button></div>
+      {panel_cta}
     </div>
   </div>
-</div>''',
-    "", "Checkout")
+</div>'''
+    sticky = ('<div class="co-sticky" style="margin-top:24px">'
+              '<div><div class="l">Total (to be settled)</div>'
+              '<div class="t">Rp 1.670.000</div></div>'
+              '<button class="btn-p co-place">Place order</button></div>')
+    if step == 3:
+        # step 3: mobile keeps the page scrollable to the bottom CTA bar (body overflow fix)
+        head = head.replace('style="padding:24px"', 'style="padding:24px;margin-bottom:88px"', 1)
+        return head + sticky
+    return head
+
+PAGES["checkout"] = page_wrap(
+    _co_page(_STEP),
+    CO_CSS, "Checkout")
 
 # ---------------- orders placed ----------------
 # timeline steps per state: pending → first step current; delivered → all done
