@@ -61,47 +61,6 @@ All five ops pages share the app-shell layout spec in `docs/control-panel/design
 
 Each page folder contains `design.md` (features, wireframe notes, color usage) and `mockup.png` — a pixel-stable render of the page (checkout has per-step mockups; main-store also ships hero + 6 category images).
 
-## Repo structure (all files)
-
-```
-shop-inv-management/
-├── README.md                        ← this file
-├── AGENTS.md                        ← standing rules for AI agents working in this repo (branch/PR policy, inputs)
-├── .gitignore
-├── COLORS-draft.md                  ← "Sunset Glow" palette (source of truth for color names)
-├── Sheets-report.md                 ← full requirements analysis of the plan-web Google Sheet
-│                                      (roles, 14-permission matrix, 13 pages, checkout use case,
-│                                       locked decisions, open decisions, known gaps)
-│
-├── docs/                            ← the design layer
-│   ├── color-tokens.md              ← resolved color-token scale (7 families × 11 weights)
-│   ├── design-tokens-round3.md      ← typography (Roboto 400/500/600), 8pt spacing grid,
-│   │                                    component conventions (badges, CTA stack, surfaces)
-│   ├── RENDER.md                    ← step-by-step recipe to re-render + verify all 13 mockups
-│   │                                    and run the conformance gate
-│   ├── control-panel/design.md      ← shared ops app-shell spec (5 pages)
-│   └── <page>/design.md + mockup.png×13 pages (list above)
-│
-└── _mockup-build/                   ← the mockup pipeline (generators + gates; out/ is gitignored)
-    ├── lib.py                       ← shared HTML framework: shells, tokens, components
-    ├── pages_storefront.py          ← storefront page generators (login, register, main-store,
-    │                                    search-browse, product-details, cart, checkout, orders-placed)
-    ├── pages_ops.py                 ← ops page generators (inventory, ongoing-orders,
-    │                                    per-product ×2, user-dashboard)
-    ├── pages_auth.py                ← auth-page generators (login, register)
-    ├── build_html.py                ← regenerates out/<page>.html for all 13 pages from lib.py
-    ├── render.py                    ← headless-Chromium render driver (html → png)
-    ├── rebuild_docs_png.sh          ← one command: render all 13 + sync docs/ + md5-verify
-    ├── verify_framework.sh / .cjs   ← conformance gate: out-of-scale hex, font-weight, 8pt grid,
-    │                                    framework-line deletions since the lock commit
-    ├── verify.cjs                   ← generic verification helper
-    ├── capture_bottom.cjs, capture_checkout.py, co_captures.py
-    │                                  ← one-off screenshot helpers (below-fold, checkout steps)
-    └── out/ verify/ …               ← generated, gitignored (regenerable; see docs/RENDER.md)
-```
-
-Regenerating or verifying the mockups: follow `docs/RENDER.md` (5 steps, ~1 minute, all from tracked files).
-
 ## Rough data sketch (first-draft data model — will evolve)
 
 Per the midterm requirements, a rough sketch of the two records the system revolves around (plus the two supporting ones). Hardcoded as JS arrays at Midterm; becomes the SQLite schema at Final:
@@ -140,7 +99,3 @@ Per the midterm requirements, a rough sketch of the two records the system revol
 | Midterm (now) | Web app: login, menu, role-conditional dashboard, form — both roles — deployed to GitHub Pages | Hardcoded |
 | Mid-course (not separately graded) | Same web app reconnected to our own Express + SQLite backend | Real database |
 | Final | Web (admin + client) + mobile (client only) + shared backend + 1 AI feature, fully deployed | Real database |
-
-## Git workflow
-
-`main` is PR-protected — all changes land via feature branch + PR (`docs/<topic>`, `feat/<topic>`, `fix/<topic>`). See `AGENTS.md` for the full policy.
