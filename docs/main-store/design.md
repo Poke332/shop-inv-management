@@ -16,13 +16,15 @@ unified pill badges, filled CTA stack).
   `docs/main-store/hero-banner.png` (Sunset Glow lighting; right third of the
   image is clean gradient space — all copy is **overlaid HTML**, never baked
   into the image, so it stays crisp). Spec under VISUALIZATION.
-- **Category browsing (v4, round-10 image row):** six clickable category IMAGES
-  (Audio, Smart Home, Gaming, Laptops & PC, Accessories, Wearables) in one row
-  between the hero and the "Our Products" grid. Each image is a 1200×300 still-life
-  asset `docs/main-store/cat-<slug>.png` — **no text is baked into the images**: the
-  category name and product count are HTML overlays on the tile, so they stay crisp.
+- **Category browsing (v4, round-11 grid):** six clickable category IMAGES
+  (Audio, Smart Home, Gaming, Laptops & PC, Accessories, Wearables) in a 3×2
+  grid between the hero and the "Our Products" grid. Each image is a 1200×300
+  still-life asset `docs/main-store/cat-<slug>.png` — **no text is baked into
+  the images**: the category title sits on the tile's white bar below the
+  image (HTML, crisp). Round-11 drops the round-10 image-overlay label and the
+  "N products" count line — the section carries no product counts.
   Each links to the Search/Browse filtered view. Page order (round-3 §3.5, extended):
-  header → hero → Browse by category (image row) → Our Products (8-item, 2-row grid)
+  header → hero → Browse by category (3×2 image grid) → Our Products (8-item, 2-row grid)
   → See-more on the heading row.
 - **Role-gating note (sheet inconsistency, open decision #8):** the matrix grants
   "browse product" to buyer only, but "view product details" T for all roles and the
@@ -108,15 +110,22 @@ ASCII wireframe (desktop, ≥1024px):
 +------------------------------------------------------------------+
   (centered content-max container resumes below the banner)
 | Browse by category                     (section label 16/600)   |
-| +---------+ +---------+ +---------+ +---------+ +---------+ +----+|
-| | [cat-    | | [cat-   | | [cat-   | | [cat-   | | [cat-   | [cat|
-| |  audio.  | |  smart- | |  gaming.| |  laptops| |  acces- |  wea|
-| |  png]    | |  home.] | | .png]  | | .png]  | |  sories.]| rable|
-| | Audio    | | Smart   | | Gaming  | | Laptops | |Accessor | es  |
-| | [12]     | | Home[8] | | [10]    | |& PC[9]  | |ies[7]   | [5] |
-| +---------+ +---------+ +---------+ +---------+ +---------+ +----+|
-| (6 IMAGE tiles, 4:1, card-gutter 32px; label+count = HTML overlay,|
-|  images text-free; mobile <768: horizontal-scroll row, min 240px) |
+| +------------------+ +------------------+ +------------------+|
+| | [cat-audio.png]   | | [cat-smart-home] | | [cat-gaming.png]  |
+| +------------------+ +------------------+ +------------------+|
+| | Audio            | | Smart Home       | | Gaming           |
+| | (white bar,      | | (white bar,      | | (white bar,      |
+| |  title only)     | |  title only)     | |  title only)     |
+| +------------------+ +------------------+ +------------------+|
+| | [cat-laptops.png] | | [cat-accessories] | | [cat-wearables]   |
+| +------------------+ +------------------+ +------------------+|
+| | Laptops & PC     | | Accessories      | | Wearables        |
+| | (white bar,      | | (white bar,      | | (white bar,      |
+| |  title only)     | |  title only)     | |  title only)     |
+| +------------------+ +------------------+ +------------------+|
+| (6 image tiles, 3x2 grid, 4:1 images, card-gutter 32px;       |
+|  title on the white bar under each image — no product counts;  |
+|  mobile <768: horizontal-scroll row, tile min-width 320px)     |
 | Our Products                   [ See more ]  <- same heading row  |
 | +--------+ +--------+ +--------+ +--------+                       |
 | | [tile] | | [tile] | | [tile] | | [tile] |  grid4, 32px gutter  |
@@ -210,37 +219,34 @@ ASCII wireframe (desktop, ≥1024px):
   game controller on a dark reflective surface"` — descriptive of the product set,
   not of the marketing copy (that's the HTML's job).
 
-### Category browsing block (v4 → round-10 image row)
+### Category browsing block (v4 → round-11 3×2 image grid)
 
 - **Section label:** `Browse by category` — round-3 `section-header` (16/24 w600,
   0.05em tracking, sentence case), `section-label-gap` 20px below the hero.
-- **Tile (round-10 — images replaced the v4 swatch+glyph cards):** 6-image row,
-  `display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--card-gutter)`.
+- **Tile (round-11 — 3×2 grid of images; round-10 had a 6-image row):**
+  `display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--card-gutter)`
+  (3×2, larger tiles than round-10's 6-across row).
   Each tile = link (`<a class="cat-strip" href="/search?category=<slug>"`),
   `border-radius: 8px`, `border: 1px solid blueSlate-200`, `overflow: hidden`, 1px
   border transition 150ms, white tile background:
   1. **Image:** `<img src="docs/main-store/cat-<slug>.png">` — 1200×300 (4:1) still-life
      asset, `width: 100%; aspect-ratio: 4/1; object-fit: cover`, wrapped in a
-     `position: relative` `.cat-cimg`. **No text is baked into the images** —
-     the category name is an HTML overlay (same crisp-text treatment as the hero
-     banner copy), `alt` = the category name.
+     `position: relative` `.cat-cimg`. **No text is baked into the images** and
+     no HTML overlay sits on them (round-11 removed the round-10 bottom-left
+     label overlay) — the image is clean, `alt` = the category name.
      Assets (6, all committed under `docs/main-store/`): `cat-audio.png`,
      `cat-smart-home.png`, `cat-gaming.png`, `cat-laptops.png`, `cat-accessories.png`,
      `cat-wearables.png`.
-  2. **Label overlay:** `card-title` 15/24 w600 `blueSlate-950`, absolutely positioned
-     bottom-left **over the image** (`left: 12px; bottom: 8px`), sentence case
-     ("Laptops & PC"), with a subtle `blueSlate-950`-based text-shadow so it stays
-     gradient-safe and crisp over any part of the image.
-  3. **Count line:** `metadata` 13/20 w400 `blueSlate-700` — "12 products",
-     an HTML line **below the image** on the white tile background
-     (`padding: 10px 12px`). Counts are server-provided live aggregates; the
-     mockup values (12/8/10/9/7/5) are illustrative. A 0-product category still
-     shows its tile and the live link (the Search/Browse empty state handles it) —
-     **TBD-light** as before.
+  2. **Title on the white bar:** `card-title` 15/24 w600 `blueSlate-950`,
+     left-aligned on the white (`#FFFFFF`) bar **below** the image
+     (`padding: 12px 16px`), sentence case ("Laptops & PC"). The round-10
+     overlay-on-image label and the "N products" count line are both dropped —
+     the tile carries the title only, no product counts.
 - **Tile states:** hover = border → `atomicTangerine-400` (same affordance as the old
   cat-tile; color-only-safe). Focus ring 2px `atomicTangerine-500` offset 2.
 - **Mobile (<768px):** the row becomes **horizontally scrollable**
-  (`overflow-x: auto`, 24px gutter, tile `min-width: 240px`, `flex: none`).
+  (`overflow-x: auto`, 24px gutter, tile `min-width: 320px` — larger than
+  round-10's 240px, `flex: none`).
   No vertical wrap. The "Our Products" heading row stacks `column` on <768px so
   the full-width "See more" button sits under the label.
 
@@ -262,7 +268,7 @@ line below (44px min); grid 3-up at 768–1023px, 2-up at 390–767px (24px gutt
 | H1 "Shop" | `blueSlate-950` 26/36 w600 |
 | **Hero band (v4)** | container: full content width, `aspect-ratio: 16/9`, radius 8px, overflow hidden; `hero-banner.png` absolute inset cover, `object-position: center right`, `loading="eager"`; band sits `section-rhythm` (48px) below the H1, `section-rhythm` above "Browse by category" |
 | **Hero copy overlay (v4)** | right third (`right: 48px; top: 50%; translateY(-50%); max-width: 380px; text-align: left`, 12px stack gaps): eyebrow `NEW SEASON GEAR` 13/600 .05em `tuscanSun-300` (#FBDF9D, ≥4.5:1 vs the band's dark blue-slate corner); H2 `Power everything.` **32/40 w600 `#FFFFFF`** (v4 display size, one-off — not a new type token); sub 14/20 w400 `blueSlate-100`; CTA `Shop the drop` filled primary stack (`atomicTangerine-600/700/800`, white 14/500, 44px, radius 8px) anchoring to `#shop-all`; on <768px the copy drops to bottom-left static flow, H2 → 26/36, CTA full-width |
-| **Category image tile (round-10)** | link `cat-strip`, white bg, radius 8px, 1px `blueSlate-200` border (hover → `atomicTangerine-400`), `overflow: hidden`, `repeat(6, minmax(0,1fr))` + `card-gutter` 32px (mobile: horizontal-scroll row, 24px gutter, tile min-width 240px); image = 1200×300 (4:1) `cat-<slug>.png` `object-fit: cover`, **no baked-in text** — category name overlay `card-title` 15/24 w600 `blueSlate-950` bottom-left over the image (`left: 12px; bottom: 8px`, text-shadow for gradient-safe crispness) + count line `metadata` 13/20 w400 `blueSlate-700` **below** the image on the white tile (`padding: 10px 12px`), "N products" (live aggregate; example: 12/8/10/9/7/5) |
+| **Category tile (round-11)** | link `cat-strip`, white bg, radius 8px, 1px `blueSlate-200` border (hover → `atomicTangerine-400`), `overflow: hidden`, `repeat(3, minmax(0,1fr))` 3×2 grid + `card-gutter` 32px (mobile: horizontal-scroll row, 24px gutter, tile min-width 320px); image = 1200×300 (4:1) `cat-<slug>.png` `object-fit: cover`, **no baked-in text**, clean — no overlay on the image; title = `card-title` 15/24 w600 `blueSlate-950` on the white bar **below** the image (`padding: 12px 16px`, `#fff` surface, left-aligned); **no product-count line** (round-11 drop; the old round-10 `metadata` "N products" line is gone) |
 | **Section row "Our Products" + "See more" (round-10)** | `id="shop-all"` heading row = `display: flex; justify-content: space-between; align-items: center`, `section-label-gap` below the category row: label "Our Products" `blueSlate-950` 16/24 w600, letter-spacing .05em, sentence case (left) + "See more" filled 44px primary button 320px (right; full-width mobile — the row stacks `column` on <768px). The section renders exactly 8 items (4 FEATURED + first 4 of SHOP_ALL) = 2 grid4 rows on desktop; the remaining products stay in the data arrays behind the "See more" affordance |
 | Section label "Browse by category" | `blueSlate-950` 16/24 w600, letter-spacing .05em, sentence case |
 | Card: bg / border / hover border | `#FFFFFF` / `blueSlate-200` / `atomicTangerine-400` |
@@ -284,6 +290,24 @@ line below (44px min); grid 3-up at 768–1023px, 2-up at 390–767px (24px gutt
 > (primary filled, `atomicTangerine-600`) + **Add to cart** (secondary outline, white fill,
 > 1px `blueSlate-200` border, plus glyph kept). Out-of-stock disables both. The old
 > `Add-to-cart | 44×44 circular filled` row is superseded by the `Card actions (round 11)` row.
+>
+> **intended-redesign (round 11): category tiles — title on the white bar, counts
+> dropped, larger 3×2 tiles.** The round-10 category section (image row,
+> `repeat(6, minmax(0,1fr))`, `.cat-lab` overlay bottom-left ON the image,
+> `.cat-count` "N products" line on the white footer, mobile tile min-width
+> 240px) is intentionally reversed: the section is now a 3×2 grid
+> (`repeat(3, minmax(0,1fr))`, `card-gutter` 32px) with larger tiles; the
+> category title moved OFF the image onto the tile's white bar below it
+> (`.cat-lab`: 15/24 w600 `blueSlate-950`, `padding: 12px 16px`, white `#fff`
+> surface, left-aligned); the product-count line is removed entirely — no
+> counts anywhere in the section (the CATS array in the generator is kept for
+> search-browse/filter reference); mobile (<768px) stays a horizontal-scroll
+> row but with larger tiles (`min-width: 320px`). The `Category image tile
+> (round-10)` color-usage row below is superseded by the `Category tile
+> (round-11)` row. Framework-safe: all colors are in-scale Sunset Glow tokens
+> (inherited from round 10), weights ≤ 600, spacing on the 8pt grid with
+> framework-exempt component px — a page-content change, not a framework
+> change.
 
 ## INTERACTIONS
 

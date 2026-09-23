@@ -51,28 +51,31 @@ MAINSTORE_CSS = """
 .hero-h2{font-size:32px;line-height:40px;font-weight:600;color:#fff}
 .hero-sub{font-size:14px;line-height:20px;font-weight:400;color:var(--bs-100)}
 #shop-all{scroll-margin-top:80px}
-/* round-10: category section = 6 clickable IMAGES (cat-<slug>.png, 1200x300, no baked text)
-   — the name is an HTML overlay bottom-left over the image; the count is an HTML
-   line below the image (in tile flow, on the white tile bg) */
-.cats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--card-gutter);margin-bottom:var(--section-rhythm)}
+/* round-11: category section = 6 clickable IMAGES (cat-<slug>.png, 1200x300, no
+   baked text) in a 3x2 grid on desktop (larger tiles than round-10's 6-across
+   row); the title sits on the white bar below the image; the product count
+   line is dropped */
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--card-gutter);margin-bottom:var(--section-rhythm)}
 .cat-strip{display:block;background:#fff;border:1px solid var(--bs-200);border-radius:8px;overflow:hidden;transition:border-color 150ms ease}
 .cat-strip:hover{border-color:var(--at-400);text-decoration:none}
 .cat-cimg{position:relative}
 .cat-cimg>img{width:100%;aspect-ratio:4/1;object-fit:cover;display:block}
-.cat-lab{position:absolute;left:12px;bottom:8px;font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950);text-shadow:0 0 10px rgba(13,18,22,.45)}
-.cat-count{padding:10px 12px;font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
+/* round-11: title moved OFF the image onto the white bar below it;
+   the .cat-count product-count line is dropped */
+.cat-lab{padding:12px 16px;font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950)}
 /* heading row: "Our Products" left, "See more" right (round-10 — button moved off its centered-bottom position) */
 .shop-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--section-label-gap)}
-/* round-10: mobile (<768px) — the category row becomes a horizontal-scroll rail
-   (min-width 240px tiles); the heading row stacks so the full-width "See more"
-   (lib .btn-loadmore → 100% on <768px) sits under the "Our Products" label */
+/* round-11: mobile (<768px) — the category row becomes a horizontal-scroll rail
+   (min-width 320px tiles — larger than round-10's 240px); the heading row stacks
+   so the full-width "See more" (lib .btn-loadmore → 100% on <768px) sits under
+   the "Our Products" label */
 @media (max-width:767px){
   .mstore{padding:32px 16px 0}
   .hero-copy{right:16px;left:16px;top:auto;bottom:16px;transform:none;max-width:100%}
   .hero-h2{font-size:26px;line-height:36px}
   .hero-copy .btn-p{width:100%}
   .cats{display:flex;overflow-x:auto;gap:24px}
-  .cat-strip{min-width:240px;flex:none}
+  .cat-strip{min-width:320px;flex:none}
   .shop-head{flex-direction:column;align-items:stretch;gap:12px}
 }
 """
@@ -137,12 +140,14 @@ CATS = [
 ]
 
 def cat_strips():
-    """Round-10: category section = 6 clickable IMAGES (docs/main-store/cat-<slug>.png,
-    1200x300, no baked-in text — the name overlays the image bottom-left, the count
-    line sits below the image on the white tile). Same deep-link contract as the
-    old cat_tiles()."""
+    """Round-11: category section = 6 clickable IMAGES in a 3x2 desktop grid
+    (docs/main-store/cat-<slug>.png, 1200x300, no baked-in text) — the title
+    sits on the white bar below the image; the round-10 image overlay label
+    and the product-count line are both dropped (the CATS array is kept as-is:
+    search-browse/filter docs still reference it). Same deep-link contract as
+    the old cat_tiles()."""
     out = []
-    for label, icon, key, n in CATS:
+    for label, icon, key, _n in CATS:
         slug = {"Audio": "audio", "Smart Home": "smart-home", "Gaming": "gaming",
                 "Laptops & PC": "laptops", "Accessories": "accessories",
                 "Wearables": "wearables"}[label]
@@ -150,8 +155,8 @@ def cat_strips():
             f'<a class="cat-strip" href="/search?category={slug}">'
             f'<div class="cat-cimg">'
             f'<img src="../../docs/main-store/cat-{slug}.png" alt="{label}">'
-            f'<div class="cat-lab">{label}</div></div>'
-            f'<div class="cat-count">{n} products</div></a>')
+            f'</div>'
+            f'<div class="cat-lab">{label}</div></a>')
     return "\n".join(out)
 
 
