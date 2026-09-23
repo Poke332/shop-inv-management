@@ -32,10 +32,16 @@ Storefront layout: `StorefrontHeader` on `tuscanSun-50` warm ground.
   `/search?category=<slug>` (audio / smart-home / gaming / laptops / accessories /
   wearables) — the arriving Search/Browse renders the category chip active like any other
   filter chip (removable, refetches in place); no new route.
-- Card / "Buy now" → `/products/:id` ("Buy now" adds to cart first, then navigates);
-  "Add to cart" stays on the page (optimistic badge increment, ~600ms `willowGreen-500`
-  check flash; API failure → `strawberryRed` toast "Couldn't add to cart — stock
-  changed. Reload." + card flips to out-of-stock state).
+- Card: name/title → `/products/:id`. "Add to cart" stays on the page (optimistic badge
+  increment, ~600ms `willowGreen-500` check flash; API failure → `strawberryRed` toast
+  "Couldn't add to cart — stock changed. Reload." + card flips to out-of-stock state).
+- **CTA targets (decided):** the two card CTAs do different things —
+  - **Add to cart** = add the line (qty 1, or the quantity chosen on Product Details) and
+    **stay on the page** — optimistic header badge flash only, no navigation.
+  - **Buy now** = add the line **and navigate to `/cart`** — the order's checkout path
+    (Cart → Checkout → Orders Placed, Sheet2). It never deep-links to a product page;
+    the card's name/title link is the `/products/:id` link. No other entry to the order
+    flow exists.
 - No order flow starts here.
 
 ## Data

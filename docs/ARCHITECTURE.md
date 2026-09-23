@@ -13,12 +13,14 @@ locked flow decisions), `docs/RENDER.md` (mockup provenance).
 
 | Concern | Choice |
 |---|---|
+| Language | Plain JavaScript — **no TypeScript anywhere** (entity shapes are documented as JSDoc-style comments / field lists, never `.ts` files) |
 | Framework | React.js (function components + hooks) |
+| Toolchain | **Vite** (dev-only toolchain — build/dev server, HMR; the app is a React Router SPA, not Next) |
 | Routing | React Router — one route tree, RBAC guards on route level (see `docs/IMPLEMENTATION.md` §Routes) |
-| Styling | Tailwind CSS — design tokens transcribed as a theme extension + a token CSS-variable layer (`src/styles`). No ad-hoc hex, ever |
+| Styling | Tailwind CSS — design tokens transcribed as a theme extension + a token CSS-variable layer (`frontend/src/styles`). No ad-hoc hex, ever |
 | Icons | React Icons (line glyphs for category tiles, status chips, cart/trash/menu affordances) |
 | Client state | React Context + `useReducer` only — `AuthContext` (user + role + session), `CartStore` (cart lines + quantities), the checkout wizard's step/form state. No additional state library |
-| Data fetching | Native `fetch` against a mock API module (`src/data`) that mirrors the future Express contract; polling via a `usePoll` hook. No data-fetching library |
+| Data fetching | Native `fetch` against a mock API module (`frontend/src/data`) that mirrors the future Express contract; polling via a `usePoll` hook. No data-fetching library |
 | Forms | Native controlled inputs + per-page validation state (pinned stack); no form library |
 | Money | prices stored as integer rupiah (IDR); display via one shared `formatRp` helper (`Rp 1.290.000`, dot thousands) |
 
@@ -27,6 +29,22 @@ V1 decisions recorded from the design docs (not re-opened): cart persistence is 
 assumption); stock decrement is automatic on successful order (Sheet2 postcondition,
 `docs/checkout/design.md`); rating average includes hidden-review stars (average is data-layer,
 UI built scale-agnostic).
+
+**Stack policy (pinned, not re-opened):**
+
+- **Language:** plain JavaScript. No TypeScript anywhere — entity shapes stay documented as
+  JSDoc-style comments / plain field tables, never `.ts` files.
+- **Bundler:** Vite (dev-only toolchain; the app is a React Router SPA, not Next).
+- **Tests:** no automated test suite in v1 — no Vitest/Jest/RTL. "Done" = mockup conformance
+  gate + manual 1312px/390px breakpoint checks on the live dev server (see
+  `docs/IMPLEMENTATION.md` P7 + `docs/PRD.md` Success criteria).
+- **Dependency rule:** runtime dependencies are **exactly** React / React Router / Tailwind
+  CSS / React Icons — nothing else. Dev-only tooling allowed **without** approval: the Vite
+  toolchain + a linter (ESLint/Prettier). **Everything else** — any other runtime library
+  OR dev tool — is NOT decided here: it is parked on the off-stack sign-off card
+  (`t_7480ddbe`, "Off-stack library suggestions — sign-off in review lane") and only lands
+  in the plan after review sign-off. No such library is written into these docs as a
+  decision.
 
 ## 2. Design-token system → Tailwind mapping
 
@@ -82,7 +100,7 @@ not a new token). Sale-price pattern: current price 600 `atomicTangerine-600` + 
 `theme.extend.spacing`: `card-gutter` 32px (24px <768px), `card-padding` 24px,
 `section-rhythm` 48px (40px mobile), `section-label-gap` 20px, `touch` 44px (a11y floor for
 every tap target), `content-max` 1200px, `page-gutter` 48px (24px mobile). Values live as CSS
-custom properties in `src/styles` so the media-query switches (`--card-gutter`,
+custom properties in `frontend/src/styles` so the media-query switches (`--card-gutter`,
 `--ops-page-pad`, …) work; Tailwind classes reference the vars.
 
 ### 2.4 Component tokens (round3 §3–§4)
@@ -135,27 +153,34 @@ build: no out-of-scale hex, weight ≤ 600, 8pt spacing.
 
 ## 3. Folder structure
 
-Directory tree only — one-line purpose per folder. No file lists.
+The app lives in **`frontend/` at the repo root, sibling of `docs/`** — `docs/` holds
+the design + planning docs, `frontend/` is the Vite app. Every `src/...` path in the
+planning docs is relative to `frontend/` (i.e. `frontend/src/data`, etc.).
 
 ```
-project/
-├─ src/
-│  ├─ components/   — shared UI primitives: buttons (primary/secondary/destructive stacks),
-│  │                  pill badges, status chips, role badges, product tiles, quantity stepper,
-│  │                  star rating, toasts, skeletons, confirm dialog, receipt table
-│  ├─ layout/       — StorefrontHeader (logo / search / cart badge / account menu),
-│  │                  OpsShell (v4 gutter spec: sidebar + content), AuthLayout (two-panel
-│  │                  brand + form card, shared by Login/Register)
-│  ├─ pages/        — one page component per route (14 routes incl. the ops pages)
-│  ├─ router/       — the single route tree + RBAC route guards (role list per route,
-│  │                  redirect rules, deep-link paths)
-│  ├─ data/         — mock entities (products, orders, reviews, users, categories, stock) +
-│  │                  the mock API module that mirrors the future Express endpoints
-│  ├─ hooks/        — useAuth, useCart (CartStore context), usePoll (status refetch),
-│  │                  useDebounce (search), useQueryParams (filter state)
-│  └─ styles/       — Tailwind entry, token CSS variables (spacing/ops/ground),
-│                     component-layer classes, Roboto font import
-└─ public/          — static assets: hero-banner + 6 category images, font fallbacks, favicon
+repo/
+├─ frontend/                 — the Vite app (package.json, vite.config, tailwind.config)
+│  ├─ src/
+│  │  ├─ components/   — shared UI primitives: buttons (primary/secondary/destructive
+│  │  │                  stacks), pill badges, status chips, role badges, product tiles,
+│  │  │                  quantity stepper, star rating, toasts, skeletons, confirm
+│  │  │                  dialog, receipt table
+│  │  ├─ layout/       — StorefrontHeader (logo / search / cart badge / account menu),
+│  │  │                  OpsShell (v4 gutter spec: sidebar + content), AuthLayout
+│  │  │                  (two-panel brand + form card, shared by Login/Register)
+│  │  ├─ pages/        — one page component per route (14 routes incl. the ops pages)
+│  │  ├─ router/       — the single route tree + RBAC route guards (role list per route,
+│  │  │                  redirect rules, deep-link paths)
+│  │  ├─ data/         — mock entities (products, orders, reviews, users, categories,
+│  │  │                  stock) + the mock API module that mirrors the future Express
+│  │  │                  endpoints
+│  │  ├─ hooks/        — useAuth, useCart (CartStore context), usePoll (status
+│  │  │                  refetch), useDebounce (search), useQueryParams (filter state)
+│  │  └─ styles/       — Tailwind entry, token CSS variables (spacing/ops/ground),
+│  │                     component-layer classes, Roboto font import
+│  └─ public/          — static assets: hero-banner + 6 category images, font fallbacks,
+│                        favicon
+└─ docs/                  — the design + planning docs this tree is built from
 ```
 
 ## 4. Dummy data design
@@ -167,92 +192,66 @@ source of truth and the views derive from it (noted inline where relevant).
 
 ### 4.1 Entity shapes
 
-```ts
-type Role = "buyer" | "staff" | "manager" | "admin";
-type OrderStatus = "pending" | "processing" | "shipped" | "delivered";   // locked machine
-type ReviewState = "public" | "hidden";                                  // round-6: no pending/approved, no delete
-type CategorySlug = "audio" | "smart-home" | "gaming" | "laptops" | "accessories" | "wearables";
+Plain JavaScript (no TypeScript). The shapes below are documented as field lists; in
+`frontend/src/data` they exist as JSDoc-style comments on the arrays/modules (e.g.
+`/** @typedef {Object} Product */`) — never `.ts` files or `interface`/`type` blocks.
 
-interface Category {
-  slug: CategorySlug;            // "audio" … "wearables" (main-store tile deep-link contract)
-  label: string;                 // "Audio", "Smart Home", "Gaming", "Laptops & PC", "Accessories", "Wearables"
-}
+**Enumerations (allowed values):**
 
-interface SpecPair { key: string; value: string; }   // ordered, per product (round-9 specs editor)
+| name | values |
+|---|---|
+| `Role` | `"buyer"` · `"staff"` · `"manager"` · `"admin"` |
+| `OrderStatus` | `"pending"` · `"processing"` · `"shipped"` · `"delivered"` (locked machine) |
+| `ReviewState` | `"public"` · `"hidden"` (round-6: no pending/approved, no delete) |
+| `CategorySlug` | `"audio"` · `"smart-home"` · `"gaming"` · `"laptops"` · `"accessories"` · `"wearables"` |
 
-interface Product {
-  id: string;                    // "P-231"
-  name: string;
-  brand: string;
-  category: CategorySlug;
-  price: number;                 // integer IDR (Rp 1.290.000 = 1290000)
-  originalPrice?: number;        // strike price when onSale
-  onSale?: boolean;              // renders "−X%" / "On sale" pill (X derived from originalPrice)
-  featured?: boolean;            // top-right Featured pill; single SHOP-ALL grid, no strip
-  stock: number;                 // current quantity (single source of truth)
-  lowStockThreshold: number;     // 5 — "Only N left" pill when 1..5, "Out of stock" at 0
-  description: string;
-  image: string;                 // gradient tile key or asset ref (tiles are CSS, not photos)
-  specs: SpecPair[];             // e.g. P-231: 6 pairs (Model … Weight)
-  createdAt: string;
-}
+**Field lists (one block per entity):**
 
-interface OrderLine {
-  productId: string;
-  name: string;                  // denormalized display name at order time
-  unitPrice: number;             // IDR at order time (may differ from current catalog price)
-  qty: number;
-  amount: number;                // unitPrice * qty
-}
+`Category` — `slug` (CategorySlug; "audio" … "wearables", main-store tile deep-link contract) ·
+`label` ("Audio", "Smart Home", …).
 
-interface Order {
-  id: string;                    // "WB-1042" (client-generated id on create — idempotency)
-  buyer: string;                 // anonymized handle, e.g. "jordan.wjy"
-  buyerContact: { name: string; email?: string; phone?: string; note?: string };
-  shippingAddress: { address: string; district: string; city: string; province: string; postalCode: string };
-  paymentMethod: "card" | "bank-transfer" | "qris";   // round-9 checkout step 3
-  createdAt: string;             // "19 Sep 12:04"
-  status: OrderStatus;
-  lines: OrderLine[];
-  subtotal: number;
-  shipping: number;             // 0 renders "Free"
-  total: number;                // subtotal + shipping
-  reviewed: string[];           // productIds already rated (gates the review form)
-}
+`SpecPair` — `key` (string) · `value` (string); ordered, per product (round-9 specs editor).
 
-interface SellerComment { text: string; at: string; }
+`Product` — `id` ("P-231") · `name` · `brand` · `category` (CategorySlug) · `price`
+(integer IDR; Rp 1.290.000 = 1290000) · `originalPrice` (optional; strike price when
+`onSale`) · `onSale` (optional bool; renders "−X%" / "On sale" pill, X derived from
+`originalPrice`) · `featured` (optional bool; top-right Featured pill, single SHOP-ALL
+grid, no strip) · `stock` (current quantity, single source of truth) ·
+`lowStockThreshold` (5 — "Only N left" pill when 1..5, "Out of stock" at 0) ·
+`description` · `image` (gradient tile key or asset ref — tiles are CSS, not photos) ·
+`specs` (SpecPair[], e.g. P-231: 6 pairs, Model … Weight) · `createdAt`.
 
-interface Review {
-  id: string;
-  productId: string;            // "P-231"
-  buyer: string;                // anonymized, "buyer_102"
-  orderId: string;              // provenance ("#WB-0987")
-  rating: number;               // 1–5 (v1 assumption, open decision #10)
-  body: string;
-  state: ReviewState;          // public on submission (auto-approve); hidden = not publicly visible
-  sellerComment?: SellerComment; // renders beneath the review on Product Details while public
-  createdAt: string;
-}
-// Note: hidden reviews keep counting in the "N reviews" total (total = public + hidden)
-// and, per v1 data-layer decision, in the rating average.
+`OrderLine` — `productId` · `name` (denormalized display name at order time) · `unitPrice`
+(IDR at order time; may differ from current catalog price) · `qty` · `amount`
+(unitPrice × qty).
 
-interface User {
-  username: string;            // "buyer_102", "ops_marta", "admin_ria" …
-  email: string;
-  role: Role;
-  active: boolean;             // false → login shows "Account not available"
-  lastActiveAt: string;        // "2h" style relative display
-}
+`Order` — `id` ("WB-1042"; client-generated on create for idempotency) · `buyer`
+(anonymized handle, e.g. "jordan.wjy") · `buyerContact` `{ name, email?, phone?, note? }` ·
+`shippingAddress` `{ address, district, city, province, postalCode }` · `paymentMethod`
+("card" | "bank-transfer" | "qris"; round-9 checkout step 3) · `createdAt` ("19 Sep
+12:04") · `status` (OrderStatus) · `lines` (OrderLine[]) · `subtotal` · `shipping`
+(0 renders "Free") · `total` (subtotal + shipping) · `reviewed` (productIds already
+rated; gates the review form).
 
-interface StockSnapshot {       // audit view of stock changes (entity "stock")
-  productId: string;
-  quantity: number;
-  source: "order-decrement" | "manual-set" | "init";
-  updatedAt: string;
-}
+`SellerComment` — `text` · `at`.
 
-interface CartLine { productId: string; qty: number; }   // client-side (CartStore)
-```
+`Review` — `id` · `productId` ("P-231") · `buyer` (anonymized, "buyer_102") · `orderId`
+(provenance, "#WB-0987") · `rating` (1–5, v1 assumption, open decision #10) · `body` ·
+`state` (ReviewState; public on submission (auto-approve); hidden = not publicly
+visible) · `sellerComment` (optional SellerComment; renders beneath the review on
+Product Details while public) · `createdAt`.
+
+Note: hidden reviews keep counting in the "N reviews" total (total = public + hidden)
+and, per the v1 data-layer decision, in the rating average.
+
+`User` — `username` ("buyer_102", "ops_marta", "admin_ria" …) · `email` · `role`
+(Role) · `active` (false → login shows "Account not available") · `lastActiveAt`
+("2h" style relative display).
+
+`StockSnapshot` — `productId` · `quantity` · `source` ("order-decrement" | "manual-set"
+| "init") · `updatedAt` (audit view of stock changes, entity "stock").
+
+`CartLine` — `productId` · `qty` (client-side, CartStore).
 
 ### 4.2 Sample records (mockup-consistent)
 
@@ -314,14 +313,44 @@ current catalog price is 380 000.
 | rian_w | buyer | active | 6d |
 | admin_ria | admin | active | 2h |
 
+**Mock credentials (the `mockApi.login(email, password)` table — one row per role, plus the
+two edge cases; `frontend/src/data` seeds this verbatim so login is buildable):**
+
+| case | username | role | email | password | result |
+|---|---|---|---|---|---|
+| buyer | buyer_102 | buyer | buyer_102@mock.local | sunset123 | 200 → Main Store |
+| staff | ops_marta | staff | marta@mock.local | sunset123 | 200 → Ongoing Orders |
+| manager | ops_rina | manager | rina@mock.local | sunset123 | 200 → Inventory Dashboard |
+| admin | admin_ria | admin | ria@mock.local | sunset123 | 200 → Inventory Dashboard |
+| disabled account | ops_dan | manager | dan@mock.local | sunset123 | 403 "Account not available — contact an administrator" |
+| duplicate email (register 409) | rian_w | buyer | rian@mock.local | sunset123 | `register` with any existing email (e.g. rian@mock.local) → 409 duplicate |
+| bad credentials | — | — | anyone / wrong pw | — | 401 "Email or password is incorrect." |
+
+All v1 mock passwords are `sunset123` (≥8 chars, satisfying the login form's min-length
+validation). The register page's 409 duplicate-email state exercises against any of these.
+
 **Cart (mock session):** P-231 ×1 @ 1 290 000 + P-198 ×1 @ 380 000 ("Low · 5 left" hint) →
 subtotal **Rp 1.670.000**.
 
 ### 4.3 Mock API module shape + API contract placeholders
 
-`src/data` exports the arrays above plus a `mockApi` object of Promise-returning functions
-(with simulated latency) shaped exactly like the future Express endpoints, so swapping to the
-real backend touches one module:
+`frontend/src/data` exports the arrays above plus a `mockApi` object of
+Promise-returning functions (with simulated latency) shaped exactly like the future
+Express endpoints, so swapping to the real backend touches one module:
+
+**Mock mutation semantics (decided):** there is **ONE shared in-memory mock store** — the
+arrays above, held as module-level singletons in `frontend/src/data`. Every reading
+and writing `mockApi` function operates on that store, so mutation actions **mutate it in place and
+other `mockApi` reads reflect the mutation**: `createOrder` adds an order row + decrements
+`product.stock` per line; `advanceOrderStatus` moves the order's status forward; `setStock`
+sets the product's stock (and appends a `StockSnapshot` audit row); `setReviewHidden` /
+`setSellerComment` / `submitReview` update the review records (totals recompute from the
+store, hidden reviews keep counting in the total + average); `setUserRole` / `setUserActive`
+update the user record; `createProduct` / `updateProduct` upsert the product. `CartStore`
+is the one exception — client-side session state, not part of the shared store.
+Mutations **do not persist across refresh**: any reload resets the store to the initial
+sample records (in-memory only, no localStorage for mock data) — refresh = fresh mockup
+state.
 
 | mockApi function | future Express endpoint | used by |
 |---|---|---|

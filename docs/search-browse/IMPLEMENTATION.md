@@ -21,7 +21,7 @@ Phase P3. Visual/interaction source: `docs/search-browse/design.md` + mockup. Re
 |---|---|
 | `FilterRail` | Desktop-only 220px rail (`#FFFFFF` surface per round-8 §12, right border `blueSlate-200`, 20px top padding in results col): sections Category (rows, selected = `atomicTangerine-50` bg + `atomicTangerine-600` text), Brand (checkboxes, `accent-color: atomicTangerine-500`), Price (native range pair, labels "Rp 50k – Rp 5.000.000"); **hidden on mobile <768** (catalog-only view — the round-2 bottom sheet is out of scope) |
 | `FilterChips` | Active-filter chip row above the grid: pill `blueSlate-100` bg, `blueSlate-900` label, removable × glyph `strawberryRed-600`; "Clear all" link `atomicTangerine-600` 13px |
-| `PriceRange` | Two native range inputs (min/max) with visible values; thumbs disabled while a request is in flight |
+| `PriceRange` | Two native range inputs (min/max) with visible values; thumbs disabled while a request is in flight. **Dual-range constraint (decided):** min and max are two overlapping `<input type=range>` on one track — min is clamped so it can never exceed max (dragging min past max snaps min back to max; dragging max below min snaps max back to min), so the effective range is always `[min, max]` with `min ≤ max`. The two thumbs stay independently draggable across the full track; the values shown are the clamped ones. |
 | `SearchResults` | Results header (count "128 results" 13/400 `blueSlate-700` + "Sort: Featured ▾" secondary 44px button — Sort options Featured / Price ↑ / Price ↓, flagged assumption) + 3-column grid (24px gutter; 2-up ≥390px mobile at 16px gutter, 1-up <390px) of the shared `ProductCard` (round-11 dual CTA) + centered "See more" filled 44px 320px button (full-width mobile; exhaustion → "All N products shown" 13/400 `blueSlate-700`) |
 
 ## Links
@@ -47,7 +47,12 @@ Phase P3. Visual/interaction source: `docs/search-browse/design.md` + mockup. Re
 ## Surviving state
 
 - Filter state = URL query params (survives refresh/share by construction).
-- Load-more offset is derived state, reset when any param changes.
+- Load-more offset is derived state, reset when any param changes. **Not URL-encoded,
+  deliberately (decided, not an omission):** the offset is component-local and is
+  derived/reset on ANY change to the filter params (query, category, brand, price,
+  sort) — putting it in the URL would create stale deep links into mid-scroll state,
+  which is meaningless when the underlying result set changes. Refresh/share of a
+  filtered view therefore always restarts the list at page 1.
 
 ## Page-specific notes
 

@@ -8,7 +8,7 @@ per-product-dashboard, per-product-review-panel, user-dashboard) render inside.
 ## Route / mounting
 
 - No own route. Mounted as the layout wrapper for every `/ops/*` route
-  (`src/router` nests the ops routes under `<OpsShell>`). Roles: **staff / manager /
+  (`frontend/src/router` nests the ops routes under `<OpsShell>`). Roles: **staff / manager /
   admin** (each ops page adds its own tighter guard).
 
 ## Components

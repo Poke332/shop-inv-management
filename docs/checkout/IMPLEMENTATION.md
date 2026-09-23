@@ -44,6 +44,12 @@ round-9 3-step wizard + receipt view is the locked design.
   "Update quantities & retry". **No state change** — no order row, no stock moved.
 - **Success:** order created `pending`, stock decremented (postcondition), **cart clears**
   (documented assumption: order placed = items consumed), receipt view renders.
+- **Payment in v1 (decided):** the payment method chosen at step 3 (Card / Bank transfer /
+  QRIS) is **captured and recorded on the order** — but **no funds move**: there is no
+  payment gateway in v1. The order lands `pending` "Total (to be settled)" and stays
+  pending until a human (ops) settles it; the receipt's `pending` chip answers "why is it
+  still pending if I chose a card?" — the method is recorded, settlement is a manual
+  ops step. See PRD "Non-goals for v1" (no real payment gateway).
 - Future Express placeholders: `POST /orders` (validation first, 409 = stock conflict).
 
 ## Surviving state

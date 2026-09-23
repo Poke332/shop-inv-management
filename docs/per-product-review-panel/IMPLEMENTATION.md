@@ -84,3 +84,5 @@ console**: view every review (public and hidden), add/edit a seller comment, hid
   the two seller-comment rows + collapsed Hidden section + footer note) and 390px
   (stacked sections, wrapped action rows). Note the committed mockup is the pre-round-6
   render — the **spec above is the target** (the next mockup card regenerates it).
+  The mockup PNG regeneration is a **pending follow-up card on this board** — do not
+  treat the stale PNG as a spec error; verify against the spec text, not the old render.

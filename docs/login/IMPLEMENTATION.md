@@ -17,7 +17,7 @@ copy differ).
 
 | Component | Responsibility |
 |---|---|
-| `AuthLayout` | Shared two-panel shell: dark `blueSlate-900` brand panel (`tuscanSun-400` sun graphic, `blueSlate-50` tagline) + white 30% form card (border `blueSlate-200`, radius 12px) on the `tuscanSun-50` warm ground; desktop side-by-side; mobile <768: brand collapses to a 64px logo strip, card full-bleed with 24px gutters, 44px min fields |
+| `AuthLayout` | Shared two-panel shell: dark `blueSlate-900` brand panel (sun graphic, `blueSlate-50` tagline) + white 30% form card (border `blueSlate-200`, radius 12px) on the `tuscanSun-50` warm ground; desktop side-by-side; mobile <768: brand collapses to a 64px logo strip, card full-bleed with 24px gutters, 44px min fields. **Sun graphic source (decided, P0 wires it):** a pure-CSS shape inside the brand panel — a 96px circle with a two-stop `tuscanSun` radial gradient (`tuscanSun-300` core → `tuscanSun-400` edge, `border-radius: 50%`, the "Sunset Glow" sun of the brand) + 6–8 short 2px `tuscanSun-500` ray strokes as box-shadows/rotated pseudo-elements (no asset file, no new dependency — a React Icon would only be a static glyph, not a sunmark, so CSS is the source). Same mark reused on the 64px mobile logo strip (48px circle). P0 ships it as the shared `SunLogo` component in `frontend/src/components`. |
 | `LoginForm` | email + password (with 12/500 `blueSlate-500` "show" toggle) + "Sign in →" primary button + "New here? Register" link; error banner state |
 | `InputField` | Shared input: 44px min height, 8px radius, 1px `blueSlate-200` border, `blueSlate-500` placeholder, labels 13/600 `blueSlate-950`, focus ring 2px `atomicTangerine-500` offset 2, `htmlFor` label |
 | `PrimaryButton` | Shared filled 44px stack (`atomicTangerine-600` → hover `-700` → active `-800`, white 14/500; disabled = `blueSlate-100` fill + `blueSlate-400` text; loading = 600 fill + spinner + "Signing in…", inputs locked, double-submit guarded) |
@@ -29,9 +29,12 @@ copy differ).
 
 ## Data
 
-- `mockApi.login(email, password)` against the mock users from ARCHITECTURE §4.2
-  (admin_ria / ops_marta / ops_dan disabled / rian_w / buyer_102 — plus mock buyer +
-  staff/manager login credentials so each role's home is reachable):
+- `mockApi.login(email, password)` against the mock users from ARCHITECTURE §4.2,
+  using the **Mock credentials table** there (role → email → password: buyer
+  `buyer_102@mock.local` / staff `marta@mock.local` / manager `rina@mock.local` /
+  admin `ria@mock.local` — all `sunset123`; disabled account `ops_dan`
+  `dan@mock.local` → "Account not available"; duplicate-email case via `rian_w`
+  `rian@mock.local` for register-409):
   - 200 → `{ role }` → redirect per routing table.
   - 401 → banner above form "Email or password is incorrect." (`strawberryRed-100` bg,
     `strawberryRed-600` text, 1px `strawberryRed-300` border, `role="alert"`, focus

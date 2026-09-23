@@ -71,6 +71,29 @@ see the read-only variant B — no purchase CTA, no cart).
   not deleting — a disabled user's next login shows "Account not available"). Self-protection:
   an admin cannot disable their own account; peer-or-higher role changes confirm via dialog.
 
+## Non-goals for v1
+
+Collected from the scattered "out of scope" notes across the page docs (single source):
+
+- **No i18n** — the app is Indonesian-market copy only (IDR, en-ID labels); no
+  localization layer.
+- **No email / notification channels** — the alert channel is in-app (nav badge +
+  dashboard banner) only; no email/SMS/push.
+- **No user deletion** — admin user management = role change + disable/enable
+  (disabling is not deleting); no delete-user action or endpoint.
+- **No audit log** — `StockSnapshot` is the only audit surface (stock changes); no
+  general activity/audit trail.
+- **No PWA** — no offline install/manifest/service-worker.
+- **No real payment gateway** — checkout step 3 captures the payment method
+  (Card / Bank transfer / QRIS) and records it on the order, but **no funds move in
+  v1**: orders land `pending` "Total (to be settled)" and a human settles them (this
+  answers "why is the order still pending if I chose a card?" — the method is
+  recorded, settlement is a manual ops step; see `docs/checkout/IMPLEMENTATION.md`
+  "Payment in v1").
+- **No automated test suite** — no Vitest/Jest/RTL in v1 (pinned stack ruling);
+  "done" = mockup conformance gate + manual 1312px/390px breakpoint checks on the
+  live dev server (see `docs/IMPLEMENTATION.md` P7).
+
 ## Open decisions carried as documented assumptions (not re-opened in v1)
 
 Cart persistence = session-based; payment = designed step (Card / Bank transfer / QRIS,
@@ -90,3 +113,7 @@ stars. Each is flagged `TBD` in the owning page doc where the sheet left it open
 - Every page matches its committed `docs/<page>/design.md` + mockup (tokens, states, a11y
   floor) at desktop 1280/1312px and mobile 390px — no horizontal scroll, 44px touch floor,
   focus rings, reduced-motion safe.
+- **Verification is manual, not a test suite (pinned ruling):** there is no automated test
+  suite in v1 — no Vitest/Jest/RTL. "Done" = the mockup conformance gate
+  (`_mockup-build/verify_framework.sh`) + the manual 1312px/390px breakpoint checks on the
+  live dev server, per `docs/IMPLEMENTATION.md` P7 (see Non-goals for v1).

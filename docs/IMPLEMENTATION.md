@@ -25,15 +25,22 @@ a first-class check from P0 onward.
 
 ### P0 — Project scaffold
 
-Scaffold the React app on the pinned toolchain — **no new runtime dependency of any kind**
-(pinned stack only: React, React Router, Tailwind CSS, React Icons). The entity shapes in
-`docs/ARCHITECTURE.md` §4.1 are transcribed into the app's typed data modules exactly as
-documented (documentation of the data layer — no language/build dependency change). Install
-Tailwind with the full token theme extension (colors 7 families × 11 steps + semantic
-aliases; font scale; spacing/gutter tokens; component-layer classes: button stacks, pill
-badges, status chips, role badges, product tiles, stepper, skeletons, receipt table,
-ops-shell classes). Load Roboto 400/500/600 in the app entry. Copy static assets
-(`hero-banner.png`, 6 `cat-<slug>.png`) into `public/`.
+Scaffold the Vite app **inside `frontend/` at the repo root (sibling of `docs/`)** —
+`frontend/` holds `package.json`, `vite.config.js`, `tailwind.config.js`, `index.html`,
+plus `src/` and `public/` (dev-only toolchain: `vite` dev server + build; React Router
+SPA, not Next). **No new runtime dependency of any kind** (pinned stack only: React,
+React Router, Tailwind CSS, React Icons; dev-only without approval: the Vite toolchain
++ an ESLint/Prettier lint setup — anything else goes to the off-stack sign-off card
+`t_7480ddbe`). The entity shapes in `docs/ARCHITECTURE.md` §4.1 are transcribed into
+the app's plain-JavaScript data modules at `frontend/src/data` exactly as documented
+(JSDoc-style shape comments / field tables — no TypeScript, no `.ts` files;
+documentation of the data layer, no language/build dependency change). Install Tailwind
+with the full token theme extension (colors 7 families × 11 steps + semantic
+aliases; font scale; spacing/gutter tokens; component-layer classes: button stacks,
+pill badges, status chips, role badges, product tiles, stepper, skeletons, receipt
+table, ops-shell classes). Load Roboto 400/500/600 in the app entry
+(`frontend/index.html`). Copy static assets (`hero-banner.png`, 6 `cat-<slug>.png`)
+into `frontend/public/`.
 
 **Done:** the dev server renders a tokenized blank page; a Tailwind class using
 `bg-tuscanSun-50` / `bg-blueSlate-900` / `font-h1` compiles; the mockup conformance gate
@@ -57,17 +64,26 @@ reset-proof requirement from `docs/control-panel/design.md` QA §2).
 
 ### P2 — Data layer (mock)
 
-`src/data`: the §4.2 sample records (48 products incl. the 12 named, orders WB-1042/1039/
+`frontend/src/data`: the §4.2 sample records (48 products incl. the 12 named, orders WB-1042/1039/
 1036/1031/0987, 128 reviews on P-231 = 122 public + 6 hidden, 128 users incl. admin_ria /
-ops_marta / ops_dan / rian_w / buyer_102, 6 categories) and the `mockApi` module whose
-functions mirror the future Express endpoints (`docs/ARCHITECTURE.md` §4.3 table).
-Simulated latency + failure injection so every page's loading/empty/error states are
-exercisable. `CartStore` context (session persistence) + `AuthContext` (mock users: one
-per role + a disabled account for the login-denied state).
+ops_marta / ops_dan / rian_w / buyer_102, 6 categories) **seeded from the mock
+credentials table** (ARCHITECTURE §4.2 "Mock credentials" — one active login per role,
+`ops_dan` disabled, plus the duplicate-email case for register-409) and the `mockApi`
+module whose functions mirror the future Express endpoints (`docs/ARCHITECTURE.md` §4.3
+table). **One shared in-memory mock store**: all `mockApi` reads and writes operate on
+the same module-level records, so mutations (`createOrder`, `advanceOrderStatus`,
+`setStock`, review/user actions, product upserts) are immediately visible to every other
+`mockApi` read; the store **resets on refresh** (in-memory only, no localStorage) — a
+reload restores the pristine sample records. Simulated latency + failure injection so
+every page's loading/empty/error states are exercisable. `CartStore` context (session
+persistence — client-side, not part of the shared mock store) + `AuthContext` (mock
+users: one per role + a disabled account for the login-denied state).
 
 **Done:** every `mockApi` function returns data consistent with the mockups
 (WB-1042 = 2 lines, subtotal 1.570.000 + shipping 100.000 = total 1.670.000; Anker 735 PB
-stock 5 → LOW; ASUS RT-AX58 stock 0 → OUT; search-browse "128 results" count).
+stock 5 → LOW; ASUS RT-AX58 stock 0 → OUT; search-browse "128 results" count); a mutation
+from one page (e.g. staff advancing WB-1042) is reflected by the next `mockApi` read on
+another page; all 4 role logins + `ops_dan` denied work off the credentials table.
 
 ### P3 — Storefront pages
 
@@ -138,6 +154,9 @@ motion audit on every page, 390px clipping audit (the standing verification rule
 1280/1312px gutter balance + mobile 390px no-horizontal-scroll, on the live dev server —
 code reading does not count), a11y floor (44px targets, focus rings, `aria-live` regions,
 no color-only state), and the mockup conformance gate re-run against the rendered pages.
+**No automated test suite in v1** (pinned stack ruling — no Vitest/Jest/RTL): "done" =
+mockup conformance gate + the manual 1312px/390px breakpoint checks on the live dev server
+above.
 
 **Done:** every page passes its `design.md` visual spec at both breakpoints on the live
 dev server; zero out-of-scale hex; zero font-weight > 600; the board's render pipeline
