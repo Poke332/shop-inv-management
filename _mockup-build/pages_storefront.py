@@ -42,20 +42,29 @@ MAINSTORE_CSS = """
 .hero-h2{font-size:32px;line-height:40px;font-weight:600;color:#fff}
 .hero-sub{font-size:14px;line-height:20px;font-weight:400;color:var(--bs-100)}
 #shop-all{scroll-margin-top:80px}
+/* round-10: category section = 6 clickable IMAGES (cat-<slug>.png, 1200x300, no baked text)
+   — the name is an HTML overlay bottom-left over the image; the count is an HTML
+   line below the image (in tile flow, on the white tile bg) */
 .cats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--card-gutter);margin-bottom:var(--section-rhythm)}
-.cat-tile{display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid var(--bs-200);border-radius:8px;background:#fff;transition:border-color 150ms ease}
-.cat-tile:hover{border-color:var(--at-400);text-decoration:none}
-.cat-swatch{width:56px;height:56px;border-radius:12px;display:grid;place-items:center}
-.cat-swatch svg{width:40px;height:40px;stroke:1.5;color:var(--bs-900)}
-.cat-label{font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950)}
-.cat-count{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
+.cat-strip{display:block;background:#fff;border:1px solid var(--bs-200);border-radius:8px;overflow:hidden;transition:border-color 150ms ease}
+.cat-strip:hover{border-color:var(--at-400);text-decoration:none}
+.cat-cimg{position:relative}
+.cat-cimg>img{width:100%;aspect-ratio:4/1;object-fit:cover;display:block}
+.cat-lab{position:absolute;left:12px;bottom:8px;font-size:15px;line-height:24px;font-weight:600;color:var(--bs-950);text-shadow:0 0 10px rgba(13,18,22,.45)}
+.cat-count{padding:10px 12px;font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
+/* heading row: "Our Products" left, "See more" right (round-10 — button moved off its centered-bottom position) */
+.shop-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--section-label-gap)}
+/* round-10: mobile (<768px) — the category row becomes a horizontal-scroll rail
+   (min-width 240px tiles); the heading row stacks so the full-width "See more"
+   (lib .btn-loadmore → 100% on <768px) sits under the "Our Products" label */
 @media (max-width:767px){
   .mstore{padding:32px 16px 0}
   .hero-copy{right:16px;left:16px;top:auto;bottom:16px;transform:none;max-width:100%}
   .hero-h2{font-size:26px;line-height:36px}
   .hero-copy .btn-p{width:100%}
   .cats{display:flex;overflow-x:auto;gap:24px}
-  .cat-tile{min-width:148px;flex:none}
+  .cat-strip{min-width:240px;flex:none}
+  .shop-head{flex-direction:column;align-items:stretch;gap:12px}
 }
 """
 
@@ -110,16 +119,21 @@ CATS = [
     ("Wearables", "watch", "wear", 5),
 ]
 
-def cat_tiles():
+def cat_strips():
+    """Round-10: category section = 6 clickable IMAGES (docs/main-store/cat-<slug>.png,
+    1200x300, no baked-in text — the name overlays the image bottom-left, the count
+    line sits below the image on the white tile). Same deep-link contract as the
+    old cat_tiles()."""
     out = []
     for label, icon, key, n in CATS:
         slug = {"Audio": "audio", "Smart Home": "smart-home", "Gaming": "gaming",
                 "Laptops & PC": "laptops", "Accessories": "accessories",
                 "Wearables": "wearables"}[label]
         out.append(
-            f'<a class="cat-tile" href="/search?category={slug}">'
-            f'<div class="cat-swatch" style="background:{TILE_GRADS[key]}">{glyph(icon)}</div>'
-            f'<div class="cat-label">{label}</div>'
+            f'<a class="cat-strip" href="/search?category={slug}">'
+            f'<div class="cat-cimg">'
+            f'<img src="../../docs/main-store/cat-{slug}.png" alt="{label}">'
+            f'<div class="cat-lab">{label}</div></div>'
             f'<div class="cat-count">{n} products</div></a>')
     return "\n".join(out)
 
@@ -158,15 +172,17 @@ PAGES["main-store"] = page_wrap(
     <div class="sec-label">Browse by category</div>
   </div>
   <div class="cats">
-    {cat_tiles()}
+    {cat_strips()}
   </div>
-  <div class="sec-label" id="shop-all" style="margin-bottom:var(--section-label-gap)">Shop All</div>
-  <div class="grid4">
-    {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in FEATURED)}
-    {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in SHOP_ALL)}
-  </div>
-  <div style="display:flex;justify-content:center;margin-top:40px">
+  <div class="shop-head" id="shop-all">
+    <div class="sec-label">Our Products</div>
     <button class="btn-p btn-loadmore">See more</button>
+  </div>
+  <div class="grid4">
+    <!-- round-10: exactly the first 8 items (4 FEATURED tile-marked + first 4 of SHOP_ALL)
+         so the grid4 shows 2 rows on desktop; the data arrays stay intact — the
+         "See more" affordance implies the rest exist. -->
+    {''.join(card(n, s, p, i, **kw) for n, s, p, i, kw in FEATURED + SHOP_ALL[:4])}
   </div>
 </div>''',
     MAINSTORE_CSS + CARD_CSS, "Main Store")
