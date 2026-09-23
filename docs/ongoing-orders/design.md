@@ -34,6 +34,13 @@ ops mirror of Orders Placed.
 - **Domain examples (electronics):** expanded detail shows line models +
   quantities (e.g. "Anker 735 Power Bank ×1, Logitech MX Keys S ×2"); no fields
   beyond the sheet's locked set (lines, address, buyer contact).
+- **Receipt-style detail (round 9):** the expanded detail is a receipt table,
+  not a single summary line — itemized rows (Item, Unit price, Qty, Amount —
+  amount columns right-aligned), then Subtotal / Shipping / Total rows (Total in
+  `atomicTangerine-600`), then a Ship-to block (address + buyer contact) below
+  the table, all inside the existing white order card. `#WB-1042` is expanded
+  by default in the mockup to show the receipt; all other rows collapse to
+  "Details ▾".
 - **Staff capability boundary:** staff can advance status and see alerts
   (their whole scope: "daily transaction ops: order status, product
   alerts"). No product CRUD, no review moderation, no user management —
@@ -54,7 +61,7 @@ ops mirror of Orders Placed.
 
 ![Ongoing orders dashboard mockup](mockup.png)
 
-> mockup.png rendered from _mockup-build/out/ongoing-orders.html via headless Chromium @ 2026-09-22
+> mockup.png rendered from _mockup-build/out/ongoing-orders.html via headless Chromium @ 2026-09-23 (round-9 receipt-table refresh)
 
 
 ASCII wireframe (desktop, list variant — assumption, kanban is a flagged alt;
@@ -67,18 +74,29 @@ vertical 230px dark ops sidebar, not a top bar):
 | > Ongoing Orders | All(42)  Pending(9)  Processing(5)  Shipped(3)  Delivered |
 | Inventory [3]    |+-------------------------------------------------------|
 | Products         | | #WB-1042 · 19 Sep 12:04 · 2 lines · Rp 1.670.000 [● pending] |
-| Reviews          | |   [ Start processing ]  [ Details ▴ ]                |
-| Users            | |   (detail: WF-C710N ×1 · 735 PB ×1 · Jl. Kemang Selatan 12,  |
-|                  | |    Jakarta Selatan · buyer: jordan.wjy)               |
+| Reviews          | |   [ Start processing ]   [ Details ▴ ]             |
+| Users            | |   +-------------------------------------------+   |
+|                  |   | Item              | Unit price | Qty | Amount |   |
+|                  |   | Sony WF-C710N     | 1.290.000  |  1 | 1.290.000|   |
+|                  |   | Anker 735 PB      | 280.000    |  1 | 280.000  |   |
+|                  |   | Subtotal          |            |    | 1.570.000|   |
+|                  |   | Shipping          |            |    | 100.000  |   |
+|                  |   | Total             |            |    | 1.670.000|   |
+|                  |   | SHIP TO: Jl. Kemang Selatan 12, Jakarta Selatan     |   |
+|                  |   | Buyer: jordan.wjy · #WB-1042                    |   |
+|                  |   +-------------------------------------------+   |
 |                  |+-------------------------------------------------------|
-|                  | | #WB-1039 · 18 Sep 09:11 · 1 lines · Rp 240.000 [◐ processing]|
-|                  | |   [ Mark shipped ]      [ Details ▴ ]                |
+|                  | | #WB-1039 · 18 Sep 09:11 · 1 lines · Rp 240.000 [◐ processing] |
+|                  | |   [ Mark shipped ]      [ Details ▾ ]                |
 |                  | Queue sorted by age · status advances forward-only      |
 +------------------+-------------------------------------------------------+
 ```
 
 Mobile (<768px): cards stack; filter tabs scroll horizontally; expand
-details in place.
+details in place. The receipt table tightens its cell padding to 8px so all
+four columns (Item / Unit price / Qty / Amount) stay on one row at 390px —
+verified no horizontal overflow; order header rows wrap (flex-wrap) rather
+than clip.
 
 ## COLOR USAGE
 
@@ -89,6 +107,9 @@ details in place.
 | Status chips (pending/processing/shipped/delivered) | 12/600 pill chips, padding 4×10, per color-tokens §3: `tuscanSun-100` / `seagrass-100` / `blueSlate-100` / `willowGreen-100` tints, text `blueSlate-900` |
 | Advance button (primary per row) | filled `atomicTangerine-600` idle → `-700` hover → `-800` active, white 14/500 label, 44px min-height, 8px radius; disabled = `blueSlate-100` fill + `blueSlate-400` label |
 | "Details" toggle | `atomicTangerine-600` link |
+| Receipt table header row (`.receipt th`) | `blueSlate-50` bg, 12/600 `blueSlate-700` label, 1px `blueSlate-200` divider below |
+| Receipt item rows / totals rows | 14/20 Roboto 400; item name weight 500; Subtotal/Shipping weight 500 `blueSlate-950`; Total row weight 500 in `atomicTangerine-600` (frame cap: font-weight ≤ 600); 1px `blueSlate-200` row dividers (none under last row) |
+| Ship-to block (`.receipt .ship`) | 12/600 uppercase `blueSlate-700` "SHIP TO" label; address 14/20 `blueSlate-950`; buyer line 14/20 `blueSlate-700` with name weight 500; 1px `blueSlate-200` top divider |
 | Filter tabs active / idle | active `atomicTangerine-500` 3px underline + `blueSlate-950` text, weight 600; idle `blueSlate-700`, weight 500 |
 | Success flash (row after advance) | `willowGreen-100` row tint, `willowGreen-600` text |
 | Failure toast / banner | `strawberryRed-100` bg, `strawberryRed-600` text |

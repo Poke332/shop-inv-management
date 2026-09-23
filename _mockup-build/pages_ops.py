@@ -50,6 +50,38 @@ padding:0 12px;font-size:14px;font-weight:500;color:var(--bs-950);background:#ff
 .hint{color:var(--sr-700);font-size:13px;font-weight:500}
 .btn-c{min-height:44px;padding:0 16px}
 .btn-s{min-height:44px;padding:0 16px}
+/* receipt-style order details (round 9, docs/ongoing-orders/design.md):
+   itemized table + totals + ship-to block inside the white order card */
+.receipt{font-family:var(--font-sans);font-size:14px;line-height:20px;font-weight:400;color:var(--bs-950)}
+.receipt table{width:100%;border-collapse:collapse}
+.receipt th{background:var(--bs-50);font-weight:600;font-size:12px;line-height:16px;letter-spacing:.02em;
+color:var(--bs-700);text-align:left;padding:8px 12px;border-bottom:1px solid var(--bs-200)}
+.receipt th.r{text-align:right}
+.receipt td{padding:8px 12px;border-bottom:1px solid var(--bs-200);font-weight:400}
+.receipt td.r{text-align:right}
+.receipt tr:last-child td{border-bottom:none}
+.receipt .line-name{font-weight:500}
+.receipt .totrow td{font-weight:500;border-bottom:none}
+.receipt .totrow.grand td{color:var(--at-600)}
+.receipt .ship{padding:12px 12px 4px;border-top:1px solid var(--bs-200)}
+.receipt .ship-h{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--bs-700);
+text-transform:uppercase;margin-bottom:8px}
+.receipt .ship-t{font-size:14px;line-height:20px;color:var(--bs-950)}
+.receipt .ship-c{margin-top:8px;font-size:14px;line-height:20px;color:var(--bs-700)}
+.receipt .ship-c b{font-weight:500;color:var(--bs-950)}
+@media (max-width:767px){
+.receipt th,.receipt td{padding:8px 8px}
+}
+/* expandable "Details" link: idle ▾, open ▴ */
+.details-link{color:var(--at-600);font-weight:500;font-size:14px;cursor:pointer}
+.details-link:hover{color:var(--at-700)}
+/* round 9 (docs/per-product-dashboard/design.md): repeatable name/value
+   spec-pair rows in the editor's Specs card — the section grid matches the
+   editor's 2-col `130px 1fr` label/value pattern; each value cell pairs the
+   input with a 44px trash remove control; "+ Add spec" appends an empty pair. */
+.specs-grid{display:grid;grid-template-columns:130px 1fr;gap:16px 24px;align-items:center}
+.specs-pair{display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px}
+.specs-trash{justify-self:end;width:44px;height:44px;min-width:44px;min-height:44px;padding:0}
 /* round 6 (docs/per-product-review-panel/design.md): no .approve — reviews are public on
    submission; the only actions are hide/unhide + seller comment. Unhide is reversible,
    non-destructive → willowGreen-600 text on the secondary shape, not danger-colored. */
@@ -152,6 +184,23 @@ PAGES["per-product-dashboard"] = ops_shell(
           <div class="input wfull" style="min-height:64px;font-size:14px;color:var(--bs-950)">Active noise cancellation, Bluetooth 5.3 multipoint, up to 13 h battery with case, IPX4.</div>
           <label class="label">Initial stock</label><input class="input wfull" style="max-width:120px" value="34">
         </div>
+        <!-- round 9 (docs/per-product-dashboard/design.md): repeatable name/value
+             spec-pair section — mirrors the product-details specs table (same 6
+             pairs for P-231). White surface card per round-8 §12 rule. -->
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bs-200)">
+          <div class="sec-label" style="margin-bottom:16px">Specs</div>
+          <div style="background:#fff;border:1px solid var(--bs-200);border-radius:12px;padding:16px">
+            <div class="specs-grid">
+              <div class="specs-row"><input class="input wfull" value="Model" aria-label="Spec name" style="min-height:44px"><div style="display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px"><input class="input wfull" value="WF-C710N" aria-label="Spec value" style="min-height:44px"><button class="btn-del specs-trash" aria-label="Remove spec">{glyph("trash",16)}</button></div></div>
+              <div class="specs-row"><input class="input wfull" value="Bluetooth" aria-label="Spec name" style="min-height:44px"><div style="display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px"><input class="input wfull" value="5.3, multipoint" aria-label="Spec value" style="min-height:44px"><button class="btn-del specs-trash" aria-label="Remove spec">{glyph("trash",16)}</button></div></div>
+              <div class="specs-row"><input class="input wfull" value="Battery" aria-label="Spec name" style="min-height:44px"><div style="display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px"><input class="input wfull" value="13 h w/ case" aria-label="Spec value" style="min-height:44px"><button class="btn-del specs-trash" aria-label="Remove spec">{glyph("trash",16)}</button></div></div>
+              <div class="specs-row"><input class="input wfull" value="ANC" aria-label="Spec name" style="min-height:44px"><div style="display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px"><input class="input wfull" value="yes" aria-label="Spec value" style="min-height:44px"><button class="btn-del specs-trash" aria-label="Remove spec">{glyph("trash",16)}</button></div></div>
+              <div class="specs-row"><input class="input wfull" value="IP rating" aria-label="Spec name" style="min-height:44px"><div style="display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px"><input class="input wfull" value="IPX4" aria-label="Spec value" style="min-height:44px"><button class="btn-del specs-trash" aria-label="Remove spec">{glyph("trash",16)}</button></div></div>
+              <div class="specs-row"><input class="input wfull" value="Weight" aria-label="Spec name" style="min-height:44px"><div style="display:grid;grid-template-columns:1fr 44px;gap:24px;align-items:center;min-height:44px"><input class="input wfull" value="5.4 g per bud" aria-label="Spec value" style="min-height:44px"><button class="btn-del specs-trash" aria-label="Remove spec">{glyph("trash",16)}</button></div></div>
+            </div>
+            <button class="btn-sec btn-s" style="margin-top:16px">{glyph("plus",16)} Add spec</button>
+          </div>
+        </div>
         <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bs-200);display:flex;justify-content:space-between;align-items:center">
           <span class="muted">Auto-decremented on each order — enter actual shelf count</span>
           <button class="btn-p">Save changes</button>
@@ -215,20 +264,43 @@ PAGES["per-product-review-panel"] = ops_shell(
     "Per Product Review Panel")
 
 # ---------------- ongoing orders ----------------
-def orow(oid, dt, lines_n, total, chipcls, chipicon, chiptext, action, expanded=False, detail=None):
-    exp = f'<div style="padding:12px 16px 16px;font-size:13px;color:var(--bs-700);background:var(--bs-50);border-radius:0 0 8px 8px">{detail}</div>' if expanded else ""
+def orow(oid, dt, lines_n, total, chipcls, chipicon, chiptext, action, expanded=False, receipt=None):
+    exp = ""
+    if expanded and receipt:
+        exp = f'<div class="receipt" style="padding:16px" aria-label="Order {oid} details">{receipt}</div>'
     act = f'<button class="btn-p btn-c">{action}</button>' if action else ""
     return f'''<div style="background:#fff;border:1px solid var(--bs-200);border-radius:10px;overflow:hidden;margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;min-height:64px">
-      <span style="font-weight:600;color:var(--bs-950)">{oid}</span>
+    <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;min-height:64px;flex-wrap:wrap">
+      <span style="font-weight:600;color:var(--bs-950);font-size:14px">{oid}</span>
       <span class="opsub">{dt}</span>
       <span class="opsub">{lines_n} lines</span>
       <span class="price">{total}</span>
       <span class="ochip {chipcls}">{chipicon} {chiptext}</span>
       <div style="margin-left:auto;display:flex;gap:16px;align-items:center">
-        <a class="link" href="#">{"Details ▴" if expanded else "Details ▾"}</a>
+        <a class="details-link" href="#" aria-expanded="{"true" if expanded else "false"}">{"Details ▴" if expanded else "Details ▾"}</a>
         {act}
       </div></div>{exp}</div>'''
+
+def receipt(lines, subtotal, shipping, total, address, buyer, order_ref):
+    """lines: list of (name, unit_price, qty, line_amount) — amount columns right-aligned."""
+    rows = ""
+    for name, unit, qty, amt in lines:
+        rows += f'''<tr><td class="line-name">{name}</td><td class="r">Rp {unit}</td><td class="r">{qty}</td><td class="r">Rp {amt}</td></tr>'''
+    ship_line = "Free" if shipping == "0" else f"Rp {shipping}"
+    return f'''<table>
+    <thead><tr><th>Item</th><th class="r">Unit price</th><th class="r">Qty</th><th class="r">Amount</th></tr></thead>
+    <tbody>
+    {rows}
+    <tr class="totrow"><td colspan="3">Subtotal</td><td class="r">Rp {subtotal}</td></tr>
+    <tr class="totrow"><td colspan="3">Shipping</td><td class="r">{ship_line}</td></tr>
+    <tr class="totrow grand"><td colspan="3">Total</td><td class="r">Rp {total}</td></tr>
+    </tbody>
+    </table>
+    <div class="ship">
+      <div class="ship-h">Ship to</div>
+      <div class="ship-t">{address}</div>
+      <div class="ship-c">Buyer: <b>{buyer}</b> · {order_ref}</div>
+    </div>'''
 
 PAGES["ongoing-orders"] = ops_shell(
     "Ongoing Orders",
@@ -241,9 +313,11 @@ PAGES["ongoing-orders"] = ops_shell(
       <span class="tab">All (42)</span><span class="tab active">Pending (9)</span><span class="tab">Processing (5)</span><span class="tab">Shipped (3)</span><span class="tab">Delivered</span>
     </div>
     {orow("#WB-1042","19 Sep 12:04","2","Rp 1.670.000","ochip-pending","●","pending","Start processing",True,
-         "WF-C710N ×1 · 735 PB ×1 · Jl. Kemang Selatan 12, Jakarta Selatan · buyer: jordan.wjy — Anker 735 Power Bank ×1, Logitech MX Keys S ×2")}
-    {orow("#WB-1039","18 Sep 09:11","1","Rp 240.000","ochip-processing","◐","processing","Mark shipped",True,
-         "Razer BlackWidow V3 ×1 · Jkt, Indonesia · buyer: rian_w")}
+         receipt([("Sony WF-C710N","1.290.000","1","1.290.000"),
+                  ("Anker 735 Power Bank","280.000","1","280.000")],
+                 "1.570.000","100.000","1.670.000",
+                 "Jl. Kemang Selatan 12, Jakarta Selatan","jordan.wjy","#WB-1042"))}
+    {orow("#WB-1039","18 Sep 09:11","1","Rp 240.000","ochip-processing","◐","processing","Mark shipped")}
     {orow("#WB-1036","18 Sep 07:42","3","Rp 2.030.000","ochip-pending","●","pending","Start processing")}
     {orow("#WB-1031","17 Sep 16:20","1","Rp 549.000","ochip-pending","●","pending","Start processing")}
     <div class="meta" style="margin-top:auto;padding-top:12px">Queue sorted by age (oldest pending first) · status advances forward-only (pending → processing → shipped → delivered)</div>
