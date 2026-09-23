@@ -275,9 +275,15 @@ line below (44px min); grid 3-up at 768–1023px, 2-up at 390–767px (24px gutt
 | "Only N left" pill | `carrotOrange-500` fill, `blueSlate-950` label, 1px `carrotOrange-600` border, bottom-left |
 | "Out of stock" pill | `strawberryRed-100` bg, `strawberryRed-700` label; tile at opacity .4 |
 | Product tile | 4:3, 135° category-keyed gradient (Audio `tuscanSun-50→400`, Smart Home `seagrass-50→400`, Gaming `atomicTangerine-50→400`, Laptops & PC `blueSlate-50→400`, Accessories `carrotOrange-50→400`, Wearables `strawberryRed-50→400`); single 40px stroke-1.5 `blueSlate-900` line glyph, decorative (`aria-hidden`) |
-| Add-to-cart | 44×44 circular filled `atomicTangerine-600`, white plus glyph → hover `-700` → active `-800`; disabled = `blueSlate-100` bg + `blueSlate-400` glyph |
+| Card actions (round 11) | two buttons side by side on the card's CTA row (`.crow`, flex, 8px gap, equal split): **Buy now** = primary filled 44px (`atomicTangerine-600`, white 14/500 label, 8px radius) · **Add to cart** = secondary outline 44px (white fill, 1px `blueSlate-200` border, `blueSlate-950` 14/500 label, plus glyph before the label, hover `blueSlate-100`). Both disabled when out of stock (`blueSlate-100` fill + `blueSlate-400` text, `aria-disabled`). |
 | Cart badge | `atomicTangerine-500` bg, white 12/600 number (**TBD: open decision #3**, cart color accents) |
 | "See more" (load more) | filled 44px primary button, 320px wide desktop / full-width mobile (round-10: sits on the "Our Products" heading row, right-aligned via `space-between`; on <768px the row stacks so it becomes full-width); when exhausted → 13/400 `blueSlate-700` centered "All N products shown" line, not a disabled button |
+
+> **intended-redesign (round 11): card CTA row** — the pinned circular 44×44 `atomicTangerine-600`
+> plus-glyph add-to-cart button is replaced by two side-by-side 44px buttons: **Buy now**
+> (primary filled, `atomicTangerine-600`) + **Add to cart** (secondary outline, white fill,
+> 1px `blueSlate-200` border, plus glyph kept). Out-of-stock disables both. The old
+> `Add-to-cart | 44×44 circular filled` row is superseded by the `Card actions (round 11)` row.
 
 ## INTERACTIONS
 
@@ -309,12 +315,13 @@ line below (44px min); grid 3-up at 768–1023px, 2-up at 390–767px (24px gutt
 - **Error (API 5xx):** inline panel `strawberryRed-100` bg, `strawberryRed-700` text, with
   "Try again" filled button (`strawberryRed-600` fill, white label).
 - **Stock state on cards:** `stock === 0` → tile at 40% opacity + "Out of stock" pill
-  (`strawberryRed-100` bg, `strawberryRed-700` text) and add-to-cart disabled
-  (`blueSlate-100` bg, `blueSlate-400` glyph, `aria-disabled`).
+  (`strawberryRed-100` bg, `strawberryRed-700` text) and both card actions disabled
+  (Buy now + Add to cart: `blueSlate-100` bg, `blueSlate-400` text, `aria-disabled`).
   Stock 1–5 → "Only N left" pill, bottom-left (`carrotOrange-500` fill, `blueSlate-950`
   text, 1px `carrotOrange-600` border) — urgency cue, assumes stock is exposed publicly —
   most likely interpretation.
 - **Role-based visibility:** staff/manager/admin hitting this route (if allowed per TBD
-  above) see read-only cards: no Add-to-Cart button, no cart badge in header.
+  above) see read-only cards: no card actions (Buy now / Add to cart), no cart badge in header.
 - **Keyboard/a11y:** cards focusable (focus ring 2px `atomicTangerine-500`, offset 2);
-  add-to-cart is a real `<button aria-label="Add <name> to cart">`; touch targets ≥ 44×44px.
+  card actions are real `<button>`s (`aria-label="Buy <name> now"`, `aria-label="Add <name> to cart"`);
+  touch targets ≥ 44×44px.

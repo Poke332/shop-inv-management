@@ -23,12 +23,21 @@ display:flex;flex-direction:column;min-width:0;min-height:300px}
 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .csub{font-size:13px;line-height:20px;font-weight:400;color:var(--bs-700)}
 .cprice{height:20px}
-.crow{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
-.cadd{width:44px;height:44px;border-radius:999px;border:none;background:var(--at-600);color:#fff;
-display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background-color 150ms ease}
-.cadd:hover{background:var(--at-700)} .cadd:active{background:var(--at-800)}
-.cadd svg{width:20px;height:20px}
-.cadd[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
+/* round-11: .crow = two 44px buttons side by side (equal flex split, 8px gap) —
+   "Buy now" primary filled (btn-p style) + "Add to cart" outline (btn-sec style,
+   plus glyph kept before the label so it stays recognizable). Mobile (<768px):
+   labels shrink to 13px and "Add to cart" folds to a 44px icon-only button. */
+.crow{display:flex;gap:8px;margin-top:auto}
+.crow .cbuy,.crow .ccart{flex:1 1 0;min-width:0;height:44px;border-radius:8px;cursor:pointer;
+display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 8px;
+font-family:var(--font-sans);font-size:14px;line-height:20px;font-weight:500;white-space:nowrap}
+.cbuy{border:0;background:var(--at-600);color:#fff;transition:background-color 150ms ease}
+.cbuy:hover{background:var(--at-700)} .cbuy:active{background:var(--at-800)}
+.ccart{background:#fff;border:1px solid var(--bs-200);color:var(--bs-950);transition:background-color 150ms ease}
+.ccart:hover{background:var(--bs-100)}
+.ccart svg{width:16px;height:16px;flex:none}
+.cbuy[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
+.ccart[aria-disabled=true]{background:var(--bs-100);color:var(--bs-400);cursor:not-allowed}
 """
 
 # v4 main-store: hero banner + category rail (docs/main-store/design.md)
@@ -79,9 +88,11 @@ def grad_for(sub):
     return "unmapped"
 
 def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=False, featured=False, w="auto"):
-    """§3.4 card: clamped 1-line title, 13px metadata, 14px/600 at-600 price, pinned 44px add-to-cart.
-    §3.3 tile: 4:3 aspect-ratio gradient swatch, blueSlate-900 glyph. Badge pills (§3.1):
-    sale/out-of-stock top-left, featured top-right, low-stock bottom-left."""
+    """§3.4 card: clamped 1-line title, 13px metadata, 14px/600 at-600 price.
+    round-11: .crow row = 'Buy now' (btn-p filled) + 'Add to cart' (btn-sec outline,
+    plus glyph) side by side; OOS → both aria-disabled. §3.3 tile: 4:3 aspect-ratio
+    gradient swatch, blueSlate-900 glyph. Badge pills (§3.1): sale/out-of-stock
+    top-left, featured top-right, low-stock bottom-left."""
     th = "aspect-ratio:4/3" if h == "auto" else f"height:{h}px"
     tiles = (f'<div class="ptile" style="{th};background:{TILE_GRADS[grad_for(sub)]}">{glyph(icon)}</div>')
     btl = f'<span class="tb tb-sale" style="top:8px;left:8px">On sale</span>' if (sale and not oos) else ""
@@ -92,9 +103,14 @@ def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=
     elif only:
         bbl = f'<span class="tb tb-low" style="bottom:8px;left:8px">Only {only} left</span>'
     op = "0.4" if oos else "1"
-    add = ('<button class="cadd" aria-disabled="true" aria-label="Add to cart (out of stock)">'
-           f'{ICONS["plus"]}</button>') if oos else \
-          f'<button class="cadd" aria-label="Add {name} to cart">{ICONS["plus"]}</button>'
+    if oos:
+        buy = '<button class="cbuy" aria-disabled="true" aria-label="Buy now (out of stock)">Buy now</button>'
+        cadd = (f'<button class="ccart" aria-disabled="true" aria-label="Add to cart (out of stock)">'
+                f'{ICONS["plus"]}<span class="clbl">Add to cart</span></button>')
+    else:
+        buy = f'<button class="cbuy" aria-label="Buy {name} now">Buy now</button>'
+        cadd = (f'<button class="ccart" aria-label="Add {name} to cart">'
+                f'{ICONS["plus"]}<span class="clbl">Add to cart</span></button>')
     wstyle = "" if w == "auto" else f"max-width:{w}px;"
     return f'''<a class="pcard" style="{wstyle}" href="#product-details" aria-label="{name}">
   <div style="position:relative;opacity:{op}">{tiles}{btl}{btr}{bbl}</div>
@@ -102,7 +118,8 @@ def card(name, sub, price, icon, h="auto", tag=None, oos=False, only=None, sale=
     <div class="ttl"><div class="cname">{name}</div><div class="csub">{sub}</div></div>
     <div class="cprice"><span class="price">Rp {price}</span></div>
     <div class="crow">
-      {add}
+      {buy}
+      {cadd}
     </div>
   </div></a>'''
 

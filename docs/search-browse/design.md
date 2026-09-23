@@ -62,7 +62,7 @@ ASCII wireframe (desktop, ≥768px):
 |  ✓ Audio |  +--------+ +--------+ +--------+                      |
 |  Smart Hm|  | card   | | card   | | card   |   grid-search:      |
 |  Gaming  |  | Sony C7| | Anker  | | Razer  |   3 cols, 24px gutter|
-|  Laptops |  | Rp1.29 | | Rp380k | | Rp240k |   (+cadd 44px each)|
+|  Laptops |  | Rp1.29 | | Rp380k | | Rp240k |   (Buy now + Add to cart 44px each)|
 |  Access. |  +--------+ +--------+ +--------+                      |
 |  Wearable|  +--------+ +--------+ +--------+                      |
 | Brand    |  | card   | | card   | | card   |                      |
@@ -91,6 +91,8 @@ Wireless Earbuds", "Anker 735 Power Bank 20 000 mAh", "Razer BlackWidow V3",
 > **60 : 30 : 10 mapping (round 7 · `design-tokens-round3.md` §11):** 60% dominant ground = `tuscanSun-50` #FEF7E6 (the warm page background, replacing the `#FFFFFF` canvas) · 30% secondary surface = `#FFFFFF` card/panel/form-field fill (now reads as depth on the warm ground; `blueSlate-50` stays the alternate soft surface) · 10% accent = `atomicTangerine-600` (primary CTA / price) · `strawberryRed-600` (sale / error / destructive) · `carrotOrange-500` (low-stock / secondary) · `tuscanSun-500` (featured / star) — used sparingly, ~10% of the surface.
 > **intended-redesign: round-7 60:30:10 storefront color ratio** — the `#FFFFFF` canvas is demoted to the 30% surface layer and the `tuscanSun-50` warm ground becomes the 60% dominant page background (`design-tokens-round3.md` §11). Control-panel / ops pages are **out of scope**: their dark `blueSlate-900` sidebar + content gutter chrome is unchanged.
 
+> **intended-redesign (round 11): card CTA row** — the single pinned circular 44px `atomicTangerine-600` plus-glyph add-to-cart button is replaced by two side-by-side 44px buttons: **Buy now** (primary filled, `atomicTangerine-600`) + **Add to cart** (secondary outline, white fill, 1px `blueSlate-200` border, plus glyph kept). Out-of-stock disables both. Supersedes the prior `filled circular 44px add-to-cart` card spec; see the updated `Price / card actions on result cards` row below.
+
 | Element | Token |
 |---|---|
 | **Canvas / page background (60% ground)** | `tuscanSun-50` #FEF7E6 (warm ground, round 7 §11) — result cards and the filter rail sit on it as `#FFFFFF` / `blueSlate-50` 30% surface; card border `blueSlate-200` |
@@ -101,7 +103,7 @@ Wireless Earbuds", "Anker 735 Power Bank 20 000 mAh", "Razer BlackWidow V3",
 | Active filter chips | pill `blueSlate-100` bg, `blueSlate-900` label; removable × glyph `strawberryRed-600` |
 | "Clear all" link | `atomicTangerine-600` 13px, underline on hover |
 | Sort control | secondary button: white fill, 1px `blueSlate-200` border, `blueSlate-950` label, hover fill `blueSlate-100`, 44px min |
-| Price / add-to-cart on result cards | per Main Store card spec: price `atomicTangerine-600` 14/600, filled circular 44px add-to-cart |
+| Price / card actions on result cards | per Main Store card spec (round 11): price `atomicTangerine-600` 14/600; CTA row = two side-by-side 44px buttons — "Buy now" filled `atomicTangerine-600` + "Add to cart" outline white fill, 1px `blueSlate-200` border, `blueSlate-950` label (plus glyph before the label) |
 | Empty-results panel | `blueSlate-50` bg, heading `blueSlate-950`, helper `blueSlate-700` |
 | Sale badge on result cards | `strawberryRed-600` fill, white label (color-tokens §3; same card spec as Main Store) |
 | API error panel | `strawberryRed-100` bg, `strawberryRed-700` text + "Try again" (`strawberryRed-600` fill, white) |
