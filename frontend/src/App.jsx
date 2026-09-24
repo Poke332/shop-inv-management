@@ -1,16 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router'
-import TokenSmokePage from './pages/TokenSmokePage.jsx'
+import AppRoutes from './router.jsx'
 
 /**
- * P0 scaffold: a single tokenized smoke route proving the theme pipeline.
- * The full 14-route tree lands in P1 (docs/IMPLEMENTATION.md) — this file
- * is the routing seam that P1 extends.
+ * P1: the routing seam is now the full 14-route tree in src/router.jsx
+ * (docs/IMPLEMENTATION.md §route table). P0's TokenSmokePage lives on at
+ * /dev/token-smoke in dev (the tree's last route), so the token-pipeline
+ * proof still works.
  */
 export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<TokenSmokePage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+  return <AppRoutes />
 }

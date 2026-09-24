@@ -15,8 +15,9 @@ import {
  * Tailwind theme extension + the CSS component layer compiled and resolved.
  * It renders the 60:30:10 ground, the type scale, the 7-color x 11-step scale,
  * semantic aliases, and every component-layer class from docs/design-tokens-round3.md
- * + docs/control-panel/design.md (v4 ops-shell gutter). P1 replaces this with
- * the real 14-route tree.
+ * + docs/control-panel/design.md (v4 ops-shell gutter). P1 moved this to
+ * /dev/token-smoke (this file) and added the real 14-route tree in
+ * src/router.jsx; it stays available in dev as the theme-pipeline proof.
  *
  * Discipline check baked into the markup (gate references):
  *   - no out-of-scale hex (all color via token keys)
