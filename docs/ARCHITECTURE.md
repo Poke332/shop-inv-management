@@ -376,3 +376,79 @@ state.
 Guard note: RBAC is enforced client-side at route level for the mock build; the backend will
 enforce the same matrix server-side (Sheets-report "Implications" — the permission matrix is
 the RBAC spec).
+
+### 4.4 Data file split (`frontend/src/data`)
+
+The mock data layer is split into one `.js` per future API section, inside
+`frontend/src/data/`. Every section module reads/writes the single shared in-memory
+store (`store.js`) and exposes its `mockApi` function group; the facade (`mockApi.js`)
+re-exports one object whose full function list equals the §4.3 "mockApi function"
+column — **this facade is the ONE module the future Express backend replaces**, so the
+swap touches a single import. Plain JavaScript only (no `.ts`), no new runtime
+dependencies (the pinned stack + Vite/linter dev tooling only).
+
+```
+frontend/src/data/
+├─ index.js            — public re-export surface for the app: `import { mockApi } from '@/data'`
+├─ mockApi.js          — the facade: one `mockApi` object = the §4.3 function list,
+│                        assembled from the section modules below (single-swap target)
+├─ store.js            — THE single shared in-memory store: all mutable seed arrays as
+│                        module-level singletons + the §4.3 mutation helpers
+│                        (createOrder / advanceOrderStatus / setStock / submitReview /
+│                        setReviewHidden / setSellerComment / setUserRole /
+│                        setUserActive / createProduct / updateProduct / register) +
+│                        reset-on-refresh semantics (deep-clone seeds at module load;
+│                        mutations mutate the clones in place, no localStorage)
+├─ seed/               — the §4.2 sample records, one file per entity (the pristine source
+│                        the store clones at load):
+│  ├─ categories.js    — 6 Category records (audio / smart-home / gaming / laptops /
+│  │                      accessories / wearables)
+│  ├─ products.js       — 48 products: the 12 named from §4.2 verbatim (P-231, P-198,
+│  │                       P-140, P-087, P-052, P-111, P-064, P-208, P-173, P-088, P-071,
+│  │                       P-089) + 36 synthesized; P-231 carries the 6 round-9 spec pairs
+│  ├─ orders.js         — WB-1042 (2 lines, 1 570 000 + 100 000 = 1 670 000, pending,
+│  │                       jordan.wjy, Jl. Kemang Selatan 12), WB-1039, WB-1036, WB-1031,
+│  │                       WB-0987 (delivered, buyer_102)
+│  ├─ reviews.js        — P-231: 128 total = 122 public + 6 hidden, avg 4.3; the §4.2
+│  │                       four samples (buyer_102 4★ + seller comment; buyer_311 2★
+│  │                       hidden + replacement comment) + synthesized to 128
+│  ├─ users.js          — 128 users (3 staff · 2 managers · 1 admin; the §4.2 named 5
+│  │                       incl. ops_dan disabled) + the §4.2 mock LOGIN CREDENTIALS
+│  │                       table (role → email → password + disabled + duplicate-email
+│  │                       case) so login/register are buildable
+│  └─ stock.js          — StockSnapshot audit rows (order-decrement / manual-set / init)
+│                         for the §4.2 stock rows
+└─ api/                — one section module per API area; each exports its `mockApi`
+                         function group wired to store.js, shaped EXACTLY like the §4.3
+                         endpoint column (same names/params), with simulated latency +
+                         per-section optional failure injection (`failure` flag):
+   ├─ categories.js     — getCategories (the one static extra; §4.3 has no endpoint row)
+   ├─ products.js       — getProducts, getProduct, createProduct, updateProduct
+   ├─ orders.js         — createOrder, getMyOrders, submitReview, getOrders,
+   │                       advanceOrderStatus
+   ├─ reviews.js        — getProductReviews, getProductReviewsAll, setReviewHidden,
+   │                       setSellerComment
+   ├─ users.js          — getUsers, setUserRole, setUserActive, login, register
+   ├─ stock.js          — getStockOverview, setStock
+   └─ cart.js           — addToCart, setQty, removeLine (+ getCart/clearCart helpers)
+                           = the CartStore exception: client session state, NOT part of
+                           the shared store
+```
+
+Contract notes baked into the modules:
+
+- **Counts are derived, not hard-coded.** `getProducts`/`getOrders`/`getProductReviews`
+  report the real count the store holds; a no-filter search renders "48 results"
+  (the 48-product catalog) and the review panel "128 total". The §4.2 "128 results" /
+  "All 42 / Pending 9" figures are the mockups' *illustrative* queue-search counts, and
+  — per §4's "data layer is the single source of truth, views derive from it" rule —
+  the live view renders whatever the store holds, not those literals.
+- **Order-time price snapshots.** `createOrder` snapshots each line's unit price from
+  the current catalog at order time (WB-1042's Anker line @ 280 000 even though the
+  catalog price is 380 000). Stock is validated first → 409 `STOCK_CONFLICT` drives
+  checkout alt-flow 3a; the client-generated order id makes retry idempotent (alt-flow
+  5a) — a repeated id returns the existing order, it is not duplicated.
+- **Refresh = pristine state.** The store deep-clones the `seed/` arrays at module
+  load; every reload re-clones, so any cross-page mutation (advance WB-1042, set
+  P-087 stock, hide a review, change a role) is visible to the next `mockApi` read in
+  the same session and gone after a refresh.
