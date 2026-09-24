@@ -1,0 +1,694 @@
+/*
+ * Token layer — transcribed verbatim from docs/color-tokens.md +
+ * docs/design-tokens-round3.md + docs/control-panel/design.md (v4 gutter).
+ *
+ * This file declares the CSS custom properties that Tailwind theme.extend
+ * references (spacing tokens, ops-shell gutter) and the component-layer
+ * classes (buttons, badges, chips, tiles, stepper, skeletons, receipt
+ * table, ops shell). Tailwind's color/fontFamily/fontSize scales live in
+ * tailwind.config.js; this file is the var-based layer + @layer components.
+ *
+ * Discipline: no out-of-scale hex, ever. The only permitted non-scale
+ * value is #FFFFFF (30% surface, design-tokens §11/§12).
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* --- type (round3 §1) --- */
+  --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* type scale px values (config mirrors these as fontSize tokens) */
+  --text-h1: 26px;
+  --lh-h1: 36px;
+  --text-section: 16px;
+  --lh-section: 24px;
+  --track-section: 0.05em;
+  --text-card: 15px;
+  --lh-card: 24px;
+  --text-body: 14px;
+  --lh-body: 20px;
+  --text-price: 14px;
+  --lh-price: 20px;
+  --text-meta: 13px;
+  --lh-meta: 20px;
+  --text-badge: 12px;
+  --lh-badge: 16px;
+  --track-badge: 0.02em;
+
+  /* weights (400/500/600 only — no 700+) */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* --- spacing (round3 §2, 8pt grid) --- */
+  --card-gutter: 32px;
+  --card-padding: 24px;
+  --section-rhythm: 48px;
+  --section-label-gap: 20px;
+  --touch-min: 44px;
+  --content-max: 1200px;
+  --page-gutter: 48px;
+
+  /* --- badge / pill geometry (round3 §3.1) --- */
+  --radius-pill: 999px;
+  --badge-pad-x: 10px;
+  --badge-pad-y: 4px;
+
+  /* --- ops shell v4 gutter (control-panel/design.md) --- */
+  --ops-sidebar-w: 230px;
+  --ops-page-pad: 32px;
+  --ops-page-pad-mobile: 24px;
+
+  /* --- color token CSS vars (verbatim from color-tokens.md §1, 7 x 11) --- */
+  --strawberryRed-50: #FEE6E7;
+  --strawberryRed-100: #FDCECE;
+  --strawberryRed-200: #FC9C9E;
+  --strawberryRed-300: #FA6B6D;
+  --strawberryRed-400: #F9393C;
+  --strawberryRed-500: #F7080C;
+  --strawberryRed-600: #C60609;
+  --strawberryRed-700: #940507;
+  --strawberryRed-800: #630305;
+  --strawberryRed-900: #310202;
+  --strawberryRed-950: #230102;
+
+  --atomicTangerine-50: #FEEFE7;
+  --atomicTangerine-100: #FCDFCF;
+  --atomicTangerine-200: #F9BE9F;
+  --atomicTangerine-300: #F79E6E;
+  --atomicTangerine-400: #F47E3E;
+  --atomicTangerine-500: #F15D0E;
+  --atomicTangerine-600: #C14B0B;
+  --atomicTangerine-700: #913808;
+  --atomicTangerine-800: #602506;
+  --atomicTangerine-900: #301303;
+  --atomicTangerine-950: #220D02;
+
+  --carrotOrange-50: #FEF3E6;
+  --carrotOrange-100: #FDE8CE;
+  --carrotOrange-200: #FCD19C;
+  --carrotOrange-300: #FABA6B;
+  --carrotOrange-400: #F9A339;
+  --carrotOrange-500: #F78B08;
+  --carrotOrange-600: #C67006;
+  --carrotOrange-700: #945405;
+  --carrotOrange-800: #633803;
+  --carrotOrange-900: #311C02;
+  --carrotOrange-950: #231401;
+
+  --tuscanSun-50: #FEF7E6;
+  --tuscanSun-100: #FDEFCE;
+  --tuscanSun-200: #FBDF9D;
+  --tuscanSun-300: #FACF6B;
+  --tuscanSun-400: #F8BF3A;
+  --tuscanSun-500: #F6AF09;
+  --tuscanSun-600: #C58C07;
+  --tuscanSun-700: #946905;
+  --tuscanSun-800: #624604;
+  --tuscanSun-900: #312302;
+  --tuscanSun-950: #221801;
+
+  --willowGreen-50: #F2F7ED;
+  --willowGreen-100: #E4EFDC;
+  --willowGreen-200: #C9DFB9;
+  --willowGreen-300: #AFD095;
+  --willowGreen-400: #94C072;
+  --willowGreen-500: #79B04F;
+  --willowGreen-600: #618D3F;
+  --willowGreen-700: #496A2F;
+  --willowGreen-800: #304620;
+  --willowGreen-900: #182310;
+  --willowGreen-950: #11190B;
+
+  --seagrass-50: #EDF8F4;
+  --seagrass-100: #DBF0EA;
+  --seagrass-200: #B6E2D5;
+  --seagrass-300: #92D3C0;
+  --seagrass-400: #6DC5AB;
+  --seagrass-500: #49B695;
+  --seagrass-600: #3A9278;
+  --seagrass-700: #2C6D5A;
+  --seagrass-800: #1D493C;
+  --seagrass-900: #0F241E;
+  --seagrass-950: #0A1A15;
+
+  --blueSlate-50: #EFF2F5;
+  --blueSlate-100: #DFE6EC;
+  --blueSlate-200: #BFCDD9;
+  --blueSlate-300: #9FB4C6;
+  --blueSlate-400: #809BB3;
+  --blueSlate-500: #60829F;
+  --blueSlate-600: #4D6880;
+  --blueSlate-700: #394E60;
+  --blueSlate-800: #263440;
+  --blueSlate-900: #131A20;
+  --blueSlate-950: #0D1216;
+
+  /* semantic aliases (no new colors — point at the scale) */
+  --primary: var(--atomicTangerine-500);
+  --primary-600: var(--atomicTangerine-600);
+  --secondary: var(--carrotOrange-500);
+  --accent: var(--tuscanSun-500);
+  --destructive: var(--strawberryRed-600);
+  --success: var(--willowGreen-500);
+  --info: var(--blueSlate-500);
+  --ink: var(--blueSlate-950);
+  --inkMuted: var(--blueSlate-700);
+  --surface: var(--blueSlate-50);
+  --border: var(--blueSlate-200);
+  --canvas: #FFFFFF;
+}
+
+/* media-query switches (round3 §2: mobile <768px drops) */
+@media (max-width: 767px) {
+  :root {
+    --card-gutter: 24px;
+    --section-rhythm: 40px;
+    --page-gutter: 24px;
+    --ops-page-pad: var(--ops-page-pad-mobile);
+  }
+}
+
+/* <390px: page gutter 16px per round3 §8 */
+@media (max-width: 389px) {
+  :root {
+    --page-gutter: 16px;
+  }
+}
+
+/* Roboto is loaded in index.html (<link>); this is the base font binding. */
+html {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+body {
+  margin: 0;
+  /* 60% dominant warm ground (design-tokens §11): replaces the white canvas
+     as the page background for the 8 buyer-facing storefront pages. */
+  background: var(--tuscanSun-50);
+  color: var(--blueSlate-950);
+}
+
+/* focus ring (round3 §7.1): 2px atomicTangerine-500, offset 2, on every
+   interactive element. Never outline:none without this replacement. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--atomicTangerine-500);
+  outline-offset: 2px;
+}
+
+/* reduced motion (round3 §7.4): kill all transition; hover stays color-only */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   @layer components — the one-implementation component tokens
+   (ARCHITECTURE §2.4 / round3 §3-§4 / control-panel v4)
+   ========================================================================== */
+@layer components {
+  /* ---- page container: content max 1200px centered, 48/24px gutters ---- */
+  .page {
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding-inline: var(--page-gutter);
+    min-height: 100dvh;
+  }
+
+  /* ---- 1. Pill badges — one pill, three fills (round3 §3.1) ---- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: var(--radius-pill);
+    padding: var(--badge-pad-y) var(--badge-pad-x);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .badge-sale {
+    background: var(--strawberryRed-600);
+    color: #fff;
+  }
+  .badge-featured {
+    background: var(--tuscanSun-500);
+    color: var(--blueSlate-950);
+    border: 1px solid var(--tuscanSun-600);
+  }
+  .badge-lowstock {
+    background: var(--carrotOrange-500);
+    color: var(--blueSlate-950);
+    border: 1px solid var(--carrotOrange-600);
+  }
+  .badge-out {
+    background: var(--strawberryRed-100);
+    color: var(--strawberryRed-700);
+  }
+
+  /* ---- 2. CTA buttons — filled, 44px floor, 8px radius (round3 §3.2) ---- */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: 0 20px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    background: var(--atomicTangerine-600);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    transition: background-color 150ms ease;
+  }
+  .btn-primary:hover {
+    background: var(--atomicTangerine-700);
+  }
+  .btn-primary:active {
+    background: var(--atomicTangerine-800);
+  }
+  .btn-primary:disabled {
+    background: var(--blueSlate-100);
+    color: var(--blueSlate-400);
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--canvas);
+    border: 1px solid var(--blueSlate-200);
+    color: var(--blueSlate-950);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    transition: background-color 150ms ease;
+  }
+  .btn-secondary:hover {
+    background: var(--blueSlate-100);
+  }
+  .btn-secondary:disabled {
+    background: var(--blueSlate-100);
+    color: var(--blueSlate-400);
+    cursor: not-allowed;
+  }
+  .btn-destructive {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: 0 20px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    background: var(--strawberryRed-600);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    transition: background-color 150ms ease;
+  }
+  .btn-destructive:hover {
+    background: var(--strawberryRed-700);
+  }
+  .btn-destructive:active {
+    background: var(--strawberryRed-800);
+  }
+  .btn-destructive:disabled {
+    background: var(--blueSlate-100);
+    color: var(--blueSlate-400);
+    cursor: not-allowed;
+  }
+
+  /* "Load more / See more": filled 44px button; desktop 320px, mobile full */
+  .btn-loadmore {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .btn-loadmore {
+      width: 320px;
+    }
+  }
+  /* exhaustion line: 13/400 blueSlate-700, not a disabled-looking button */
+  .loadmore-done {
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--blueSlate-700);
+    text-align: center;
+  }
+
+  /* ---- 3. Product tiles — 4:3 gradient, category-mapped (round3 §3.3) ---- */
+  .tile {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  .tile svg,
+  .tile .tile-glyph {
+    width: 40px;
+    height: 40px;
+    stroke-width: 1.5;
+    color: var(--blueSlate-900);
+  }
+  .tile-audio {
+    background: linear-gradient(135deg, var(--tuscanSun-50), var(--tuscanSun-400));
+  }
+  .tile-smart-home {
+    background: linear-gradient(135deg, var(--seagrass-50), var(--seagrass-400));
+  }
+  .tile-gaming {
+    background: linear-gradient(135deg, var(--atomicTangerine-50), var(--atomicTangerine-400));
+  }
+  .tile-laptops {
+    background: linear-gradient(135deg, var(--blueSlate-50), var(--blueSlate-400));
+  }
+  .tile-accessories {
+    background: linear-gradient(135deg, var(--carrotOrange-50), var(--carrotOrange-400));
+  }
+  .tile-wearables {
+    background: linear-gradient(135deg, var(--strawberryRed-50), var(--strawberryRed-400));
+  }
+  .tile-unmapped,
+  .tile-fallback {
+    background: linear-gradient(135deg, var(--blueSlate-50), var(--blueSlate-400));
+  }
+  .tile-outstock {
+    opacity: 0.4;
+  }
+
+  /* ---- 4. Card grid — minmax(0,1fr) fix (round3 §3.4) ---- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--card-gutter);
+  }
+  @media (max-width: 1023px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 767px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 389px) {
+    .grid {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+  .card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    background: var(--canvas);
+    border: 1px solid var(--blueSlate-200);
+    border-radius: 8px;
+    padding: var(--card-padding);
+    gap: 12px;
+  }
+  .card-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 24px;
+  }
+  .card-cta-row {
+    margin-top: auto;
+  }
+
+  /* ---- 5. States — static skeletons / empty / error (round3 §4) ---- */
+  .skeleton {
+    background: var(--blueSlate-100);
+    border-radius: 8px;
+  }
+  .skeleton-tile {
+    aspect-ratio: 4 / 3;
+  }
+  .skeleton-line {
+    height: 16px;
+    width: 100%;
+  }
+  .skeleton-line-sm {
+    height: 12px;
+    width: 60%;
+  }
+  .state-empty {
+    text-align: center;
+    padding: var(--section-rhythm) 0;
+  }
+  .state-empty h2 {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    color: var(--blueSlate-950);
+  }
+  .state-empty p {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--blueSlate-700);
+  }
+  .state-error {
+    background: var(--strawberryRed-100);
+    color: var(--strawberryRed-700);
+    border-radius: 8px;
+    padding: var(--card-padding);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  /* ---- 6. Status chips (order machine, color-tokens §3) ---- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: var(--radius-pill);
+    padding: var(--badge-pad-y) var(--badge-pad-x);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--blueSlate-900);
+  }
+  .chip-pending {
+    background: var(--tuscanSun-100);
+  }
+  .chip-processing {
+    background: var(--seagrass-100);
+  }
+  .chip-shipped {
+    background: var(--blueSlate-100);
+  }
+  .chip-delivered {
+    background: var(--willowGreen-100);
+  }
+
+  /* ---- 7. Role badges (color-tokens §5) ---- */
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: var(--radius-pill);
+    padding: var(--badge-pad-y) var(--badge-pad-x);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .role-buyer {
+    background: var(--atomicTangerine-100);
+    color: var(--atomicTangerine-700);
+    border-color: var(--atomicTangerine-300);
+  }
+  .role-staff {
+    background: var(--carrotOrange-100);
+    color: var(--carrotOrange-700);
+    border-color: var(--carrotOrange-300);
+  }
+  .role-manager {
+    background: var(--seagrass-100);
+    color: var(--seagrass-700);
+    border-color: var(--seagrass-300);
+  }
+  .role-admin {
+    background: var(--strawberryRed-100);
+    color: var(--strawberryRed-700);
+    border-color: var(--strawberryRed-300);
+    box-shadow: 0 0 0 1px var(--strawberryRed-300);
+  }
+
+  /* ---- 8. Quantity stepper (44px touch floor) ---- */
+  .stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--blueSlate-200);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .stepper button {
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+    background: var(--canvas);
+    border: 0;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--blueSlate-900);
+  }
+  .stepper button:disabled {
+    color: var(--blueSlate-400);
+    cursor: not-allowed;
+  }
+  .stepper .stepper-val {
+    min-width: 40px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--blueSlate-950);
+  }
+
+  /* ---- 9. Receipt table (order line table) ---- */
+  .receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .receipt-table th {
+    text-align: left;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--blueSlate-700);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--blueSlate-200);
+  }
+  .receipt-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--blueSlate-200);
+    color: var(--blueSlate-950);
+    font-weight: 400;
+  }
+  .receipt-table .receipt-num {
+    text-align: right;
+    font-weight: 600;
+  }
+
+  /* ---- 10. Ops shell v4 (control-panel/design.md) ----
+     Gutter = .ops-content padding via --ops-page-pad (32/24). Class rule
+     (specificity 0,1,0) beats any universal reset / preflight. */
+  .ops-shell {
+    display: flex;
+    min-height: 100dvh;
+    background: var(--canvas);
+  }
+  .ops-sidebar {
+    width: var(--ops-sidebar-w);
+    flex: none;
+    background: var(--blueSlate-900);
+    color: var(--blueSlate-50);
+    overflow-y: auto;
+  }
+  .ops-sidebar .ops-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--touch-min);
+    padding: 0 14px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--blueSlate-50);
+  }
+  .ops-sidebar .ops-nav-item.active {
+    background: var(--blueSlate-800);
+    box-shadow: inset 3px 0 0 var(--atomicTangerine-500);
+  }
+  .ops-sidebar .nbadge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--strawberryRed-600);
+    color: #fff;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+  }
+  .ops-content {
+    flex: 1;
+    min-width: 0;
+    padding: var(--ops-page-pad); /* 32px desktop / 24px mobile — the gutter */
+    overflow: auto;
+  }
+  .ops-page {
+    /* page-specific internals (tables/forms) use card-gutter/section-rhythm */
+  }
+  /* mobile off-canvas drawer + 56px top bar */
+  @media (max-width: 767px) {
+    .ops-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      transform: translateX(-100%);
+      transition: transform 150ms ease;
+      z-index: 40;
+    }
+    .ops-sidebar.open {
+      transform: translateX(0);
+    }
+    .ops-topbar {
+      display: flex;
+      align-items: center;
+      height: 56px;
+      padding: 0 12px;
+      background: var(--canvas);
+      border-bottom: 1px solid var(--blueSlate-200);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ops-sidebar {
+        transition: none;
+      }
+    }
+  }
+}

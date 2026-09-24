@@ -9,3 +9,6 @@ _mockup-build/recheck/
 # One-off diagnostic / probe scripts (worker scratch, not part of the build recipe).
 _mockup-build/_*
 _mockup-build/probe_*.py
+# Vite frontend (frontend/ at repo root) — node_modules + build output are regenerable.
+frontend/node_modules/
+frontend/dist/
