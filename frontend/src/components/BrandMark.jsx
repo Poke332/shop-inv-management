@@ -8,6 +8,12 @@
  * brand panel, 48px on the 64px mobile logo strip, 32px in the storefront
  * header. The mark's box is the sun plus a little room for the ray strokes
  * (only when `rays` is on, so the small marks stay tight).
+ *
+ * @param {number} [size]  the sun circle's diameter in px (default 96).
+ * @param {boolean} [rays]  draw the 8 ray strokes (default false — the small
+ *   marks stay tight).
+ * @param {string} [className]  extra utility classes on the mark's box.
+ * @returns {import('react').ReactElement} the aria-hidden mark.
  */
 export default function BrandMark({ size = 96, rays = false, className = '' }) {
   const sun = size

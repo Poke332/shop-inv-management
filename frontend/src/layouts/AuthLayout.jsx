@@ -9,6 +9,11 @@ import BrandMark from '../components/BrandMark.jsx'
  * surface on the tuscanSun-50 warm ground). Mobile <768px: the brand panel
  * collapses to a 64px logo strip and the card goes full-bleed with 24px
  * gutters. Pages P3 fill the form card; P1 leaves it a placeholder.
+ *
+ * Route context: both auth routes are anonymous-only (RequireAnon). The
+ * nested <Outlet/> renders the form card; P1 leaves the card itself a
+ * placeholder.
+ * @returns {import('react').ReactElement} the two-panel shell.
  */
 export default function AuthLayout() {
   return (

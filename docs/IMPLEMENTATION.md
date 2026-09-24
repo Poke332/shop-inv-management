@@ -84,6 +84,12 @@ warm ground + centered card + "Back to Main Store" CTA); it is top-level, outsid
 wrappers, so it applies to every unknown path (incl. unknown `/ops/*`) and is reachable
 regardless of auth state — known-route RBAC redirects are unchanged.
 
+**P1.2 amendment:** JSDoc doc pass over `frontend/src/` — every exported component /
+hook / guard / page / helper carries a block doc (summary + @param / @returns / @throws
+where the code can throw or reject), plus gap-fill on the already-documented P2/P2b data
+layer. Documentation only: zero behaviour/route/logic change, no new dependencies; the
+node smoke test (32/32) and the production build still pass.
+
 ### P2 — Data layer (mock)  ✅ DONE (`617f4f2`) (P2b durable store: 9616793+ pending — persistence via localStorage, see ARCHITECTURE §4.5)
 
 `frontend/src/data`: the §4.2 sample records (48 products incl. the 12 named, orders WB-1042/1039/

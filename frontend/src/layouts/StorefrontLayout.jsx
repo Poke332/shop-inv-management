@@ -21,6 +21,14 @@ import BrandMark from '../components/BrandMark.jsx'
  * Mobile (<768px): logo left, cart + account right, the search pill drops
  * to its own full-width line below (44px min — the header wraps per
  * docs/main-store/design.md).
+ *
+ * Consumes useAuth() + useCart() from the P1 context pair. The cart count
+ * badge shows only when the session user is a buyer (staff+ get the
+ * read-only storefront variant, which hides the cart/Cart link per the
+ * main-store role-gating note in docs). The account menu routes buyer ->
+ * /orders and staff/manager/admin -> their respective ops home
+ * (postLoginHome).
+ * @returns {import('react').ReactElement} the header + the nested Outlet.
  */
 export default function StorefrontHeader() {
   const { user, signOut } = useAuth()

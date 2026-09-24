@@ -13,6 +13,11 @@ import { mockApi } from '../data'
  */
 const CartContext = createContext(null)
 
+/**
+ * The CartStore context (the P1 seam): hydrates from mockApi.getCart() on
+ * mount and exposes refresh() for P4.
+ * @param {{children: import('react').ReactNode}} props
+ */
 export function CartProvider({ children }) {
   const [data, setData] = useState(null)
   const loadedRef = useRef(false)
@@ -41,6 +46,12 @@ export function CartProvider({ children }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
+/**
+ * The cart context value.
+ * @returns {{lines: object[], count: number, subtotal: number, loaded: boolean,
+ *            refresh: () => Promise<void>}}
+ * @throws {Error} when called outside <CartProvider>
+ */
 export function useCart() {
   const ctx = useContext(CartContext)
   if (!ctx) throw new Error('useCart must be used inside <CartProvider>')

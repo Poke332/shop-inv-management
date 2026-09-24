@@ -16,6 +16,7 @@ const SESSION_KEY = 'sunset.session'
 
 const AuthContext = createContext(null)
 
+/** Hydrates/restores the session on mount. */
 function readSession() {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY)
@@ -28,6 +29,12 @@ function readSession() {
   }
 }
 
+/**
+ * Session provider: the user + role every guard, header menu, and page
+ * reads. signIn persists {username, role} to sessionStorage and returns
+ * the post-login home; signOut clears the session.
+ * @param {{children: import('react').ReactNode}} props
+ */
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(readSession)
 
@@ -54,6 +61,13 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+/**
+ * The auth context value.
+ * @returns {{user: ({username: string, role: string}|null), role: (string|null),
+ *            signIn: (user: object, role: string) => string,
+ *            signOut: () => void}}
+ * @throws {Error} when called outside <AuthProvider>
+ */
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')

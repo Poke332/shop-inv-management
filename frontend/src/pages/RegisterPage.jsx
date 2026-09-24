@@ -10,6 +10,12 @@ import { useAuth } from '../contexts/AuthContext.jsx'
  * docs/register/IMPLEMENTATION.md). Enough now to prove: create buyer
  * session → auto sign-in → redirect to / ; duplicate email → 409 under the
  * email field (rian@mock.local is the standing case).
+ *
+ * Route /register — AuthLayout, anonymous only (RequireAnon). Consumes
+ * mockApi.register (api/users.js: 409 duplicate email). On success:
+ * signIn(user, 'buyer') persists the session and navigates to the buyer home
+ * (/). Surviving state: name/email/password/confirm + the inline errors are
+ * form-local.
  */
 export default function RegisterPage() {
   const { signIn } = useAuth()

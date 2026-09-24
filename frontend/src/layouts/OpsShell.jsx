@@ -7,7 +7,15 @@ import { mockApi } from '../data'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { OPS_NAV_ITEMS } from '../routePaths.js'
 
-/** One sidebar nav row: label + optional role annotation + nbadge count. */
+/**
+ * One sidebar nav row: label + optional role annotation + nbadge count.
+ * @param {string} to  the ops route the row links to.
+ * @param {string} label  the row text.
+ * @param {number} [badge]  the nbadge count (null = no badge).
+ * @param {string} [annotation]  the "read-only" hint (staff view, decision #8).
+ * @param {boolean} [end]  exact-match NavLink (used for /ops/orders so the
+ *   detail route doesn't keep the list row active).
+ */
 function NavItem({ to, label, badge, annotation, end }) {
   const active = ({ isActive }) => (isActive ? 'ops-nav-item active' : 'ops-nav-item')
   return (
@@ -40,6 +48,16 @@ function NavItem({ to, label, badge, annotation, end }) {
  * nbadge counts read lazily from the same mockApi feeds the pages use
  * (Ongoing Orders = open pending+processing; Inventory = items at/below
  * threshold) — a shared "counts" fetch is P7, not the shell.
+ *
+ * The mobile topbar is inline (<header class="ops-topbar">: 44px menu
+ * button + sign-out row), not a separate component — it renders only
+ * under <768px where the sidebar becomes the off-canvas drawer.
+ *
+ * Route context: every /ops/* route nests inside this shell under
+ * RequireOps (+ the per-route role tiers in router.jsx). Consumes useAuth
+ * for the role-gated nav rows; the drawer state is in-page (mobile).
+ * @returns {import('react').ReactElement} the .ops-shell (topbar + sidebar +
+ *   .ops-content gutter wrapping the nested <Outlet/>).
  */
 export default function OpsShell() {
   const { user, signOut } = useAuth()

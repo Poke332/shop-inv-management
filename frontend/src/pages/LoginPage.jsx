@@ -10,6 +10,12 @@ import { useAuth } from '../contexts/AuthContext.jsx'
  * stacks + validation per docs/login/IMPLEMENTATION.md). Enough now to prove
  * the AuthContext + post-login routing: 4 role logins → 4 homes, ops_dan
  * disabled → the 403 banner.
+ *
+ * Route /login — AuthLayout, anonymous only (RequireAnon; signed-in -> role
+ * home). Consumes mockApi.login (api/users.js: 401 bad credentials / 403
+ * disabled account). On success: signIn(user, role) persists the session and
+ * navigates to the post-login home. Surviving state: email/password/error/
+ * busy are form-local; the session itself lives in AuthContext.
  */
 export default function LoginPage() {
   const { user, signIn } = useAuth()

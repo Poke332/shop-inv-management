@@ -6,6 +6,12 @@ import App from './App.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import { CartProvider } from './contexts/CartContext.jsx'
 
+/**
+ * The app entry point: mounts <App/> into #root under StrictMode +
+ * BrowserRouter. tokens.css = the theme/component layer; the two providers
+ * wrap the tree so every layout, guard, and page can read the session
+ * (user+role) and the live cart count (P1 seam; P4 builds on both).
+ */
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

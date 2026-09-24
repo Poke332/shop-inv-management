@@ -5,7 +5,8 @@ import { StorefrontPlaceholder } from './HomePage.jsx'
 /**
  * P1 slot placeholder. P3 fills this with the real pages (docs/search-browse:
  * FilterRail + URL param state + result grid). The placeholder keeps the P1
- * tree fully navigable now.
+ * tree fully navigable now. Route /search — buyer only (RequireBuyer); the
+ * ?query=/?category= URL params echo into the slot subtitle.
  */
 export default function SearchPage() {
   const location = useLocation()

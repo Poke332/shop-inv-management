@@ -49,10 +49,18 @@ import {
  * parser choked on a string-array literal inside a JSX *attribute*
  * expression; top-level element constants avoid the quirk entirely —
  * behaviour is identical: each is a <RequireOps role=…/> wrapper.)
+ *
+ * @type {import('react').ReactElement}
  */
 const requireManagerOrAdmin = <RequireOps role={['manager', 'admin']} />
 const requireAdmin = <RequireOps role={['admin']} />
 
+/**
+ * The single route tree (module doc = the route table): 14 storefront /
+ * auth / ops routes, the dev-only /dev/token-smoke, and the top-level
+ * 404 catch-all.
+ * @returns {import('react').ReactElement} the <Routes/> tree.
+ */
 export default function AppRoutes() {
   const DevSmoke = import.meta.env.DEV ? DevTokenSmokePage : null
   return (

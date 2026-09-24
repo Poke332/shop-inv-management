@@ -7,6 +7,8 @@ import { useLocation } from 'react-router'
  *
  * `useLocation` echoes the live URL so role/redirect behaviour is visible
  * while the real pages are still placeholders.
+ * @param {string} title  the h1 shown in the slot card.
+ * @param {string} [subtitle]  helper line under the h1 (defaults to a P3–P6 note).
  */
 export function StorefrontPlaceholder({ title, subtitle }) {
   const location = useLocation()
@@ -25,7 +27,10 @@ export function StorefrontPlaceholder({ title, subtitle }) {
   )
 }
 
-/** P1 main-store slot (P3 fills: hero, 3x2 category grid, 8-item product grid). */
+/**
+ * P1 main-store slot (P3 fills: hero, 3x2 category grid, 8-item product grid).
+ * Route / — StorefrontLayout, buyer only (RequireBuyer; staff+ -> their ops home).
+ */
 export default function HomePage() {
   return <StorefrontPlaceholder title="Main Store" />
 }
