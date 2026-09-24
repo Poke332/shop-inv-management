@@ -169,8 +169,10 @@ repo/
 │  │  │                  OpsShell (v4 gutter spec: sidebar + content), AuthLayout
 │  │  │                  (two-panel brand + form card, shared by Login/Register)
 │  │  ├─ pages/        — one page component per route (14 routes incl. the ops pages)
-│  │  ├─ router/       — the single route tree + RBAC route guards (role list per route,
-│  │  │                  redirect rules, deep-link paths)
+│  │  ├─ router.jsx    — the single route tree (a FILE, not a folder; the empty
+│  │  │                  src/router/ dir was removed). RBAC route guards live in the
+│  │  │                  sibling guards.jsx (role list per route, redirect rules,
+│  │  │                  deep-link paths)
 │  │  ├─ data/         — mock entities (products, orders, reviews, users, categories,
 │  │  │                  stock) + the mock API module that mirrors the future Express
 │  │  │                  endpoints
