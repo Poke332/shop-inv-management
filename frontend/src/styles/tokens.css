@@ -665,8 +665,17 @@ textarea:focus-visible,
   .ops-page {
     /* page-specific internals (tables/forms) use card-gutter/section-rhythm */
   }
+  /* The mobile-only ops top bar is hidden on desktop; the <768px media block
+     below re-shows it (same specificity, later in the cascade wins). */
+  .ops-topbar {
+    display: none;
+  }
   /* mobile off-canvas drawer + 56px top bar */
   @media (max-width: 767px) {
+    /* top bar stacks above the content (the fixed sidebar leaves the flow) */
+    .ops-shell {
+      flex-direction: column;
+    }
     .ops-sidebar {
       position: fixed;
       inset: 0 auto 0 0;
@@ -689,6 +698,28 @@ textarea:focus-visible,
       .ops-sidebar {
         transition: none;
       }
+    }
+  }
+
+  /* P1 button-loading spinner (login "Signing in…" state) — pure CSS, no asset */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: -2px;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner {
+      animation: none;
     }
   }
 }

@@ -28,7 +28,7 @@ a first-class check from P0 onward.
 | Phase | Status | Evidence / what's left |
 |---|---|---|
 | P0 scaffold | **DONE** | commit `15957c0`: `frontend/` Vite app (sibling of `docs/`), full Sunset Glow token theme, static assets + 12 product photos, linter, .gitignore; verified by review + pushed (draft PR #8) |
-| P1 router + layouts | **NOT STARTED** | no card/commit yet — its only dependency (P0) is done, so it can start now; remaining: route tree + RBAC guards, `StorefrontHeader` / `OpsShell` / `AuthLayout`, role-gated nav |
+| P1 router + layouts | **DONE** | commit `b9a505b` (code) + `docs` flip: full 14-route tree in `frontend/src/router.jsx` + RBAC guards (redirects, never 403), `StorefrontHeader` (56px bar) / `OpsShell` (v4 32/24px gutter, role-gated NavLink nav, mobile drawer) / `AuthLayout` layouts, `AuthContext` + P1 `CartStore` seam, placeholder route slots; verified live at 1280/1312/390 |
 | P2 data layer | **DONE** (pulled ahead of P1, by user ruling) | commit `617f4f2`: `frontend/src/data/` split one `.js` per API section (`store.js`, `seed/*`, `api/*`, `mockApi.js` facade) + ARCHITECTURE §4.4; verified by review + pushed |
 | P3 storefront pages | NOT STARTED | 5 pages (main-store, search-browse, product-details, login, register) |
 | P4 cart + checkout | NOT STARTED | 2 pages + `CartStore` wiring + 4-state wizard |
@@ -62,7 +62,7 @@ into `frontend/public/`.
 `bg-tuscanSun-50` / `bg-blueSlate-900` / `font-h1` compiles; the mockup conformance gate
 (`_mockup-build/verify_framework.sh`) still passes against the docs.
 
-### P1 — Router + shared layouts  ⬜ NOT STARTED
+### P1 — Router + shared layouts  ✅ DONE (`b9a505b`)
 
 The route tree (all 14 routes + guards) from `docs/ARCHITECTURE.md` §route table and each
 page's `IMPLEMENTATION.md` route section. Build the three layouts:
@@ -77,6 +77,18 @@ card shared by Login/Register). RBAC guards: role list per route; non-actors red
 are role-gated (staff: Ongoing Orders + Inventory + Products read-only; manager: + Reviews;
 admin: + Users); the 32px/24px gutter measures under a real Tailwind preflight (the v4
 reset-proof requirement from `docs/control-panel/design.md` QA §2).
+
+**P1.1 amendment:** unknown routes no longer redirect to home — the catch-all
+`<Route path="*" />` now renders the dedicated 404 page (`frontend/src/pages/NotFoundPage.jsx`,
+warm ground + centered card + "Back to Main Store" CTA); it is top-level, outside the guard
+wrappers, so it applies to every unknown path (incl. unknown `/ops/*`) and is reachable
+regardless of auth state — known-route RBAC redirects are unchanged.
+
+**P1.2 amendment:** JSDoc doc pass over `frontend/src/` — every exported component /
+hook / guard / page / helper carries a block doc (summary + @param / @returns / @throws
+where the code can throw or reject), plus gap-fill on the already-documented P2/P2b data
+layer. Documentation only: zero behaviour/route/logic change, no new dependencies; the
+node smoke test (32/32) and the production build still pass.
 
 ### P2 — Data layer (mock)  ✅ DONE (`617f4f2`) (P2b durable store: 9616793+ pending — persistence via localStorage, see ARCHITECTURE §4.5)
 

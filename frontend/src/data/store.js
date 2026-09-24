@@ -71,18 +71,38 @@ export const storeStock = snapshot ? snapshot.slices.stock : seedStock;
 
 // ---- lookup helpers ---------------------------------------------------------
 
+/**
+ * Find a product by its id (e.g. "P-231").
+ * @param {string} id
+ * @returns {import('./seed/products.js').Product|undefined}
+ */
 export function productById(id) {
   return storeProducts.find((p) => p.id === id);
 }
 
+/**
+ * Find an order by its id (e.g. "WB-1042").
+ * @param {string} id
+ * @returns {import('./seed/orders.js').Order|undefined}
+ */
 export function orderById(id) {
   return storeOrders.find((o) => o.id === id);
 }
 
+/**
+ * Find a review by its id (e.g. "R-0001").
+ * @param {string} id
+ * @returns {import('./seed/reviews.js').Review|undefined}
+ */
 export function reviewById(id) {
   return storeReviews.find((r) => r.id === id);
 }
 
+/**
+ * Find a user by their §4.2 username (e.g. "buyer_102").
+ * @param {string} username
+ * @returns {import('./seed/users.js').User|undefined}
+ */
 export function userByUsername(username) {
   return storeUsers.find((u) => u.username === username);
 }
@@ -133,6 +153,10 @@ export function resetStore() {
 
 const ORDER_FLOW = ['pending', 'processing', 'shipped', 'delivered'];
 
+/**
+ * The "19 Sep 2026 12:04"-style display timestamp matching the seed rows.
+ * @returns {string}
+ */
 export function nowStamp() {
   // "19 Sep 2026 12:04" style, matching the seed timestamps' display shape
   return new Date().toLocaleString('en-GB', {
@@ -187,6 +211,7 @@ export function storeSubmitReview(review, orderId) {
   return review;
 }
 
+/** setReviewHidden: flip the review's state between "public" and "hidden". */
 export function storeSetReviewHidden(reviewId, hidden) {
   const r = reviewById(reviewId);
   if (!r) return null;
@@ -195,6 +220,7 @@ export function storeSetReviewHidden(reviewId, hidden) {
   return r;
 }
 
+/** setSellerComment: set/clear the seller's reply (empty text clears it). */
 export function storeSetSellerComment(reviewId, text) {
   const r = reviewById(reviewId);
   if (!r) return null;
@@ -207,6 +233,7 @@ export function storeSetSellerComment(reviewId, text) {
   return r;
 }
 
+/** setUserRole: update the user's role (user-dashboard role select, P6). */
 export function storeSetUserRole(username, role) {
   const u = userByUsername(username);
   if (!u) return null;
@@ -215,6 +242,7 @@ export function storeSetUserRole(username, role) {
   return u;
 }
 
+/** setUserActive: the user-dashboard disable/enable toggle (a disabled login -> 403). */
 export function storeSetUserActive(username, active) {
   const u = userByUsername(username);
   if (!u) return null;
@@ -254,6 +282,11 @@ export function storeUpdateProduct(id, form) {
 // P2b: derive the seq from the CURRENT store so reloaded/snapshotted
 // registrations can't re-issue a username an earlier session already took
 // (buyer_9NN slots are also claimed by the synthesized seed buyers).
+/**
+ * Derive the next buyer_(9NN) register sequence from the user rows.
+ * @param {import('./seed/users.js').User[]} userRows
+ * @returns {number}
+ */
 function nextRegisterSeq(userRows) {
   return userRows.reduce((m, u) => {
     const match = /^buyer_(9\d\d)$/.exec(u.username);
@@ -263,6 +296,12 @@ function nextRegisterSeq(userRows) {
 
 let registerSeq = nextRegisterSeq(storeUsers);
 
+/**
+ * register: create the buyer user (P2, §4.2 mock-credentials table).
+ * @param {{username: string, email: string, password: string}} payload
+ * @returns {import('./seed/users.js').User|{error: number, message: string}}
+ *   the created user, or {error: 409, message} when the email already exists.
+ */
 export function storeRegisterUser(payload) {
   // 409 duplicate when the email already exists (the §4.2 rian@mock.local case).
   if (storeUsers.some((u) => u.email === payload.email)) {

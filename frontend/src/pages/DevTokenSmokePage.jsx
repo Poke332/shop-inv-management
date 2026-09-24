@@ -15,8 +15,9 @@ import {
  * Tailwind theme extension + the CSS component layer compiled and resolved.
  * It renders the 60:30:10 ground, the type scale, the 7-color x 11-step scale,
  * semantic aliases, and every component-layer class from docs/design-tokens-round3.md
- * + docs/control-panel/design.md (v4 ops-shell gutter). P1 replaces this with
- * the real 14-route tree.
+ * + docs/control-panel/design.md (v4 ops-shell gutter). P1 moved this to
+ * /dev/token-smoke (this file) and added the real 14-route tree in
+ * src/router.jsx; it stays available in dev as the theme-pipeline proof.
  *
  * Discipline check baked into the markup (gate references):
  *   - no out-of-scale hex (all color via token keys)
@@ -37,6 +38,10 @@ const FAMILIES = [
 ]
 const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
 
+/**
+ * The 7 families x 11 steps swatch grid — every `bg-{family}-{step}` utility
+ * class, so a missing scale step shows as an empty swatch on the live page.
+ */
 function ScaleSwatches() {
   return (
     <div className="flex flex-col gap-section-label-gap">
@@ -58,6 +63,13 @@ function ScaleSwatches() {
   )
 }
 
+/**
+ * Route /dev/token-smoke — dev-only theme-pipeline proof (P0, `import.meta.env.DEV`
+ * in router.jsx; not part of the 14-route table). Renders the 60:30:10 ground,
+ * the type scale, the 7x11 scale swatches, semantic aliases, and every
+ * component-layer class (buttons, badges, tiles, skeletons, receipt table) +
+ * the ops-shell v4 gutter proof, from the file doc above.
+ */
 export default function TokenSmokePage() {
   return (
     <div className="page">
