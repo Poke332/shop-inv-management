@@ -28,7 +28,7 @@ a first-class check from P0 onward.
 | Phase | Status | Evidence / what's left |
 |---|---|---|
 | P0 scaffold | **DONE** | commit `15957c0`: `frontend/` Vite app (sibling of `docs/`), full Sunset Glow token theme, static assets + 12 product photos, linter, .gitignore; verified by review + pushed (draft PR #8) |
-| P1 router + layouts | **NOT STARTED** | no card/commit yet — its only dependency (P0) is done, so it can start now; remaining: route tree + RBAC guards, `StorefrontHeader` / `OpsShell` / `AuthLayout`, role-gated nav |
+| P1 router + layouts | **DONE** | commit `b9a505b` (code) + `docs` flip: full 14-route tree in `frontend/src/router.jsx` + RBAC guards (redirects, never 403), `StorefrontHeader` (56px bar) / `OpsShell` (v4 32/24px gutter, role-gated NavLink nav, mobile drawer) / `AuthLayout` layouts, `AuthContext` + P1 `CartStore` seam, placeholder route slots; verified live at 1280/1312/390 |
 | P2 data layer | **DONE** (pulled ahead of P1, by user ruling) | commit `617f4f2`: `frontend/src/data/` split one `.js` per API section (`store.js`, `seed/*`, `api/*`, `mockApi.js` facade) + ARCHITECTURE §4.4; verified by review + pushed |
 | P3 storefront pages | NOT STARTED | 5 pages (main-store, search-browse, product-details, login, register) |
 | P4 cart + checkout | NOT STARTED | 2 pages + `CartStore` wiring + 4-state wizard |
@@ -62,7 +62,7 @@ into `frontend/public/`.
 `bg-tuscanSun-50` / `bg-blueSlate-900` / `font-h1` compiles; the mockup conformance gate
 (`_mockup-build/verify_framework.sh`) still passes against the docs.
 
-### P1 — Router + shared layouts  ⬜ NOT STARTED
+### P1 — Router + shared layouts  ✅ DONE (`b9a505b`)
 
 The route tree (all 14 routes + guards) from `docs/ARCHITECTURE.md` §route table and each
 page's `IMPLEMENTATION.md` route section. Build the three layouts:
