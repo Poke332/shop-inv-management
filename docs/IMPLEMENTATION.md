@@ -78,7 +78,7 @@ are role-gated (staff: Ongoing Orders + Inventory + Products read-only; manager:
 admin: + Users); the 32px/24px gutter measures under a real Tailwind preflight (the v4
 reset-proof requirement from `docs/control-panel/design.md` QA §2).
 
-### P2 — Data layer (mock)  ✅ DONE (`617f4f2`)
+### P2 — Data layer (mock)  ✅ DONE (`617f4f2`) (P2b durable store: 9616793+ pending — persistence via localStorage, see ARCHITECTURE §4.5)
 
 `frontend/src/data`: the §4.2 sample records (48 products incl. the 12 named, orders WB-1042/1039/
 1036/1031/0987, 128 reviews on P-231 = 122 public + 6 hidden, 128 users incl. admin_ria /

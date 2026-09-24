@@ -20,8 +20,13 @@
  *                                                                   the static one extra)
  *
  * Simulated latency + optional failure injection live on each section (see its
- * `failure` export); the store.js shared in-memory store is the single source of
- * truth every read/write reflects (one shared store, resets on refresh).
+ * `failure` export); the store.js shared store is the single source of truth
+ * every read/write reflects (one shared store, durable via the versioned
+ * localStorage snapshot — P2b, ARCHITECTURE §4.5).
+ *
+ * `resetData()` — the P2b escape hatch: removes the storage key, re-clones the
+ * seeds in place, and re-emits the pristine snapshot. API-ONLY for now (no UI
+ * affordance this card; a P7 dev-only reset button may hook it later).
  */
 
 import { mockApiCategories } from './api/categories.js';
@@ -31,6 +36,7 @@ import { mockApiReviews } from './api/reviews.js';
 import { mockApiUsers } from './api/users.js';
 import { mockApiStock } from './api/stock.js';
 import { mockApiCart } from './api/cart.js';
+import { resetStore } from './store.js';
 
 /** The one object the app imports (`import { mockApi } from '@/data'`). */
 export const mockApi = {
@@ -46,8 +52,17 @@ export const mockApi = {
   ...mockApiUsers,
   // stock
   ...mockApiStock,
-  // cart (CartStore exception — session state, not the shared store)
+  // cart (CartStore exception — session state, NOT the durable shared store)
   ...mockApiCart,
+  /**
+   * P2b (ARCHITECTURE §4.5): reset the durable mock store to the pristine seeds —
+   * clears the versioned localStorage key, re-clones the seed arrays in place,
+   * and re-emits the pristine snapshot so the key mirrors the re-seeded store.
+   * A dev/test escape hatch only; the app has no reset UI this phase.
+   */
+  resetData() {
+    resetStore();
+  },
 };
 
 // Exposed so a page or test can arm the NEXT section call to reject (the

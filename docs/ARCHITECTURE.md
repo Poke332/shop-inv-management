@@ -338,7 +338,7 @@ subtotal **Rp 1.670.000**.
 Promise-returning functions (with simulated latency) shaped exactly like the future
 Express endpoints, so swapping to the real backend touches one module:
 
-**Mock mutation semantics (decided):** there is **ONE shared in-memory mock store** — the
+**Mock mutation semantics (decided):** there is **ONE shared mock store** — the
 arrays above, held as module-level singletons in `frontend/src/data`. Every reading
 and writing `mockApi` function operates on that store, so mutation actions **mutate it in place and
 other `mockApi` reads reflect the mutation**: `createOrder` adds an order row + decrements
@@ -347,10 +347,18 @@ sets the product's stock (and appends a `StockSnapshot` audit row); `setReviewHi
 `setSellerComment` / `submitReview` update the review records (totals recompute from the
 store, hidden reviews keep counting in the total + average); `setUserRole` / `setUserActive`
 update the user record; `createProduct` / `updateProduct` upsert the product. `CartStore`
-is the one exception — client-side session state, not part of the shared store.
-Mutations **do not persist across refresh**: any reload resets the store to the initial
-sample records (in-memory only, no localStorage for mock data) — refresh = fresh mockup
-state.
+is the one exception — client-side session state, not part of the shared store, and
+excluded from persistence (it refreshes empty; P4's concern, see `api/cart.js`).
+
+**Durability ruling (P2b, §4.5):** the 5 mutable slices (products, orders, reviews,
+users, stock) **retain across reloads** — the store hydrates from the versioned
+localStorage key `sunset-mock-data-v1` (`persistence.js`) at module load and every
+writing `mockApi` function commits the slices to that key after its mutation
+(synchronous, small payload). A corrupt or version-mismatched snapshot falls back to
+the pristine `seed/` arrays and the stale key is cleared. Categories are static seed
+content (no CRUD in v1) and are **not** persisted. `mockApi.resetData()` is the
+escape hatch: it removes the key, re-clones the seeds, and re-emits the pristine
+snapshot.
 
 | mockApi function | future Express endpoint | used by |
 |---|---|---|
@@ -390,15 +398,20 @@ dependencies (the pinned stack + Vite/linter dev tooling only).
 ```
 frontend/src/data/
 ├─ index.js            — public re-export surface for the app: `import { mockApi } from '@/data'`
-├─ mockApi.js          — the facade: one `mockApi` object = the §4.3 function list,
-│                        assembled from the section modules below (single-swap target)
-├─ store.js            — THE single shared in-memory store: all mutable seed arrays as
+├─ mockApi.js          — the facade: one `mockApi` object = the §4.3 function list
+│                        + `resetData()` (the P2b escape hatch, §4.5), assembled
+│                        from the section modules below (single-swap target)
+├─ store.js            — THE single shared mock store: the mutable seed arrays as
 │                        module-level singletons + the §4.3 mutation helpers
 │                        (createOrder / advanceOrderStatus / setStock / submitReview /
 │                        setReviewHidden / setSellerComment / setUserRole /
 │                        setUserActive / createProduct / updateProduct / register) +
-│                        reset-on-refresh semantics (deep-clone seeds at module load;
-│                        mutations mutate the clones in place, no localStorage)
+│                        P2b durability: hydrate from the versioned localStorage key
+│                        at load (seed fallback on corrupt/stale), commitStore() after
+│                        every write, resetStore() re-seed (§4.5)
+├─ persistence.js      — P2b hydrate + commit helpers over localStorage under the
+│                        versioned key `sunset-mock-data-v1` (§4.5): readSnapshot /
+│                        clearSnapshot / writeSnapshot
 ├─ seed/               — the §4.2 sample records, one file per entity (the pristine source
 │                        the store clones at load):
 │  ├─ categories.js    — 6 Category records (audio / smart-home / gaming / laptops /
@@ -448,7 +461,30 @@ Contract notes baked into the modules:
   catalog price is 380 000). Stock is validated first → 409 `STOCK_CONFLICT` drives
   checkout alt-flow 3a; the client-generated order id makes retry idempotent (alt-flow
   5a) — a repeated id returns the existing order, it is not duplicated.
-- **Refresh = pristine state.** The store deep-clones the `seed/` arrays at module
-  load; every reload re-clones, so any cross-page mutation (advance WB-1042, set
-  P-087 stock, hide a review, change a role) is visible to the next `mockApi` read in
-  the same session and gone after a refresh.
+- **Refresh = retained state (P2b, §4.5).** The store hydrates the 5 mutable slices
+  from the versioned localStorage key `sunset-mock-data-v1` at module load when a valid
+  snapshot exists (version match + shape check + JSON.parse OK); otherwise it falls back
+  to a deep-clone of the `seed/` arrays and clears the stale/corrupt key. A cross-page
+  mutation (advance WB-1042, set P-087 stock, hide a review, change a role) now **retains
+  across a reload** instead of resetting to the pristine sample records.
+
+### 4.5 Persistence (P2b durable mock store)
+
+`persistence.js` (browser built-ins only — localStorage + JSON, no new dependencies)
+owns the versioned key **`sunset-mock-data-v1`**, storing
+`{ version: 1, savedAt, slices: { products, orders, reviews, users, stock } }`:
+
+- **Hydrate** (`readSnapshot`): at `store.js` module load, a valid snapshot
+  (version match + every slice an array of object rows + JSON.parse OK) wins over the
+  seeds; a missing, corrupt, or version-mismatched value falls back to the pristine
+  `seed/` clones and `clearSnapshot()` removes the stale key.
+- **Commit** (`commitStore` → `writeSnapshot`): every writing `mockApi` function
+  (`createOrder`, `advanceOrderStatus`, `setStock`, `createProduct`, `updateProduct`,
+  `setReviewHidden` / `setSellerComment` / `submitReview`, `setUserRole`, `setUserActive`,
+  `register`) commits the 5 slices synchronously after its in-memory mutation — the
+  payload is small, no debounce. The key always mirrors the live store.
+- **Reset** (`mockApi.resetData()` → `resetStore`): the API-only escape hatch —
+  removes the key, re-clones the seeds in place, and re-emits the pristine snapshot.
+  No UI affordance this phase (a P7 dev-only reset button may hook it later).
+- **Not persisted (v1):** categories (static seed content, no CRUD) and the cart
+  (CartStore session semantics, P4's concern — see `api/cart.js`).
