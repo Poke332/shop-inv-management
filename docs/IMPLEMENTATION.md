@@ -78,6 +78,12 @@ are role-gated (staff: Ongoing Orders + Inventory + Products read-only; manager:
 admin: + Users); the 32px/24px gutter measures under a real Tailwind preflight (the v4
 reset-proof requirement from `docs/control-panel/design.md` QA §2).
 
+**P1.1 amendment:** unknown routes no longer redirect to home — the catch-all
+`<Route path="*" />` now renders the dedicated 404 page (`frontend/src/pages/NotFoundPage.jsx`,
+warm ground + centered card + "Back to Main Store" CTA); it is top-level, outside the guard
+wrappers, so it applies to every unknown path (incl. unknown `/ops/*`) and is reachable
+regardless of auth state — known-route RBAC redirects are unchanged.
+
 ### P2 — Data layer (mock)  ✅ DONE (`617f4f2`) (P2b durable store: 9616793+ pending — persistence via localStorage, see ARCHITECTURE §4.5)
 
 `frontend/src/data`: the §4.2 sample records (48 products incl. the 12 named, orders WB-1042/1039/

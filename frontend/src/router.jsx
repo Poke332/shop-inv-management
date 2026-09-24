@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 
 import { RequireBuyer, RequireOps, RequireUser, RequireAnon } from './guards.jsx'
 import StorefrontLayout from './layouts/StorefrontLayout.jsx'
@@ -11,6 +11,7 @@ import ProductDetailsPage from './pages/ProductDetailsPage.jsx'
 import CartPage from './pages/CartPage.jsx'
 import CheckoutPage from './pages/CheckoutPage.jsx'
 import OrdersPage from './pages/OrdersPage.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import {
@@ -100,8 +101,12 @@ export default function AppRoutes() {
       {/* dev-only token smoke check (P0), not in the route table */}
       {DevSmoke ? <Route path="/dev/token-smoke" element={<DevSmoke />} /> : null}
 
-      {/* unknown path: home (the guard there decides the redirect) */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* unknown path: the dedicated 404 page (P1.1 — replaced the old
+          <Navigate to="/" /> redirect). Top-level, outside the layout/guard
+          groups, so it applies to ANY unknown path (incl. unknown /ops/*) and
+          is reachable regardless of auth state — anon sees the 404, not a
+          forced /login. Known-route RBAC redirects are untouched. */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
