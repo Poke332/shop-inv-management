@@ -23,7 +23,23 @@ P6 (review panel) is separated from P5 so the round-6 moderation model gets one 
 pass. Nothing here is done before the token system exists (P0) — the conformance gate is
 a first-class check from P0 onward.
 
-### P0 — Project scaffold
+### Phase status (updated 2026-09-24, branch `docs/implementation-plan`)
+
+| Phase | Status | Evidence / what's left |
+|---|---|---|
+| P0 scaffold | **DONE** | commit `15957c0`: `frontend/` Vite app (sibling of `docs/`), full Sunset Glow token theme, static assets + 12 product photos, linter, .gitignore; verified by review + pushed (draft PR #8) |
+| P1 router + layouts | **NOT STARTED** | no card/commit yet — its only dependency (P0) is done, so it can start now; remaining: route tree + RBAC guards, `StorefrontHeader` / `OpsShell` / `AuthLayout`, role-gated nav |
+| P2 data layer | **DONE** (pulled ahead of P1, by user ruling) | commit `617f4f2`: `frontend/src/data/` split one `.js` per API section (`store.js`, `seed/*`, `api/*`, `mockApi.js` facade) + ARCHITECTURE §4.4; verified by review + pushed |
+| P3 storefront pages | NOT STARTED | 5 pages (main-store, search-browse, product-details, login, register) |
+| P4 cart + checkout | NOT STARTED | 2 pages + `CartStore` wiring + 4-state wizard |
+| P5 ops console | NOT STARTED | 4 pages inside `OpsShell` |
+| P6 review panel | NOT STARTED | 1 page (round-6 moderation model) |
+| P7 polish + gates | NOT STARTED | cross-page pass: toasts, a11y floor, 390px audit, conformance gate re-run |
+
+Note: P2 was executed out of the P0→P1→P2 order on user instruction so the data layer
+exists before P1; this does not change any phase content, only the sequence.
+
+### P0 — Project scaffold  ✅ DONE (`15957c0`)
 
 Scaffold the Vite app **inside `frontend/` at the repo root (sibling of `docs/`)** —
 `frontend/` holds `package.json`, `vite.config.js`, `tailwind.config.js`, `index.html`,
@@ -46,7 +62,7 @@ into `frontend/public/`.
 `bg-tuscanSun-50` / `bg-blueSlate-900` / `font-h1` compiles; the mockup conformance gate
 (`_mockup-build/verify_framework.sh`) still passes against the docs.
 
-### P1 — Router + shared layouts
+### P1 — Router + shared layouts  ⬜ NOT STARTED
 
 The route tree (all 14 routes + guards) from `docs/ARCHITECTURE.md` §route table and each
 page's `IMPLEMENTATION.md` route section. Build the three layouts:
@@ -62,7 +78,7 @@ are role-gated (staff: Ongoing Orders + Inventory + Products read-only; manager:
 admin: + Users); the 32px/24px gutter measures under a real Tailwind preflight (the v4
 reset-proof requirement from `docs/control-panel/design.md` QA §2).
 
-### P2 — Data layer (mock)
+### P2 — Data layer (mock)  ✅ DONE (`617f4f2`)
 
 `frontend/src/data`: the §4.2 sample records (48 products incl. the 12 named, orders WB-1042/1039/
 1036/1031/0987, 128 reviews on P-231 = 122 public + 6 hidden, 128 users incl. admin_ria /
@@ -85,7 +101,7 @@ stock 5 → LOW; ASUS RT-AX58 stock 0 → OUT; search-browse "128 results" count
 from one page (e.g. staff advancing WB-1042) is reflected by the next `mockApi` read on
 another page; all 4 role logins + `ops_dan` denied work off the credentials table.
 
-### P3 — Storefront pages
+### P3 — Storefront pages  ⬜ NOT STARTED
 
 `main-store`, `search-browse`, `product-details`, `login`, `register` (per each page's
 `IMPLEMENTATION.md`). Shared `ProductCard`/`ProductGrid` first (main-store defines, others
@@ -99,7 +115,7 @@ hidden states + seller-comment block), then the auth pair on `AuthLayout`.
 "Rp 1.290.000 / Rp 1.518.000 −15% / In stock · 34 left / 4.3 (128 reviews)" with public
 reviews only — matching the committed mockups at 1312px and 390px.
 
-### P4 — Cart + checkout wizard
+### P4 — Cart + checkout wizard  ⬜ NOT STARTED
 
 `cart`, `checkout`. `CartStore` is live (line, quantity, subtotal from P2's mock cart:
 P-231 ×1 + P-198 ×1 = Rp 1.670.000, "Low · 5 left" hint on the Anker line). The checkout
@@ -116,7 +132,7 @@ Orders Placed (the just-placed order auto-expands there).
 (step1/step2/step3/receipt) each render per `docs/checkout/mockup*.png`; mobile 390px
 drops the order panel into the fixed bottom CTA bar on step 3.
 
-### P5 — Ops console pages
+### P5 — Ops console pages  ⬜ NOT STARTED
 
 `ongoing-orders`, `inventory-dashboard`, `per-product-dashboard`, `user-dashboard`
 (all inside `OpsShell`). Ongoing-orders: queue + status tabs + receipt-table detail expand
@@ -133,7 +149,7 @@ flash, reverts on failure); a manager session edits P-231 stock and specs; an ad
 changes ops_marta's role (confirm dialog, success flash "Role updated to manager ·
 ops_marta") and sees ops_dan's disabled row (3px `strawberryRed-500` left bar).
 
-### P6 — Review panel
+### P6 — Review panel  ⬜ NOT STARTED
 
 `per-product-review-panel` inside `OpsShell` (manager/admin only): product selector
 (deep-link `/ops/reviews?product=P-231` pre-selects), meta line "122 public / 6 hidden ·
@@ -147,7 +163,7 @@ seller comment "Thanks — firmware 2.1 improved ANC." renders beneath buyer_102
 Product Details while public; unhiding a commented review publishes the comment with it;
 totals stay 128.
 
-### P7 — Polish + gates
+### P7 — Polish + gates  ⬜ NOT STARTED
 
 Cross-page pass: header cart badge consistency, toast system, static-skeleton + reduced-
 motion audit on every page, 390px clipping audit (the standing verification rule: desktop
