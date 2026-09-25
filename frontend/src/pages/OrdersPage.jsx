@@ -1,4 +1,4 @@
-import { StorefrontPlaceholder } from './HomePage.jsx'
+import { StorefrontPlaceholder } from '../components/StorefrontPlaceholder.jsx'
 
 /**
  * P1 slot placeholder — P3/P4 land the real Orders Placed list.

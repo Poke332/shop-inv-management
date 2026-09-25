@@ -1,4 +1,4 @@
-import { StorefrontPlaceholder } from './HomePage.jsx'
+import { StorefrontPlaceholder } from '../components/StorefrontPlaceholder.jsx'
 
 /**
  * P1 slot placeholder — P4 lands the 3-step checkout wizard + receipt view.

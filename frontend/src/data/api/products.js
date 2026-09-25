@@ -54,7 +54,14 @@ function applyFilter(filter) {
   const sort = filter.sort || 'featured';
   if (sort === 'price-asc') items.sort((a, b) => a.price - b.price);
   else if (sort === 'price-desc') items.sort((a, b) => b.price - a.price);
-  else {
+  else if (sort === 'catalog') {
+    // catalog/seed order — the main-store home slice needs the FIRST 4
+    // featured + FIRST 4 shop-all in the ARCHITECTURE §4.2 record order
+    // (P-231/198/140/087 then P-052/111/064/208), which the default
+    // "featured" sort scrambles by re-ordering within each group. Keep the
+    // seed order intact (no sort) so the main-store 8-item grid matches the
+    // committed mockup-bottom.png row by row.
+  } else {
     // default "Featured": featured first, then on-sale, then cheaper first
     items.sort(
       (a, b) =>
@@ -70,6 +77,11 @@ export const mockApiProducts = {
   /**
    * GET /products?query&category&brand&priceMin&priceMax&sort
    * used by main-store, search-browse.
+   * sort: 'featured' (default) | 'price-asc' | 'price-desc' | 'catalog'.
+   * 'catalog' keeps the ARCHITECTURE §4.2 seed/record order intact (no
+   * re-ordering) — the main-store home slice needs the first-4 featured +
+   * first-4 shop-all in record order, which the default featured sort
+   * scrambles by re-ordering within each group.
    * @param {object} [filter]
    * @returns {Promise<{items: object[], total:number, hasMore:boolean}>}
    */

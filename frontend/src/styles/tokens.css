@@ -701,6 +701,13 @@ textarea:focus-visible,
     }
   }
 
+  /* P3 search-browse: the dual-range price control (PriceRange) — native
+     range inputs, accent = atomicTangerine-500 per the search-browse doc. */
+  .price-range {
+    accent-color: var(--atomicTangerine-500);
+    height: 24px;
+  }
+
   /* P1 button-loading spinner (login "Signing in…" state) — pure CSS, no asset */
   .spinner {
     display: inline-block;

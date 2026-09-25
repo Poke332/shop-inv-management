@@ -27,6 +27,21 @@ export const CATEGORY_LABEL = {
 }
 
 /**
+ * The two-stop gradient families behind the .tile-<category> CSS classes
+ * (mirror of the tokens.css component layer). The product-details gallery
+ * renders miniature gradient-thumb variants of the SAME family (per-index
+ * angle shift) via inline styles, so it needs the stops in JS.
+ */
+export const CATEGORY_GRADIENT = {
+  audio: ['var(--tuscanSun-50)', 'var(--tuscanSun-400)'],
+  'smart-home': ['var(--seagrass-50)', 'var(--seagrass-400)'],
+  gaming: ['var(--atomicTangerine-50)', 'var(--atomicTangerine-400)'],
+  laptops: ['var(--blueSlate-50)', 'var(--blueSlate-400)'],
+  accessories: ['var(--carrotOrange-50)', 'var(--carrotOrange-400)'],
+  wearables: ['var(--strawberryRed-50)', 'var(--strawberryRed-400)'],
+}
+
+/**
  * One-line Indonesian price format: 1290000 -> "Rp 1.290.000".
  * @param {number} n  integer IDR.
  * @returns {string}

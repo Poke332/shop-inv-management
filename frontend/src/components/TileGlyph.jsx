@@ -2,12 +2,14 @@
  * The tile glyph: one 40px stroke-1.5 blueSlate-900 line shape per category
  * (decorative, aria-hidden). The P0 smoke check expects these on tiles.
  * @param {string} category  a category slug (or anything -> the generic tile).
+ * @param {number} [size]  glyph pixel size (default 40; the details-page
+ *   gallery thumbnails render the 32px form, per the mockup generator).
  * @returns {import('react').ReactElement} the <svg> glyph.
  */
-export function TileGlyph({ category }) {
+export function TileGlyph({ category, size = 40 }) {
   const p = {
-    width: 40,
-    height: 40,
+    width: size,
+    height: size,
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',

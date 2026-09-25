@@ -6,16 +6,16 @@ import { mockApi } from '../data'
 import { useAuth } from '../contexts/AuthContext.jsx'
 
 /**
- * P1 minimal login form (P3 ships the full LoginForm: InputField/PrimaryButton
- * stacks + validation per docs/login/IMPLEMENTATION.md). Enough now to prove
- * the AuthContext + post-login routing: 4 role logins → 4 homes, ops_dan
- * disabled → the 403 banner.
- *
- * Route /login — AuthLayout, anonymous only (RequireAnon; signed-in -> role
- * home). Consumes mockApi.login (api/users.js: 401 bad credentials / 403
- * disabled account). On success: signIn(user, role) persists the session and
- * navigates to the post-login home. Surviving state: email/password/error/
- * busy are form-local; the session itself lives in AuthContext.
+ * P3 login page (docs/login/IMPLEMENTATION.md) on the shared AuthLayout
+ * two-panel shell. Role-agnostic: one form for all 4 roles — mockApi.login
+ * returns the role, and post-login routing is the locked table (buyer -> /,
+ * staff -> /ops/orders, manager/admin -> /ops/inventory) via AuthContext's
+ * signIn return. 401 -> "Email or password is incorrect." banner; 403
+ * (disabled account — the ops_dan case) -> "Account not available — contact
+ * an administrator". Success = redirect only (the navigation is the
+ * feedback; no toast). Validation per the doc: email required + format on
+ * blur; password required, min 8; submit enabled only when both hold. The
+ * P1 dev-aid quick-fill buttons for the 5 mock credential rows are kept.
  */
 export default function LoginPage() {
   const { user, signIn } = useAuth()
@@ -23,6 +23,9 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
+  const [emailErr, setEmailErr] = useState(null)
+  const [pwErr, setPwErr] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
   const bannerRef = useRef(null)
@@ -31,27 +34,32 @@ export default function LoginPage() {
     if (error && bannerRef.current) bannerRef.current.focus()
   }, [error])
 
-  // Authenticated users never stay here (the guard already redirects — this is
-  // the post-sign-in path landing before the guard re-runs).
-  if (user) {
-    return null
-  }
+  if (user) return null // the guard already redirects; this is the pre-redirect path
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+  const pwValid = password.length >= 8
+  const canSubmit = emailValid && pwValid
 
   const submit = async (e) => {
     e.preventDefault()
-    if (busy) return // double-submit guard
+    if (busy || !canSubmit) return
     setBusy(true)
     setError(null)
     try {
       const res = await mockApi.login(email.trim(), password)
       const home = signIn(res.user, res.role)
-      navigate(home, { replace: true })
+      navigate(home, { replace: true }) // success = redirect (no toast)
     } catch (err) {
       setError(err.message || 'Sign-in failed.')
     } finally {
       setBusy(false)
     }
   }
+
+  const inputCls = (bad) =>
+    `h-11 rounded-lg border bg-canvas px-3 text-body text-ink placeholder:text-blueSlate-500 focus:outline-none focus:ring-2 focus:ring-atomicTangerine-500 focus:ring-offset-2 ${
+      bad ? 'border-strawberryRed-600' : 'border-blueSlate-200'
+    }`
 
   return (
     <div>
@@ -71,7 +79,7 @@ export default function LoginPage() {
         </div>
       ) : null}
 
-      <form onSubmit={submit} className="mt-4 flex flex-col gap-4">
+      <form onSubmit={submit} className="mt-4 flex flex-col gap-4" noValidate>
         <label className="text-meta text-ink font-semibold flex flex-col gap-1.5">
           Email
           <input
@@ -80,30 +88,55 @@ export default function LoginPage() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setEmailErr(email && !emailValid ? 'Enter a valid email address.' : null)}
             disabled={busy}
-            placeholder="you@mock.local"
-            className="h-11 rounded-lg border border-blueSlate-200 bg-canvas px-3 text-body text-ink placeholder:text-blueSlate-500 focus:outline-none focus:ring-2 focus:ring-atomicTangerine-500 focus:ring-offset-2"
+            placeholder="you@example.com"
+            aria-invalid={!!emailErr}
+            aria-describedby={emailErr ? 'login-email-error' : undefined}
+            className={inputCls(!!emailErr)}
           />
+          {emailErr ? (
+            <span id="login-email-error" className="text-meta text-strawberryRed-600">
+              {emailErr}
+            </span>
+          ) : null}
         </label>
-        <label className="text-meta text-ink font-semibold flex flex-col gap-1.5">
-          Password
-          <input
-            type="password"
-            required
-            minLength={8}
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={busy}
-            placeholder="••••••••"
-            className="h-11 rounded-lg border border-blueSlate-200 bg-canvas px-3 text-body text-ink placeholder:text-blueSlate-500 focus:outline-none focus:ring-2 focus:ring-atomicTangerine-500 focus:ring-offset-2"
-          />
-        </label>
+
+        <div className="text-meta text-ink font-semibold flex flex-col gap-1.5">
+          <span>Password</span>
+          <div className="relative">
+            <input
+              type={showPw ? 'text' : 'password'}
+              required
+              minLength={8}
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => setPwErr(password && !pwValid ? 'At least 8 characters.' : null)}
+              disabled={busy}
+              placeholder="••••••••"
+              aria-invalid={!!pwErr}
+              className={`${inputCls(!!pwErr)} pr-14`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((s) => !s)}
+              disabled={busy}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-meta font-normal text-blueSlate-500 hover:text-ink"
+            >
+              {showPw ? 'hide' : 'show'}
+            </button>
+          </div>
+          {pwErr ? (
+            <span className="text-meta text-strawberryRed-600">{pwErr}</span>
+          ) : null}
+        </div>
+
         <button
           type="submit"
-          disabled={busy}
-          className="btn-primary w-full"
+          disabled={busy || !canSubmit}
           aria-busy={busy}
+          className="btn-primary w-full"
         >
           {busy ? (
             <span className="inline-flex items-center gap-2">
@@ -111,7 +144,7 @@ export default function LoginPage() {
               Signing in…
             </span>
           ) : (
-            'Sign in'
+            'Sign in →'
           )}
         </button>
       </form>
@@ -123,7 +156,7 @@ export default function LoginPage() {
         </Link>
       </p>
 
-      {/* P1 dev aid: quick-fill the 5 mock credential rows */}
+      {/* P1 dev aid: quick-fill the 5 mock credential rows (§4.2 table) */}
       <div className="mt-6 border-t border-blueSlate-200 pt-4">
         <p className="text-meta text-blueSlate-700 mb-2">Mock credentials (ARCHITECTURE §4.2)</p>
         <div className="flex flex-wrap gap-2">
@@ -140,6 +173,8 @@ export default function LoginPage() {
               onClick={() => {
                 setEmail(addr)
                 setPassword('sunset123')
+                setEmailErr(null)
+                setPwErr(null)
               }}
               className="text-meta px-2.5 py-1.5 rounded-pill border border-blueSlate-200 bg-canvas text-ink hover:bg-surface"
             >

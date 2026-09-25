@@ -1,4 +1,4 @@
-import { StorefrontPlaceholder } from './HomePage.jsx'
+import { StorefrontPlaceholder } from '../components/StorefrontPlaceholder.jsx'
 
 /**
  * P1 slot placeholder — P4 lands the real cart page + CartStore wiring.
