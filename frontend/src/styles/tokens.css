@@ -729,4 +729,78 @@ textarea:focus-visible,
       animation: none;
     }
   }
+
+  /* ---- 11. Square category tiles (84px cart lines / 44px review + order
+     thumbs) — the same .tile-<category> gradients as the 4:3 grid tiles,
+     but square with a smaller glyph, no aspect-ratio. */
+  .tile-square {
+    border-radius: 8px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .tile-square svg {
+    color: var(--blueSlate-900);
+  }
+
+  /* ---- 12. Cart line removal — the row fades out; with
+     prefers-reduced-motion it degrades to a plain unmount (no transition). */
+  .cart-line-exit {
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cart-line-exit {
+      transition: none;
+    }
+  }
+
+  /* ---- 12b. Checkout stock-conflict tint (a line whose requested qty
+     exceeds live stock, shown at the order-review panel + mobile bar):
+     strawberryRed-100 fill + strawberryRed-300 border. */
+  .line-conflict {
+    background: var(--strawberryRed-100);
+    border: 1px solid var(--strawberryRed-300);
+    border-radius: 8px;
+  }
+
+  /* ---- 13. Sticky bottom CTA bars (mobile <768px): the cart's collapsed
+     summary ("Subtotal · [Checkout]") and checkout's step-3 order CTA.
+     Fixed, full-width, white 30% surface + 1px top border; content stays in
+     the 320/1200px column so it never overflows at 390px. left:0 +
+     width:100% (NOT left:0/right:0) — with a classic vertical scrollbar a
+     right:0 fixed box would span the scrollbar gutter and cause a 15px
+     horizontal overflow; 100% resolves to the layout viewport instead. */
+  .sticky-cta {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 40;
+    background: var(--canvas);
+    border-top: 1px solid var(--blueSlate-200);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px var(--page-gutter);
+  }
+  .sticky-cta .sticky-cta-total {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    color: var(--blueSlate-950);
+  }
+  .sticky-cta .sticky-cta-label {
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--blueSlate-700);
+  }
+  @media (max-width: 767px) {
+    .sticky-cta {
+      display: flex;
+    }
+  }
 }

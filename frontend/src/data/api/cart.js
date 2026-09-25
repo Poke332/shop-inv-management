@@ -27,7 +27,30 @@ const delay = () => new Promise((res) => setTimeout(res, 100 + Math.floor(Math.r
  * @type {{on: boolean}}
  */
 export const failure = { on: false };
+// A reload-persistent pre-arm counter makes the "cart load 5xx" state
+// verifiable across a reload: a QA harness writes the key with a count
+// (sessionStorage — no app code sets it), module init loads it into
+// failRemaining, and each getCart consumes one. A no-op in the shipped
+// app (and in node, where sessionStorage is absent).
+let failRemaining = 0;
+try {
+  if (typeof sessionStorage !== 'undefined') {
+    const n = Number(sessionStorage.getItem('sunset.failnext.cart')) || 0;
+    if (n > 0) {
+      failRemaining = n;
+      sessionStorage.removeItem('sunset.failnext.cart');
+    }
+  }
+} catch {
+  /* node smoke test — no sessionStorage */
+}
 function injected() {
+  if (failRemaining > 0) {
+    failRemaining -= 1;
+    const err = new Error('Injected mock failure (cart)');
+    err.mockInjected = true;
+    return err;
+  }
   if (failure.on) {
     failure.on = false;
     const err = new Error('Injected mock failure (cart)');
@@ -40,11 +63,58 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 
 // ---- the session cart (module singleton — this is THE CartStore data) --------
 /** The session cart lines: {lineId, productId, qty} rows (module singleton). */
-const lines = [
+const SEED_LINES = [
   { lineId: 'cl-1', productId: 'P-231', qty: 1 },
   { lineId: 'cl-2', productId: 'P-198', qty: 1 },
 ];
-let seq = 2;
+
+// Session-based persistence (the CartStore ruling): the cart survives
+// in-tab navigation AND refresh via the sessionStorage key, but dies with
+// the session. Node (the smoke test) has no sessionStorage — hydration is a
+// no-op there and the seeded mock session loads instead.
+const CART_SESSION_KEY = 'sunset.cart';
+/** Hydrate the session cart; null = fall back to the seeded mock session. */
+function readSessionCart() {
+  try {
+    if (typeof sessionStorage === 'undefined') return null;
+    const raw = sessionStorage.getItem(CART_SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || !Array.isArray(s.lines)) return null;
+    return s.lines.filter(
+      (l) => l && typeof l.lineId === 'string' && typeof l.productId === 'string' && Number.isInteger(l.qty) && l.qty > 0,
+    );
+  } catch {
+    return null; // corrupt key — drop it, re-seed
+  }
+}
+/** Write the live lines back to the session key (no-op without sessionStorage). */
+function persistCart() {
+  try {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(CART_SESSION_KEY, JSON.stringify({ lines }));
+  } catch {
+    /* storage unavailable — the cart keeps working in memory */
+  }
+}
+const savedLines = readSessionCart();
+const lines = savedLines
+  ? savedLines
+  : SEED_LINES.map((l) => ({ ...l }));
+let seq = lines.reduce((m, l) => Math.max(m, Number(String(l.lineId).replace(/\D/g, '')) || 0), 0);
+
+// Display sublines for the two seeded mock-session rows (the doc copy); every
+// other product falls back to "model (first spec) · category · brand".
+const SUBLINE = {
+  'P-231': 'Wireless Earbuds · Audio · Sony',
+  'P-198': '20 000 mAh · USB-C PD 140 W',
+};
+function sublineFor(p) {
+  if (!p) return '';
+  if (SUBLINE[p.id]) return SUBLINE[p.id];
+  const model = p.specs && p.specs[0] ? p.specs[0].value : p.name;
+  return [model, p.category, p.brand].filter(Boolean).join(' · ');
+}
 
 /** Enriched line: cart line + product snapshot (name / price / stock for the UI). */
 function enrich() {
@@ -55,6 +125,9 @@ function enrich() {
       name: p ? p.name : 'Unknown product',
       price: p ? p.price : 0,
       stock: p ? p.stock : 0,
+      lowStockThreshold: p ? p.lowStockThreshold : null,
+      category: p ? p.category : null,
+      subline: p ? sublineFor(p) : '',
     };
   });
 }
@@ -88,6 +161,7 @@ export const mockApiCart = {
       seq += 1;
       lines.push({ lineId: `cl-${seq}`, productId: line.productId, qty: line.qty || 1 });
     }
+    persistCart();
     return { lines: clone(enrich()), count: lines.reduce((s, l) => s + l.qty, 0), subtotal: subtotal() };
   },
 
@@ -107,17 +181,24 @@ export const mockApiCart = {
       err.status = 400;
       throw err;
     }
-    if (n === 0) lines.splice(lines.findIndex((l) => l.lineId === lineId), 1);
-    else {
-      const l = lines.find((row) => row.lineId === lineId);
-      if (!l) {
-        const err = new Error(`Cart line not found: ${lineId}`);
-        err.status = 404;
-        throw err;
-      }
-      l.qty = n;
+    if (n === 0) {
+      lines.splice(lines.findIndex((l) => l.lineId === lineId), 1);
+      persistCart();
+      return { lines: clone(enrich()), count: lines.reduce((s, l) => s + l.qty, 0), subtotal: subtotal() };
     }
-    return { lines: clone(enrich()), count: lines.reduce((s, l) => s + l.qty, 0), subtotal: subtotal() };
+    const l = lines.find((row) => row.lineId === lineId);
+    if (!l) {
+      const err = new Error(`Cart line not found: ${lineId}`);
+      err.status = 404;
+      throw err;
+    }
+    // per-line stock re-validation: the server clamps to the live stock,
+    // the UI diffing the returned qty against the requested one surfaces
+    // the "quantity reduced" note.
+    const p = productById(l.productId);
+    l.qty = p ? Math.min(n, p.stock) : n;
+    persistCart();
+    return { lines: clone(enrich()), count: lines.reduce((s, ll) => s + ll.qty, 0), subtotal: subtotal() };
   },
 
   /**
@@ -131,15 +212,20 @@ export const mockApiCart = {
     if (fail) throw fail;
     const i = lines.findIndex((l) => l.lineId === lineId);
     if (i >= 0) lines.splice(i, 1);
+    persistCart();
     return { lines: clone(enrich()), count: lines.reduce((s, l) => s + l.qty, 0), subtotal: subtotal() };
   },
 
   /**
    * Client-session read: the current cart (cart page + checkout order panel).
+   * Failure injection arms this read so the page-level 5xx panel is
+   * exercisable (the doc's "cart load 5xx" state).
    * @returns {Promise<{lines: object[], count:number, subtotal:number}>}
    */
   async getCart() {
+    const fail = injected();
     await delay();
+    if (fail) throw fail;
     return { lines: clone(enrich()), count: lines.reduce((s, l) => s + l.qty, 0), subtotal: subtotal() };
   },
 
@@ -150,6 +236,7 @@ export const mockApiCart = {
    */
   async clearCart() {
     lines.length = 0;
+    persistCart();
     return { lines: [], count: 0, subtotal: 0 };
   },
 };

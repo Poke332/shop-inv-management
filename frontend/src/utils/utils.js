@@ -65,3 +65,150 @@ export function discountPercent(p) {
 export function fireToast(t) {
   window.dispatchEvent(new CustomEvent('sunset:toast', { detail: t }))
 }
+
+/**
+ * Payment-method meta (checkout step 3 + receipt summary line): label,
+ * radio-card subtitle, and the order-record line shown on the receipt.
+ * @type {object}
+ */
+export const PAYMENT_METHODS = {
+  card: { label: 'Card', sub: 'Visa · Mastercard · JCB — charge on delivery' },
+  bank_transfer: { label: 'Bank transfer', sub: 'VA number generated after the order is placed' },
+  qris: { label: 'QRIS', sub: 'Scan & pay from any e-wallet app' },
+}
+
+/**
+ * The 4-step order machine, in forward-only order (order status chips,
+ * the order-detail timeline, and the "current step" math all index it).
+ * @type {string[]}
+ */
+export const ORDER_FLOW = ['pending', 'processing', 'shipped', 'delivered']
+
+/**
+ * Client-generated order id (the idempotent-retry contract): stable per
+ * checkout attempt so a failed submit can be retried without duplicating.
+ * @returns {string} e.g. "WB-a1b2c3d4"
+ */
+export function generateOrderNumber() {
+  const suffix =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID().slice(0, 8)
+      : Math.random().toString(36).slice(2, 10)
+  return `WB-${suffix}`
+}
+
+/**
+ * Loose phone check: digits and the "+" marker only, at least 8 digits.
+ * @param {string} s
+ * @returns {boolean}
+ */
+export function isValidPhone(s) {
+  const v = (s || '').trim()
+  return /^[+\d\s()-]+$/.test(v) && v.replace(/\D/g, '').length >= 8
+}
+
+/**
+ * Loose email check (the checkout personal-info field): one non-space
+ * segment before an @, one dot-carrying segment after it.
+ * @param {string} s
+ * @returns {boolean}
+ */
+export function isValidEmail(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s || '').trim())
+}
+
+/**
+ * Group a card number into 4-digit blocks ("4444 2222 1111 9999"),
+ * masking to the last four digits ("•••• 9999") for the receipt line.
+ * @param {string} raw  digits as typed.
+ * @param {boolean} [masked]  when true, keep only the last four visible.
+ * @returns {string}
+ */
+export function formatCardNumber(raw, masked = false) {
+  const digits = String(raw || '').replace(/\D/g, '')
+  if (!digits) return ''
+  if (masked) {
+    const last = digits.slice(-4)
+    return `${'•••• '.repeat(Math.max(0, Math.floor((digits.length - 4) / 4)))}${last}`
+  }
+  // space-separated 4-digit blocks (a trailing partial group stays unspaced)
+  return digits.replace(/(\d{4})/g, '$1 ').trim()
+}
+
+/**
+ * "Est. arrival" window for the receipt: +2 days from now, same display
+ * shape as the store timestamps ("24 Sep 2026").
+ * @param {Date} [from]  default now.
+ * @returns {string}
+ */
+export function estimatedArrival(from = new Date()) {
+  const d = new Date(from.getTime() + 2 * 86400000)
+  const day = d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).slice(3)
+  return `${day}, 10:00–14:00`
+}
+
+/**
+ * Product display subline ("Model · Category · Brand"): the explicit
+ * `subline` field wins (the two mock-session rows carry one); otherwise
+ * the first spec value stands in for the model, with the category label
+ * + brand alongside.
+ * @param {object} p  a product record (mockApi shape).
+ * @returns {string}
+ */
+export function productSubline(p) {
+  if (!p) return 'Unknown product'
+  if (p.subline) return p.subline
+  const model = p.specs && p.specs[0] ? p.specs[0].value : null
+  const parts = [model || p.name, CATEGORY_LABEL[p.category] || p.category, p.brand].filter(Boolean)
+  return parts.join(' · ')
+}
+
+/**
+ * Low-stock flag for a cart / order row: stock known, above zero, and at
+ * or under the threshold (P-198 "Low · 5 left" — threshold 5, stock 5).
+ * @param {object} p  a product record (stock + lowStockThreshold).
+ * @returns {boolean}
+ */
+export function isLowStock(p) {
+  return !!p && Number(p.stock) > 0 && Number(p.stock) <= Number(p.lowStockThreshold)
+}
+
+/**
+ * Status chip class per order machine state (tokens.css §6 chip set).
+ * @type {object}
+ */
+export const ORDER_STATUS_CHIP = {
+  pending: 'chip-pending',
+  processing: 'chip-processing',
+  shipped: 'chip-shipped',
+  delivered: 'chip-delivered',
+}
+
+/**
+ * The chip's state glyph (state is never color-only — label + glyph).
+ * @type {object}
+ */
+export const ORDER_STATUS_GLYPH = {
+  pending: '●',
+  processing: '●',
+  shipped: '●',
+  delivered: '✓',
+}
+
+/**
+ * The receipt's payment-method summary line (the method is recorded on the
+ * order; no funds move in v1 — settlement is a later ops step).
+ * @param {string} method  "card" | "bank_transfer" | "qris".
+ * @param {object} [payment]  the step-3 payment form values (card number…).
+ * @returns {string}
+ */
+export function paymentSummaryLine(method, payment = {}) {
+  if (method === 'card') {
+    const last = String(payment.cardNumber || '').replace(/\D/g, '').slice(-4) || '••••'
+    return `Card ending in •••• ${last} — charged on delivery`
+  }
+  if (method === 'bank_transfer') {
+    return 'Bank transfer — VA number generated after the order is placed'
+  }
+  return 'QRIS — QR code available once the order is confirmed'
+}
