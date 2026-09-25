@@ -12,3 +12,11 @@ _mockup-build/probe_*.py
 # Vite frontend (frontend/ at repo root) — node_modules + build output are regenerable.
 frontend/node_modules/
 frontend/dist/
+# GitNexus code-intelligence index — regenerable via `gitnexus analyze`.
+.gitnexus/
+# GitNexus-generated AI-tool artifacts (repo-specific skills + agent docs).
+.claude/
+CLAUDE.md
+# One-off frontend verify harnesses (worker scratch, not part of the build).
+frontend/gutter-check.mjs
+frontend/verify-p3.mjs
