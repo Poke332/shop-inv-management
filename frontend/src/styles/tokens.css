@@ -1,6 +1,6 @@
 /*
  * Token layer — transcribed verbatim from docs/color-tokens.md +
- * docs/design-tokens-round3.md + docs/control-panel/design.md (v4 gutter).
+ * the design-tokens doc (3rd design pass) + docs/control-panel/design.md (v4 gutter).
  *
  * This file declares the CSS custom properties that Tailwind theme.extend
  * references (spacing tokens, ops-shell gutter) and the component-layer
@@ -17,7 +17,7 @@
 @tailwind utilities;
 
 :root {
-  /* --- type (round3 §1) --- */
+  /* --- type (design-tokens §1) --- */
   --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* type scale px values (config mirrors these as fontSize tokens) */
@@ -43,7 +43,7 @@
   --weight-medium: 500;
   --weight-semibold: 600;
 
-  /* --- spacing (round3 §2, 8pt grid) --- */
+  /* --- spacing (design-tokens §2, 8pt grid) --- */
   --card-gutter: 32px;
   --card-padding: 24px;
   --section-rhythm: 48px;
@@ -52,7 +52,7 @@
   --content-max: 1200px;
   --page-gutter: 48px;
 
-  /* --- badge / pill geometry (round3 §3.1) --- */
+  /* --- badge / pill geometry (design-tokens §3.1) --- */
   --radius-pill: 999px;
   --badge-pad-x: 10px;
   --badge-pad-y: 4px;
@@ -162,7 +162,7 @@
   --canvas: #FFFFFF;
 }
 
-/* media-query switches (round3 §2: mobile <768px drops) */
+/* media-query switches (design-tokens §2: mobile <768px drops) */
 @media (max-width: 767px) {
   :root {
     --card-gutter: 24px;
@@ -172,7 +172,7 @@
   }
 }
 
-/* <390px: page gutter 16px per round3 §8 */
+/* <390px: page gutter 16px per design-tokens §8 */
 @media (max-width: 389px) {
   :root {
     --page-gutter: 16px;
@@ -194,7 +194,7 @@ body {
   color: var(--blueSlate-950);
 }
 
-/* focus ring (round3 §7.1): 2px atomicTangerine-500, offset 2, on every
+/* focus ring (design-tokens §7.1): 2px atomicTangerine-500, offset 2, on every
    interactive element. Never outline:none without this replacement. */
 a:focus-visible,
 button:focus-visible,
@@ -206,7 +206,7 @@ textarea:focus-visible,
   outline-offset: 2px;
 }
 
-/* reduced motion (round3 §7.4): kill all transition; hover stays color-only */
+/* reduced motion (design-tokens §7.4): kill all transition; hover stays color-only */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -218,7 +218,7 @@ textarea:focus-visible,
 
 /* ==========================================================================
    @layer components — the one-implementation component tokens
-   (ARCHITECTURE §2.4 / round3 §3-§4 / control-panel v4)
+   (ARCHITECTURE §2.4 / design-tokens §3-§4 / control-panel v4)
    ========================================================================== */
 @layer components {
   /* ---- page container: content max 1200px centered, 48/24px gutters ---- */
@@ -229,7 +229,7 @@ textarea:focus-visible,
     min-height: 100dvh;
   }
 
-  /* ---- 1. Pill badges — one pill, three fills (round3 §3.1) ---- */
+  /* ---- 1. Pill badges — one pill, three fills (design-tokens §3.1) ---- */
   .badge {
     display: inline-flex;
     align-items: center;
@@ -261,7 +261,7 @@ textarea:focus-visible,
     color: var(--strawberryRed-700);
   }
 
-  /* ---- 2. CTA buttons — filled, 44px floor, 8px radius (round3 §3.2) ---- */
+  /* ---- 2. CTA buttons — filled, 44px floor, 8px radius (design-tokens §3.2) ---- */
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -365,7 +365,7 @@ textarea:focus-visible,
     text-align: center;
   }
 
-  /* ---- 3. Product tiles — 4:3 gradient, category-mapped (round3 §3.3) ---- */
+  /* ---- 3. Product tiles — 4:3 gradient, category-mapped (design-tokens §3.3) ---- */
   .tile {
     position: relative;
     aspect-ratio: 4 / 3;
@@ -407,7 +407,7 @@ textarea:focus-visible,
     opacity: 0.4;
   }
 
-  /* ---- 4. Card grid — minmax(0,1fr) fix (round3 §3.4) ---- */
+  /* ---- 4. Card grid — minmax(0,1fr) fix (design-tokens §3.4) ---- */
   .grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -449,7 +449,7 @@ textarea:focus-visible,
     margin-top: auto;
   }
 
-  /* ---- 5. States — static skeletons / empty / error (round3 §4) ---- */
+  /* ---- 5. States — static skeletons / empty / error (design-tokens §4) ---- */
   .skeleton {
     background: var(--blueSlate-100);
     border-radius: 8px;
@@ -701,14 +701,14 @@ textarea:focus-visible,
     }
   }
 
-  /* P3 search-browse: the dual-range price control (PriceRange) — native
+  /* Search-browse: the dual-range price control (PriceRange) — native
      range inputs, accent = atomicTangerine-500 per the search-browse doc. */
   .price-range {
     accent-color: var(--atomicTangerine-500);
     height: 24px;
   }
 
-  /* P1 button-loading spinner (login "Signing in…" state) — pure CSS, no asset */
+  /* Button-loading spinner (login "Signing in…" state) — pure CSS, no asset */
   .spinner {
     display: inline-block;
     width: 14px;
