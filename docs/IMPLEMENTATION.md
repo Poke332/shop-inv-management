@@ -32,7 +32,7 @@ a first-class check from P0 onward.
 | P2 data layer | **DONE** (pulled ahead of P1, by user ruling) | commit `617f4f2`: `frontend/src/data/` split one `.js` per API section (`store.js`, `seed/*`, `api/*`, `mockApi.js` facade) + ARCHITECTURE §4.4; verified by review + pushed |
 | P3 storefront pages | **DONE** | commits `f82d5a6` (shared card set split into single-export components + `utils/utils.js`) + `a58cf8c` (5 page bodies) on `feat/frontend-p3`: main-store, search-browse, product-details, login, register; verified live at 1312/390 |
 | P3.1 revisions | **IN PROGRESS** | revision round on `feat/frontend-p3` (base `48dd105`): REV 1 header search full-width; REV 2 text wordmark; REV 3 hero svh; REV 4 "See more" → /search; REV 5 CTA single-line; REV 6 visible price rail; REV 7 bordered pw toggles; REV 8 guest access (`RequireGuestOrBuyer`, public `/products/:id`, CTA login-redirect); REV 10 `src/hooks/` (one hook per file). Docs: 4 design.md + ARCHITECTURE §3.1. User judges on the live dev server — no mockup PNGs |
-| P4 cart + checkout | NOT STARTED | 2 pages + `CartStore` wiring + 4-state wizard |
+| P4 cart + checkout | **DONE** | commit `d7275f9` on `feat/frontend-p4`: cart page (lines + 320px summary panel + mobile sticky bar) + 4-state checkout wizard (personal → shipping → payment → receipt) + `CartStore` wiring (optimistic/pessimistic ops, session-persisted, live stock clamp) + the `/orders` closure (just-placed order on top, pending chip, auto-expanded); verified live at 1312/390, node smoke 32/32 |
 | P5 ops console | NOT STARTED | 4 pages inside `OpsShell` |
 | P6 review panel | NOT STARTED | 1 page (round-6 moderation model) |
 | P7 polish + gates | NOT STARTED | cross-page pass: toasts, a11y floor, 390px audit, conformance gate re-run |
@@ -128,7 +128,7 @@ hidden states + seller-comment block), then the auth pair on `AuthLayout`.
 "Rp 1.290.000 / Rp 1.518.000 −15% / In stock · 34 left / 4.3 (128 reviews)" with public
 reviews only — matching the committed mockups at 1312px and 390px.
 
-### P4 — Cart + checkout wizard  ⬜ NOT STARTED
+### P4 — Cart + checkout wizard  ✅ DONE (`d7275f9`, `feat/frontend-p4`)
 
 `cart`, `checkout`. `CartStore` is live (line, quantity, subtotal from P2's mock cart:
 P-231 ×1 + P-198 ×1 = Rp 1.670.000, "Low · 5 left" hint on the Anker line). The checkout
@@ -143,7 +143,11 @@ Orders Placed (the just-placed order auto-expands there).
 
 **Done:** full purchase on the mock data lands a `pending` WB order; the 4 mockup states
 (step1/step2/step3/receipt) each render per `docs/checkout/mockup*.png`; mobile 390px
-drops the order panel into the fixed bottom CTA bar on step 3.
+drops the order panel into the fixed bottom CTA bar on step 3. The `/orders` route was a
+P1 placeholder, so the minimal Orders Placed view (newest-first list, pending chip, the
+just-placed order pinned on top + auto-expanded, delivered-line review block, empty +
+5xx states) was built to close the receipt flow — no dead link from "View my orders".
+Verified live at 1312/390 (headless, 0 console errors) + node smoke 32/32.
 
 ### P5 — Ops console pages  ⬜ NOT STARTED
 
