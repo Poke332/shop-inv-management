@@ -1,6 +1,11 @@
 import { Route, Routes } from 'react-router'
 
-import { RequireBuyer, RequireOps, RequireUser, RequireAnon } from './guards.jsx'
+import {
+  RequireBuyer,
+  RequireOps,
+  RequireAnon,
+  RequireGuestOrBuyer,
+} from './guards.jsx'
 import StorefrontLayout from './layouts/StorefrontLayout.jsx'
 import OpsShell from './layouts/OpsShell.jsx'
 import AuthLayout from './layouts/AuthLayout.jsx'
@@ -28,17 +33,20 @@ import {
  * P1 — the single route tree (docs/IMPLEMENTATION.md §route table, the source
  * of truth). All 14 routes + the dev-only token-smoke check:
  *
- *   /                main-store        storefront, buyer (RequireBuyer)
- *   /search          search-browse     storefront, buyer (RequireBuyer)
- *   /products/:id    product-details   storefront, all 4 roles (RequireUser)
+ *   /                main-store        storefront, guest or buyer (RequireGuestOrBuyer)
+ *   /search          search-browse     storefront, guest or buyer (RequireGuestOrBuyer)
+ *   /products/:id    product-details   storefront, PUBLIC (guests: variant A; staff+: variant B)
  *   /cart            cart              storefront, buyer (RequireBuyer)
  *   /checkout        checkout         storefront, buyer (RequireBuyer)
  *   /orders          orders-placed    storefront, buyer (RequireBuyer)
  *   /login /register auth pair        AuthLayout, anonymous (RequireAnon)
  *   /ops/*           7 ops routes     OpsShell (RequireOps + per-route roles)
  *
- * Guards REDIRECT non-actors (anonymous -> /login, staff+ hitting buyer homes
- * -> their ops home, buyer on ops routes -> /) — NEVER a 403 page.
+ * Guards REDIRECT non-actors (staff+ hitting browse -> their ops home,
+ * anonymous hitting cart/checkout/orders -> /login, buyer on ops routes -> /)
+ * — NEVER a 403 page. P3.1 REV 8: browse (/, /search) is guest-or-buyer and
+ * /products/:id is public; the purchase CTAs inside them self-gate to /login
+ * for guests.
  *
  * /dev/token-smoke keeps P0's theme smoke check available in dev; it is NOT
  * part of the route table.
@@ -66,18 +74,21 @@ export default function AppRoutes() {
   return (
     <Routes>
       {/* ---- storefront routes: StorefrontHeader layout ---- */}
+      {/* P3.1 REV 8: browse is guest-or-buyer; product-details is PUBLIC;
+          cart/checkout/orders stay buyer-only. */}
       <Route element={<StorefrontLayout />}>
-        <Route element={<RequireBuyer />}>
+        <Route element={<RequireGuestOrBuyer />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+        </Route>
+        {/* product-details is the one storefront route open to EVERYONE
+            (guests see variant A; staff+ still see variant B via the
+            null-safe user?.role check in the page). Unguarded/public. */}
+        <Route path="/products/:id" element={<ProductDetailsPage />} />
+        <Route element={<RequireBuyer />}>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />
-        </Route>
-        {/* product-details is the one storefront route open to all 4 roles
-            (variant-B read-only for staff+ lands with P3) */}
-        <Route element={<RequireUser />}>
-          <Route path="/products/:id" element={<ProductDetailsPage />} />
         </Route>
       </Route>
 

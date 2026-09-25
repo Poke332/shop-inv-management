@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { mockApi } from '../data'
-import { useAuth } from '../contexts/AuthContext.jsx'
+import { postLoginHome } from '../guards.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 
 /**
  * P3 login page (docs/login/IMPLEMENTATION.md) on the shared AuthLayout
@@ -20,6 +21,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 export default function LoginPage() {
   const { user, signIn } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,8 +49,21 @@ export default function LoginPage() {
     setError(null)
     try {
       const res = await mockApi.login(email.trim(), password)
-      const home = signIn(res.user, res.role)
-      navigate(home, { replace: true }) // success = redirect (no toast)
+      signIn(res.user, res.role)
+      // P3.1 REV 8: guest CTA flow — a login arriving from a purchase CTA
+      // (location.state.pendingAdd) returns to the product that started it
+      // (postLoginHome for a buyer == '/', so '/' is the browse home; the
+      // pending return goes to the product, not the role home). The product
+      // page performs the deferred add on mount.
+      const pending = location.state?.pendingAdd
+      if (pending) {
+        navigate(location.state.from || `/products/${pending}`, {
+          state: { pendingAdd: pending, buyNow: !!location.state.buyNow },
+          replace: true,
+        })
+      } else {
+        navigate(postLoginHome(res.role), { replace: true }) // success = redirect (no toast)
+      }
     } catch (err) {
       setError(err.message || 'Sign-in failed.')
     } finally {
@@ -93,7 +108,7 @@ export default function LoginPage() {
             placeholder="you@example.com"
             aria-invalid={!!emailErr}
             aria-describedby={emailErr ? 'login-email-error' : undefined}
-            className={inputCls(!!emailErr)}
+            className={`${inputCls(!!emailErr)} w-full`}
           />
           {emailErr ? (
             <span id="login-email-error" className="text-meta text-strawberryRed-600">
@@ -116,13 +131,16 @@ export default function LoginPage() {
               disabled={busy}
               placeholder="••••••••"
               aria-invalid={!!pwErr}
-              className={`${inputCls(!!pwErr)} pr-14`}
+              className={`${inputCls(!!pwErr)} w-full pr-14`}
             />
+            {/* P3.1 REV 7: the show/hide toggle is a bordered box button, not a
+                bare text link (input keeps pr-14 so the field never overlaps). */}
             <button
               type="button"
               onClick={() => setShowPw((s) => !s)}
               disabled={busy}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-meta font-normal text-blueSlate-500 hover:text-ink"
+              aria-label={showPw ? 'Hide password' : 'Show password'}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-2 border border-blueSlate-200 rounded-md bg-canvas text-meta text-blueSlate-500 hover:text-ink"
             >
               {showPw ? 'hide' : 'show'}
             </button>

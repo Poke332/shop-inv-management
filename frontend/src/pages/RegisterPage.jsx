@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import { mockApi } from '../data'
-import { useAuth } from '../contexts/AuthContext.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 
 /**
  * P3 register page (docs/register/IMPLEMENTATION.md) on the shared AuthLayout
@@ -117,13 +117,16 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={busy}
               placeholder="At least 8 characters"
-              className={`${inputCls(false)} pr-14`}
+              aria-label="Password"
+              className={`${inputCls(false)} w-full pr-14`}
             />
+            {/* P3.1 REV 7: bordered box button toggle (matches LoginPage). */}
             <button
               type="button"
               onClick={() => setShowPw((s) => !s)}
               disabled={busy}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-meta font-normal text-blueSlate-500 hover:text-ink"
+              aria-label={showPw ? 'Hide password' : 'Show password'}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-2 border border-blueSlate-200 rounded-md bg-canvas text-meta text-blueSlate-500 hover:text-ink"
             >
               {showPw ? 'hide' : 'show'}
             </button>
@@ -141,13 +144,15 @@ export default function RegisterPage() {
               onChange={(e) => setConfirm(e.target.value)}
               disabled={busy}
               aria-invalid={!!confirmErr}
-              className={`${inputCls(!!confirmErr)} pr-14`}
+              aria-label="Confirm password"
+              className={`${inputCls(!!confirmErr)} w-full pr-14`}
             />
             <button
               type="button"
               onClick={() => setShowConfirm((s) => !s)}
               disabled={busy}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-meta font-normal text-blueSlate-500 hover:text-ink"
+              aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-2 border border-blueSlate-200 rounded-md bg-canvas text-meta text-blueSlate-500 hover:text-ink"
             >
               {showConfirm ? 'hide' : 'show'}
             </button>

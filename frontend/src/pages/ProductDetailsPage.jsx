@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { mockApi } from '../data'
-import { useAuth } from '../contexts/AuthContext.jsx'
-import { useCart } from '../contexts/CartContext.jsx'
+import { useAuth } from '../hooks/useAuth.js'
+import { useCart } from '../hooks/useCart.js'
 import { discountPercent, formatIdr, fireToast } from '../utils/utils.js'
 import { ProductImageGallery } from '../components/ProductImageGallery.jsx'
 import { SpecsTable } from '../components/SpecsTable.jsx'
@@ -13,26 +13,31 @@ import { StarRating } from '../components/StarRating.jsx'
 import { QuantityStepper } from '../components/QuantityStepper.jsx'
 
 /**
- * P3 product-details page (docs/product-details/IMPLEMENTATION.md): the one
- * storefront route open to all 4 roles. Buyer variant = full purchase
- * affordances; variant B (staff/manager/admin) is read-only — no Add to
- * Cart, no quantity stepper, plus the "Manage stock →" / "Review panel →"
- * links on the stock line. hero-info split (media 440px col, gap 32 -> 24
- * mobile, stacks <768); SpecsTable (P-231 = the 6-pair spec table);
- * ReviewList = PUBLIC reviews only (hidden never render but count in the
- * "Reviews (128)" total); stock line states (in-stock willowGreen / 1–5
- * "Only N left" / 0 out-of-stock) per the doc; AddToCart is wired to the
- * P2 cart module via mockApi.addToCart + CartContext.refresh (the P1
- * seam), firing the "Added — View cart" toast.
+ * P3 product-details page (docs/product-details/IMPLEMENTATION.md). P3.1
+ * REV 8: the route is now PUBLIC (guests see variant A; staff+ still see
+ * variant B — every role read is null-safe via user?.role). A guest's
+ * "Add to cart" CTA redirects to /login carrying {from, pendingAdd, buyNow};
+ * the product page returns after sign-in and performs the deferred add on
+ * mount (success toast; buyNow then continues to /cart). Buyer variant =
+ * full purchase affordances; variant B (staff/manager/admin) is read-only —
+ * no Add to Cart, no quantity stepper, plus the "Manage stock →" /
+ * "Review panel →" links on the stock line. hero-info split (media 440px
+ * col, gap 32 -> 24 mobile, stacks <768); SpecsTable (P-231 = the 6-pair
+ * spec table); ReviewList = PUBLIC reviews only (hidden never render but
+ * count in the "Reviews (128)" total); stock line states (in-stock
+ * willowGreen / 1–5 "Only N left" / 0 out-of-stock) per the doc; AddToCart
+ * is wired to the P2 cart module via mockApi.addToCart + the cart context's
+ * refresh (the P1 seam), firing the "Added — View cart" toast.
  *
- * Route /products/:id — RequireUser; back link is history-aware (falls
- * back to /). Page-local state (selected thumb, quantity) resets on
+ * Route /products/:id — PUBLIC (P3.1 REV 8); back link is history-aware
+ * (falls back to /). Page-local state (selected thumb, quantity) resets on
  * navigation; the quantity chosen here seeds the cart line.
  */
 export default function ProductDetailsPage() {
   const { id } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const { refresh } = useCart()
 
   const [product, setProduct] = useState(null)
@@ -43,6 +48,13 @@ export default function ProductDetailsPage() {
   const [adding, setAdding] = useState(false)
 
   const isBuyer = user?.role === 'buyer'
+  const isGuest = user === null
+
+  // P3.1 REV 8: guest CTA return flow — after sign-in, location.state
+  // carries {pendingAdd, buyNow}. The page mounts with the product already
+  // known (same id), so fire the deferred add once the product lands; the
+  // buyNow variant continues to /cart after the add.
+  const pendingHandled = useRef(false)
 
   useEffect(() => {
     let alive = true
@@ -77,21 +89,43 @@ export default function ProductDetailsPage() {
     setQty(1)
   }, [product?.id, product?.stock])
 
-  const addToCart = async () => {
-    if (!isBuyer || !product || adding || product.stock === 0) return
+  const performAdd = async (p, q, buyNow) => {
     setAdding(true)
     try {
-      await mockApi.addToCart({ productId: product.id, qty })
+      await mockApi.addToCart({ productId: p.id, qty: q })
       await refresh()
       fireToast({ tone: 'success', text: 'Added — View cart', actionLabel: 'View cart', to: '/cart' })
+      if (buyNow) navigate('/cart')
     } catch {
       // P4 owns the full cart; on failure clamp qty to the live stock and
       // report the error per the doc.
-      setQty(Math.min(qty, product.stock))
+      setQty(Math.min(q, p.stock))
       fireToast({ tone: 'error', text: "Couldn't add to cart — stock changed. Reload." })
     } finally {
       setAdding(false)
     }
+  }
+
+  // Mount-time deferred add (the guest sign-in return) — once, per product.
+  useEffect(() => {
+    if (pendingHandled.current || !product) return
+    const st = location.state
+    if (st?.pendingAdd && st.pendingAdd === product.id) {
+      pendingHandled.current = true
+      performAdd(product, 1, !!st.buyNow)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product])
+
+  const addToCart = async () => {
+    if (!isBuyer || !product || adding || product.stock === 0) return
+    performAdd(product, qty, false)
+  }
+
+  const guestCta = () => {
+    navigate('/login', {
+      state: { from: `/products/${id}`, pendingAdd: id, buyNow: false },
+    })
   }
 
   const back = () => {
@@ -186,8 +220,10 @@ export default function ProductDetailsPage() {
               </span>
             )}
 
-            {/* variant B extra links (staff+ only, per the doc) */}
-            {!isBuyer ? (
+            {/* variant B extra links (staff/manager/admin ONLY — a guest is
+                user === null and must not see them; null-safe user?.role
+                reads throughout, P3.1 REV 8) */}
+            {user && user.role !== 'buyer' ? (
               <>
                 <Link to={user.role === 'staff' ? '/ops/orders' : `/ops/products/${id}/edit`} className="text-meta font-medium text-atomicTangerine-600 hover:underline">
                   Manage stock →
@@ -201,7 +237,10 @@ export default function ProductDetailsPage() {
             ) : null}
           </div>
 
-          {/* buyer purchase row: quantity stepper + Add to Cart (variant B removes both) */}
+          {/* buyer purchase row: quantity stepper + Add to Cart. Variant B
+              (staff+) removes both. P3.1 REV 8: a guest gets a single
+              "Sign in to buy" CTA that carries the deferred-add payload to
+              /login — the guest sees variant A otherwise (no stepper). */}
           {isBuyer ? (
             <div className="flex items-center gap-4 mt-5">
               <QuantityStepper value={qty} min={1} max={Math.max(product.stock, 1)} onChange={setQty} />
@@ -215,7 +254,7 @@ export default function ProductDetailsPage() {
                   onClick={addToCart}
                   disabled={adding}
                   aria-busy={adding}
-                  className="btn-primary px-7"
+                  className="btn-primary px-7 whitespace-nowrap"
                 >
                   {adding ? (
                     <span className="inline-flex items-center gap-2">
@@ -225,6 +264,20 @@ export default function ProductDetailsPage() {
                   ) : (
                     'Add to cart'
                   )}
+                </button>
+              )}
+            </div>
+          ) : null}
+
+          {isGuest ? (
+            <div className="mt-5">
+              {oos ? null : (
+                <button
+                  type="button"
+                  onClick={guestCta}
+                  className="btn-primary px-7 whitespace-nowrap w-full sm:w-auto"
+                >
+                  Sign in to buy
                 </button>
               )}
             </div>

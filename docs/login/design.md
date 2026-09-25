@@ -95,5 +95,14 @@ Mobile (<768px): brand panel collapses to a 64px top strip with the logo; card f
   (`strawberryRed-100` bg, `strawberryRed-600` text, 1px `strawberryRed-300` border,
   `role="alert"`, focus moved to banner). 403 / disabled → "Account not available" variant.
 - **Success:** redirect per routing table — navigation itself is the feedback; no toast.
+  **P3.1 REV 8 pendingAdd return flow:** when the login was reached from a guest
+  purchase CTA, the arriving `location.state` carries `{from: '/products/<id>',
+  pendingAdd: <id>, buyNow: bool}` (set by the CTA on ProductCard / Product
+  Details). On successful sign-in the redirect target is `state.from` (the
+  product page) with that state re-carried — NOT the role home — so the user
+  lands back on the product that started the flow. The product page performs
+  the deferred `mockApi.addToCart` on mount (success toast "Added — View
+  cart"; when `buyNow` is true it then continues to `/cart`). A plain sign-in
+  with no `pendingAdd` still redirects to `postLoginHome(role)` unchanged.
 - **Keyboard/a11y:** visible focus ring on every control; labels via `htmlFor`;
   `prefers-reduced-motion` respected for transitions.

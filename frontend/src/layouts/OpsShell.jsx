@@ -4,7 +4,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { FiChevronDown, FiMenu, FiX } from 'react-icons/fi'
 
 import { mockApi } from '../data'
-import { useAuth } from '../contexts/AuthContext.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { OPS_NAV_ITEMS } from '../routePaths.js'
 
 /**

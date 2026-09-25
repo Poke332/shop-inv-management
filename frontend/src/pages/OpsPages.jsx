@@ -1,6 +1,6 @@
 import { useLocation, useParams } from 'react-router'
 
-import { useAuth } from '../contexts/AuthContext.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 
 /**
  * P1 ops route-slot placeholder. P5/P6 fill these with the real pages

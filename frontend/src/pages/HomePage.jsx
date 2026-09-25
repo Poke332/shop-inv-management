@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { mockApi } from '../data'
 import { ProductGrid } from '../components/ProductGrid.jsx'
@@ -12,26 +12,27 @@ const HOME_SLICE = 8
 /**
  * P3 main-store page (docs/main-store/IMPLEMENTATION.md): full-bleed hero
  * banner -> 3x2 category image grid (deep-links /search?category=<slug>) ->
- * "Our Products" 8-item grid with "See more" on the heading row (right side;
- * full-width on <768 where the row stacks). Load-more is in-place state:
- * clicking "See more" fetches the full catalog and grows the slice; when
- * exhausted the button is replaced by the centered "All N products shown"
- * line. Section order per round-11: header -> hero (full-bleed, outside the
- * centered container) -> "Browse by category" -> "Our Products". Route / —
- * buyer only (RequireBuyer).
+ * "Our Products" 8-item preview with "See more" on the heading row (right
+ * side; full-width on <768 where the row stacks). P3.1 REV 4: "See more"
+ * navigates to /search (the browse page) — the in-place load-more state was
+ * removed; the section always previews the first 8 items. P3.1 REV 3: the
+ * hero height is svh-based (viewport minus the 56px header) so its bottom
+ * edge lands at the display bottom with no bleed past the first fold.
+ * Section order per round-11: header -> hero (full-bleed, outside the
+ * centered container) -> "Browse by category" -> "Our Products".
+ * P3.1 REV 8: route / is guest-or-buyer (RequireGuestOrBuyer).
  */
 export default function HomePage() {
+  const navigate = useNavigate()
   const [catalog, setCatalog] = useState(null) // null = first paint (skeletons)
   const [catalogError, setCatalogError] = useState(false)
   const [retry, setRetry] = useState(0)
   const [heroOk, setHeroOk] = useState(true)
-  const [loaded, setLoaded] = useState(HOME_SLICE)
 
   // One fetch with sort=catalog keeps the ARCHITECTURE §4.2 record order
   // intact so the home slice rows match the committed mockup-bottom.png:
   // row 1 = first 4 FEATURED (P-231/198/140/087), row 2 = first-4 SHOP_ALL
-  // (P-052/111/064/208). Load-more grows the slice from the SAME in-memory
-  // fetch (no second request), so the grid can never blank out mid-click.
+  // (P-052/111/064/208). The home page previews the first 8 of that order.
   useEffect(() => {
     let alive = true
     setCatalogError(false)
@@ -48,25 +49,25 @@ export default function HomePage() {
     }
   }, [retry])
 
-  // Home slice = 4 FEATURED + first-4 SHOP_ALL, taken in record order.
+  // Home preview = 4 FEATURED + first-4 SHOP_ALL, taken in record order.
   const ordered = catalog
     ? [
         ...catalog.filter((p) => p.featured),
         ...catalog.filter((p) => !p.featured),
       ]
     : []
-  const items = ordered.slice(0, Math.min(loaded, ordered.length))
-  const total = ordered.length
-  const done = loaded >= total && total > 0
-
-  const loadMore = () => setLoaded(ordered.length) // reveal the rest locally
+  const items = ordered.slice(0, HOME_SLICE)
 
   return (
     <>
-      {/* ---- full-bleed hero (edge-to-edge, outside the .page container) ---- */}
+      {/* ---- full-bleed hero (edge-to-edge, outside the .page container) ----
+          P3.1 REV 3: svh-based height = viewport minus the 56px sticky header
+          so the hero bottom edge lands at the display bottom (no bleed past
+          the first fold). The image-failure fallback keeps the same svh
+          height (the old h-40 is gone). */}
       <div
-        className={`relative w-full overflow-hidden mb-section-rhythm ${heroOk ? '' : 'h-40'}`}
-        style={heroOk ? { aspectRatio: '16 / 9' } : { background: 'var(--atomicTangerine-50)' }}
+        className={`relative w-full overflow-hidden mb-section-rhythm ${heroOk ? '' : 'bg-[var(--atomicTangerine-50)]'}`}
+        style={{ height: 'calc(100svh - 4rem)' }}
       >
         {heroOk ? (
           <img
@@ -158,15 +159,15 @@ export default function HomePage() {
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-section-label-gap">
             <h2 className="text-section text-ink tracking-[0.05em]">Our Products</h2>
-            {catalog && !done ? (
-              <button
-                type="button"
-                className="btn-primary btn-loadmore"
-                onClick={loadMore}
-              >
-                See more
-              </button>
-            ) : null}
+            {/* P3.1 REV 4: "See more" links to the browse page (/search) —
+                the in-place load-more state was removed. */}
+            <button
+              type="button"
+              className="btn-primary btn-loadmore"
+              onClick={() => navigate('/search')}
+            >
+              See more
+            </button>
           </div>
 
           {catalogError ? (
@@ -187,12 +188,7 @@ export default function HomePage() {
               </button>
             </div>
           ) : (
-            <>
-              <ProductGrid items={items} />
-              {done ? (
-                <p className="loadmore-done mt-section-label-gap">All {total} products shown</p>
-              ) : null}
-            </>
+            <ProductGrid items={items} />
           )}
         </section>
       </div>

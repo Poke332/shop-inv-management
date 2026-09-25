@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useMemo, useState } from 'react'
 
 import { postLoginHome } from '../guards.jsx'
 
@@ -9,12 +9,15 @@ import { postLoginHome } from '../guards.jsx'
  * session persists across refresh via sessionStorage so back/refresh on any
  * page keeps the user signed in.
  *
- * Placement note: lives in src/contexts (not src/hooks) because it owns
- * state; the useAuth accessor is exported from the same module.
+ * P3.1 REV 10 (code-org rule: one custom hook per file): the useAuth
+ * accessor moved to src/hooks/useAuth.js — this module keeps the context +
+ * provider co-located (sanctioned multi-export module). Consumers import
+ * useAuth from ../hooks/useAuth.js.
  */
 const SESSION_KEY = 'sunset.session'
 
-const AuthContext = createContext(null)
+/** The auth context value (exported so hooks/useAuth.js reads the state). */
+export const AuthContext = createContext(null)
 
 /** Hydrates/restores the session on mount. */
 function readSession() {
@@ -59,17 +62,4 @@ export function AuthProvider({ children }) {
   }, [session, signIn, signOut])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-/**
- * The auth context value.
- * @returns {{user: ({username: string, role: string}|null), role: (string|null),
- *            signIn: (user: object, role: string) => string,
- *            signOut: () => void}}
- * @throws {Error} when called outside <AuthProvider>
- */
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
-  return ctx
 }

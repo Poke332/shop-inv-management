@@ -20,3 +20,4 @@ CLAUDE.md
 # One-off frontend verify harnesses (worker scratch, not part of the build).
 frontend/gutter-check.mjs
 frontend/verify-p3.mjs
+frontend/verify-p31.mjs

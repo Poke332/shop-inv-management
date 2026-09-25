@@ -1,5 +1,5 @@
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
+  createContext, useCallback, useEffect, useMemo, useRef, useState,
 } from 'react'
 
 import { mockApi } from '../data'
@@ -10,8 +10,14 @@ import { mockApi } from '../data'
  * and checkout wizard on top of this context. Cart lines live in the
  * session-based mock module (refreshes empty), so the context hydrates from
  * mockApi.getCart() on mount and exposes refresh() for P4.
+ *
+ * P3.1 REV 10 (code-org rule: one custom hook per file): the useCart
+ * accessor moved to src/hooks/useCart.js — this module keeps the context +
+ * provider co-located (sanctioned multi-export module). Consumers import
+ * useCart from ../hooks/useCart.js.
  */
-const CartContext = createContext(null)
+/** The cart context value (exported so hooks/useCart.js reads the state). */
+export const CartContext = createContext(null)
 
 /**
  * The CartStore context (the P1 seam): hydrates from mockApi.getCart() on
@@ -44,16 +50,4 @@ export function CartProvider({ children }) {
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
-}
-
-/**
- * The cart context value.
- * @returns {{lines: object[], count: number, subtotal: number, loaded: boolean,
- *            refresh: () => Promise<void>}}
- * @throws {Error} when called outside <CartProvider>
- */
-export function useCart() {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used inside <CartProvider>')
-  return ctx
 }

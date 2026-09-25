@@ -9,10 +9,16 @@
  *   anonymous     -> /login
  *   staff+ on buyer-only homes -> their ops home
  *   buyer on ops routes -> /
+ *
+ * P3.1 REV 8: the browse routes (`/`, `/search`) moved to a NEW
+ * RequireGuestOrBuyer guard (6th export in this sanctioned multi-export
+ * module) — guests browse freely, staff+ still redirect to their ops home;
+ * `/products/:id` is now public (unguarded) with a null-safe role check in
+ * the page; cart/checkout/orders stay under RequireBuyer.
  */
 import { Navigate, Outlet, useLocation } from 'react-router'
 
-import { useAuth } from './contexts/AuthContext.jsx'
+import { useAuth } from './hooks/useAuth.js'
 
 /**
  * The post-login home per role (the locked homes in the module doc above):
@@ -71,12 +77,38 @@ export function RequireOps({ role }) {
 }
 
 /**
- * Anonymous only (login/register); a signed-in session -> its role home.
+ * P3.1 REV 8 — browse routes open to GUESTS or buyers: `/` and `/search`.
+ *   anonymous -> Outlet (browse freely; purchase CTAs self-gate to /login)
+ *   buyer     -> Outlet
+ *   staff/manager/admin -> Navigate to their post-login ops home (staff
+ *   never land on storefront browse pages — the main-store decision #8 note).
+ * Sanctioned multi-export module: this is the 6th export inside guards.jsx
+ * (no-split ruling — do NOT carve it into its own file).
  * @returns {import('react').ReactElement} the nested route, or a redirect to
- *   the signed-in user's post-login home.
+ *   the staff+ role's ops home.
+ */
+export function RequireGuestOrBuyer() {
+  const { user } = useAuth()
+  if (user && user.role !== 'buyer') return <Navigate to={postLoginHome(user.role)} replace />
+  return <Outlet />
+}
+
+/**
+ * Anonymous only (login/register); a signed-in session -> its role home.
+ * P3.1 REV 8: this guard OWNS post-login routing for the auth pair. A guest
+ * CTA (ProductCard / ProductDetailsPage "Sign in to buy") lands on /login
+ * with location.state = {from, pendingAdd, buyNow}; when that intent is
+ * present, return the user to state.from carrying the pending payload (the
+ * product page performs the deferred add on mount) instead of the role
+ * home. A normal sign-in (no "from") still redirects to postLoginHome(role).
+ * @returns {import('react').ReactElement} the nested route, or a redirect to
+ *   the signed-in user's post-login home (or the guest-CTA origin).
  */
 export function RequireAnon() {
   const { user } = useAuth()
-  if (user) return <Navigate to={postLoginHome(user.role)} replace />
-  return <Outlet />
+  const location = useLocation()
+  if (!user) return <Outlet />
+  const intent = location.state?.from
+  if (intent) return <Navigate to={intent} state={location.state} replace />
+  return <Navigate to={postLoginHome(user.role)} replace />
 }

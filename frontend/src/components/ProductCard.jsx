@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router'
 import { FiCheck, FiPlus } from 'react-icons/fi'
 
 import { mockApi } from '../data'
-import { useCart } from '../contexts/CartContext.jsx'
+import { useCart } from '../hooks/useCart.js'
+import { useAuth } from '../hooks/useAuth.js'
 import { CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast } from '../utils/utils.js'
 import { TileGlyph } from './TileGlyph.jsx'
 
@@ -13,6 +14,13 @@ import { TileGlyph } from './TileGlyph.jsx'
  * with "/products/" / "/img/"), else the category-keyed gradient tile with
  * its glyph; out of stock dims the tile and flips both CTAs to disabled.
  * Single export (code-org rule: one component per file; helpers in utils).
+ * P3.1 REV 5: the CTA row is a guaranteed single line — both labels
+ * whitespace-nowrap, no flex-wrap, flex-1 pair; on mobile (<640px) the
+ * Add-to-cart leading FiPlus icon drops and both buttons go text-sm so
+ * "Buy now" + "Add to cart" both fit one line at 390px. P3.1 REV 8: an
+ * anonymous (guest) session's CTA click redirects to /login carrying
+ * {from, pendingAdd, buyNow} — the product page performs the deferred add
+ * on mount after sign-in.
  * @param {object} p  a product record (mockApi shape).
  * @param {function} [onBuy]  custom "Buy now" override (default = add qty 1 +
  *   navigate to /cart, per the CTA-target decision in the main-store doc).
@@ -23,6 +31,7 @@ import { TileGlyph } from './TileGlyph.jsx'
 export function ProductCard({ p, onBuy, onAdd }) {
   const navigate = useNavigate()
   const { refresh } = useCart()
+  const { user } = useAuth()
   const [flash, setFlash] = useState(false)
   const flashTimer = useRef(null)
   const [imgOk, setImgOk] = useState(true)
@@ -39,36 +48,48 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const tileClass = `${CATEGORY_TILE[p.category] || 'tile-fallback'}${oos ? ' tile-outstock' : ''}`
   const hasImage = /^\/(products|img)\//.test(p.image || '') && imgOk
 
+  // P3.1 REV 8: guests (user === null) can browse, but the purchase CTAs are
+  // login-gated — click lands on /login with the deferred-add payload.
+  const guestCta = (buyNow) => () => {
+    navigate('/login', {
+      state: { from: `/products/${p.id}`, pendingAdd: p.id, buyNow: !!buyNow },
+    })
+  }
+
   const doAdd = onAdd
     ? onAdd
-    : async () => {
-        setFlash(true)
-        flashTimer.current = setTimeout(() => setFlash(false), 600)
-        try {
-          await mockApi.addToCart({ productId: p.id, qty: 1 })
-          await refresh()
-        } catch {
-          fireToast({
-            tone: 'error',
-            text: "Couldn't add to cart — stock changed. Reload.",
-          })
+    : user
+      ? async () => {
+          setFlash(true)
+          flashTimer.current = setTimeout(() => setFlash(false), 600)
+          try {
+            await mockApi.addToCart({ productId: p.id, qty: 1 })
+            await refresh()
+          } catch {
+            fireToast({
+              tone: 'error',
+              text: "Couldn't add to cart — stock changed. Reload.",
+            })
+          }
         }
-      }
+      : guestCta(false)
 
   const doBuy = onBuy
     ? onBuy
-    : async () => {
-        try {
-          await mockApi.addToCart({ productId: p.id, qty: 1 })
-        } catch {
-          fireToast({
-            tone: 'error',
-            text: "Couldn't add to cart — stock changed. Reload.",
-          })
-          return
+    : user
+      ? async () => {
+          try {
+            await mockApi.addToCart({ productId: p.id, qty: 1 })
+          } catch {
+            fireToast({
+              tone: 'error',
+              text: "Couldn't add to cart — stock changed. Reload.",
+            })
+            return
+          }
+          navigate('/cart')
         }
-        navigate('/cart')
-      }
+      : guestCta(true)
 
   return (
     <article className="card group">
@@ -123,10 +144,10 @@ export function ProductCard({ p, onBuy, onAdd }) {
         ) : null}
       </p>
 
-      <div className="card-cta-row flex items-center gap-2">
+      <div className="card-cta-row flex items-center gap-0.5 sm:gap-2">
         <button
           type="button"
-          className="btn-primary flex-1 text-center"
+          className="btn-primary flex-1 text-center whitespace-nowrap text-xs px-0 sm:px-[20px] sm:text-body"
           disabled={oos}
           aria-disabled={oos}
           aria-label={`Buy ${p.name} now`}
@@ -136,13 +157,17 @@ export function ProductCard({ p, onBuy, onAdd }) {
         </button>
         <button
           type="button"
-          className={`btn-secondary flex-1 text-center ${flash ? 'bg-willowGreen-100' : ''}`}
+          className={`btn-secondary flex-1 text-center whitespace-nowrap text-xs px-0 sm:px-[20px] sm:text-body ${flash ? 'bg-willowGreen-100' : ''}`}
           disabled={oos}
           aria-disabled={oos}
           aria-label={`Add ${p.name} to cart`}
           onClick={doAdd}
         >
-          {flash ? <FiCheck className="mr-1 text-willowGreen-600" /> : <FiPlus className="mr-1" />}
+          {flash ? (
+            <FiCheck className="mr-1 hidden sm:inline-block text-willowGreen-600" />
+          ) : (
+            <FiPlus className="mr-1 hidden sm:inline-block" />
+          )}
           Add to cart
         </button>
       </div>
