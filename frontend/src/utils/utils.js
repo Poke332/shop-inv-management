@@ -1,0 +1,53 @@
+/**
+ * Shared storefront utility helpers + category data maps.
+ *
+ * Code-org rule: non-component helpers and small shared data maps live in a
+ * single `utils/utils.js` (NOT inside a component file). Components import
+ * from here.
+ */
+
+/** 4:3 category-keyed gradient tiles, with a fallback for unknown slugs. */
+export const CATEGORY_TILE = {
+  audio: 'tile-audio',
+  'smart-home': 'tile-smart-home',
+  gaming: 'tile-gaming',
+  laptops: 'tile-laptops',
+  accessories: 'tile-accessories',
+  wearables: 'tile-wearables',
+}
+
+/** Category labels for the card subline (docs/categories seed). */
+export const CATEGORY_LABEL = {
+  audio: 'Audio',
+  'smart-home': 'Smart Home',
+  gaming: 'Gaming',
+  laptops: 'Laptops & PC',
+  accessories: 'Accessories',
+  wearables: 'Wearables',
+}
+
+/**
+ * One-line Indonesian price format: 1290000 -> "Rp 1.290.000".
+ * @param {number} n  integer IDR.
+ * @returns {string}
+ */
+export function formatIdr(n) {
+  return `Rp ${Number(n).toLocaleString('id-ID')}`
+}
+
+/** Discount percent (e.g. P-231: -15% chip). @param {object} p  @returns {number} */
+export function discountPercent(p) {
+  if (!p.onSale || !p.originalPrice) return 0
+  return Math.round((1 - p.price / p.originalPrice) * 100)
+}
+
+/**
+ * Toast seam (P7 owns the global toast system; P3 fires these on the two
+ * cart-write paths). `fireToast({ tone, text, actionLabel, to })` posts a
+ * window event the StorefrontLayout host renders; both callers (card
+ * add-to-cart, product-details add) share the host.
+ * @param {{tone:'success'|'error', text:string, actionLabel?:string, to?:string}} t
+ */
+export function fireToast(t) {
+  window.dispatchEvent(new CustomEvent('sunset:toast', { detail: t }))
+}
