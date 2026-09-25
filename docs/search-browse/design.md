@@ -24,12 +24,13 @@ unified pill badges, filled CTA stack).
   simply hidden — the page shows the catalog grid only. The round-2 mobile
   "Filters (N)" bottom sheet / off-canvas drawer is **not part of round 3** (note kept
   here only as the removed behavior).
-- **Role-gating (TBD — open decision #8):** buyer-only per the page list, which
-  contradicts the matrix granting browse/view-detail to staff+ (also flagged in
-  the Inventory Dashboard role note). Most likely interpretation used here:
-  buyer-only. If the team resolves it to "staff can also browse", route guard
-  widens to `buyer | staff` — layout unchanged
-  (staff read-only, no Add-to-Cart / no cart badge, same as Main Store).
+- **Role-gating (RESOLVED — P3.1 REV 8):** the open decision #8 is settled by
+  the guest-access ruling: **`/search` is guest-or-buyer** — `RequireGuestOrBuyer`.
+  Anonymous guests and buyers browse freely; staff/manager/admin are redirected
+  to their ops home (staff never land on storefront browse; their read-only
+  product-details variant B still exists on the now-public `/products/:id`).
+  Purchase CTAs on result cards stay login-gated: a guest's "Add to cart" /
+  "Buy now" redirects to `/login` with `{from, pendingAdd, buyNow}`.
 - Filter state lives in URL query params (shareable/refreshable — most likely
   interpretation; sheet is silent).
 

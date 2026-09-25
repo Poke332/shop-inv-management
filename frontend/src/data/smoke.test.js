@@ -1,5 +1,5 @@
 /**
- * P2 smoke test: import the mockApi facade + exercise the §4.3 contract +
+ * Smoke test: import the mockApi facade + exercise the §4.3 contract +
  * cross-check every mockup value the task's "adjust to what the web needs"
  * paragraph enumerates. Run: `node src/data/smoke.test.js` from frontend/.
  * (Development aid — not part of the app's import surface.)

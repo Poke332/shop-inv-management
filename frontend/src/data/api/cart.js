@@ -7,10 +7,11 @@
  * no cross-device sync) refreshes empty. Line ids are stable so setQty /
  * removeLine target one line by id.
  *
- * P2b ruling (ARCHITECTURE §4.5): the cart stays OUT of the durable store —
+ * Ruling (ARCHITECTURE §4.5): the cart stays OUT of the durable store —
  * the versioned localStorage snapshot persists only the 5 mutable slices
- * (products, orders, reviews, users, stock). Cart session semantics are P4's
- * concern; this module deliberately does NOT read or write the snapshot key.
+ * (products, orders, reviews, users, stock). Cart session semantics are
+ * kept client-side; this module deliberately does NOT read or write the
+ * snapshot key.
  *
  * The §4.2 mock session (seeded so cart + checkout render out of the box):
  * P-231 ×1 @ 1 290 000 + P-198 ×1 @ 380 000 ("Low · 5 left" hint) →
@@ -21,6 +22,10 @@ import { productById, nowStamp } from '../store.js';
 
 const delay = () => new Promise((res) => setTimeout(res, 100 + Math.floor(Math.random() * 150)));
 
+/** Per-section failure-injection flag: set `.on = true` to make the NEXT
+ * call of this section reject (the "error" mockup states are exercisable).
+ * @type {{on: boolean}}
+ */
 export const failure = { on: false };
 function injected() {
   if (failure.on) {
@@ -34,7 +39,7 @@ function injected() {
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
 // ---- the session cart (module singleton — this is THE CartStore data) --------
-/** @type {Array<{lineId:string, productId:string, qty:number}>} */
+/** The session cart lines: {lineId, productId, qty} rows (module singleton). */
 const lines = [
   { lineId: 'cl-1', productId: 'P-231', qty: 1 },
   { lineId: 'cl-2', productId: 'P-198', qty: 1 },
@@ -61,6 +66,12 @@ function subtotal() {
   }, 0);
 }
 
+/**
+ * The cart section of the mockApi facade (ARCHITECTURE §4.3 CartStore
+ * exception — client-session state): addToCart / setQty / removeLine /
+ * getCart / clearCart.
+ * @type {object}
+ */
 export const mockApiCart = {
   /**
    * POST /cart/items — add a line (cart, product-details "Add to cart", main-store card CTA).
@@ -134,7 +145,7 @@ export const mockApiCart = {
 
   /**
    * Called by the checkout receipt step: clears the cart on successful order
-   * (the §P4 "on success: cart clears, receipt shown" flow).
+   * ("on success: cart clears, receipt shown" flow).
    * @returns {Promise<{lines: object[], count:number, subtotal:number}>}
    */
   async clearCart() {

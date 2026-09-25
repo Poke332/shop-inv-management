@@ -1,8 +1,8 @@
 import { Link } from 'react-router'
 
 /**
- * 404 Not Found — the top-level catch-all for unknown routes (P1.1 router
- * amendment, user ruling: unknown routes render this page, NOT a redirect to
+ * 404 Not Found — the top-level catch-all for unknown routes (router
+ * ruling: unknown routes render this page, NOT a redirect to
  * home). It is a bare full-page render OUTSIDE the layout/guard groups, so it
  * is reachable regardless of auth state: an anonymous user typing a bad URL
  * sees this page, never a forced /login. The known-route RBAC redirects in

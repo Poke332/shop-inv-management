@@ -3,17 +3,16 @@ import { Outlet } from 'react-router'
 import BrandMark from '../components/BrandMark.jsx'
 
 /**
- * P1 AuthLayout — the shared two-panel shell of /login + /register
+ * AuthLayout — the shared two-panel shell of /login + /register
  * (docs/login/design.md: the brand panel is blueSlate-900 with the CSS
  * sunset-sun mark + blueSlate-50 tagline; the form card is the 30% white
  * surface on the tuscanSun-50 warm ground). Mobile <768px: the brand panel
  * collapses to a 64px logo strip and the card goes full-bleed with 24px
- * gutters. Pages P3 fill the form card; P1 leaves it a placeholder.
+ * gutters. The nested <Outlet/> renders the form card inside this shell.
  *
  * Route context: both auth routes are anonymous-only (RequireAnon). The
- * nested <Outlet/> renders the form card; P1 leaves the card itself a
- * placeholder.
- * @returns {import('react').ReactElement} the two-panel shell.
+ * nested <Outlet/> renders the form card.
+ * @returns {object} the two-panel shell.
  */
 export default function AuthLayout() {
   return (

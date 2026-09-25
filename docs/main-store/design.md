@@ -26,12 +26,17 @@ unified pill badges, filled CTA stack).
   Each links to the Search/Browse filtered view. Page order (round-3 §3.5, extended):
   header → hero → Browse by category (3×2 image grid) → Our Products (8-item, 2-row grid)
   → See-more on the heading row.
-- **Role-gating note (sheet inconsistency, open decision #8):** the matrix grants
-  "browse product" to buyer only, but "view product details" T for all roles and the
-  implementation notes say the catalog page is "buyer & staff only". **TBD.** Most likely
-  interpretation used here: storefront is buyer-only; staff/manager/admin never land on it —
-  they post-login-route to ops pages. If the team decides staff may browse, the only change
-  is the route guard (`buyer | staff`); layout is unchanged.
+- **Role-gating note (RESOLVED — P3.1 REV 8):** the open decision #8 sheet
+  inconsistency is settled by the guest-access ruling: **`/` (and `/search`)
+  is guest-or-buyer** — `RequireGuestOrBuyer`. Anonymous guests browse freely;
+  buyers browse + purchase; staff/manager/admin are redirected to their ops
+  home (staff never land on storefront browse — the main-store decision #8
+  note is preserved for staff+, not extended to guests). `/products/:id` is
+  **public** (guests see variant A; staff+ see the read-only variant B via a
+  null-safe `user?.role` check). Purchase CTAs ("Add to cart" / "Buy now")
+  stay login-gated: a guest's CTA click redirects to `/login` carrying
+  `{from, pendingAdd, buyNow}` so the add happens after sign-in (docs/login
+  pendingAdd return flow).
 - Featured items: the "featured" flag lives on the product record (assumption — sheet says
   "catalog + featured items" without mechanics; most likely a flag set by manager/admin via
   Per Product Dashboard). Round 3 renders no dedicated strip: featured products sit in the

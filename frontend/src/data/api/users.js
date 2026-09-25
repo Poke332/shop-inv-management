@@ -14,6 +14,10 @@ import { storeRegisterUser, storeSetUserActive, storeSetUserRole, storeUsers, us
 
 const delay = () => new Promise((res) => setTimeout(res, 150 + Math.floor(Math.random() * 200)));
 
+/** Per-section failure-injection flag: set `.on = true` to make the NEXT
+ * call of this section reject (the "error" mockup states are exercisable).
+ * @type {{on: boolean}}
+ */
 export const failure = { on: false };
 function injected() {
   if (failure.on) {
@@ -26,6 +30,11 @@ function injected() {
 }
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
+/**
+ * The users + auth section of the mockApi facade (ARCHITECTURE §4.3):
+ * getUsers / setUserRole / setUserActive / login / register.
+ * @type {object}
+ */
 export const mockApiUsers = {
   /**
    * POST /auth/login (returns role → routing).
@@ -128,4 +137,5 @@ export const mockApiUsers = {
 };
 
 // Keep userByUsername referenced for tooling (ops pages look users up by name).
+/** The user lookup helper, re-exported for the ops pages. */
 export { userByUsername };

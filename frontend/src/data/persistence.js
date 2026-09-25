@@ -1,5 +1,5 @@
 /**
- * P2b durable mock store (ARCHITECTURE §4.5 ruling): hydrate + commit helpers
+ * Durable mock store (ARCHITECTURE §4.5 ruling): hydrate + commit helpers
  * over localStorage under a VERSIONED key.
  *
  * Snapshot shape (JSON under STORAGE_KEY):
@@ -10,8 +10,8 @@
  * persisted (v1):
  *  - categories (seed/categories.js) — static domain content, no category CRUD
  *    in v1 (the §4.3 "one extra static" section), so there is nothing to save.
- *  - cart — CartStore keeps session semantics (client-session state, P4's
- *    concern; see api/cart.js), not the durable mock store.
+ *  - cart — CartStore keeps session semantics (client-session state, kept
+ *    out of the durable store; see api/cart.js).
  *
  * No new dependencies: browser built-ins only (localStorage + JSON). In
  * non-browser environments (the node smoke test) localStorage is absent and

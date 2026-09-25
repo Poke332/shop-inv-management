@@ -34,9 +34,11 @@ function injected() {
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
 /**
+ * Apply the search-browse filter (query / category / brand / price bounds / sort)
+ * to the live products slice.
  * @param {{query?:string, category?:string, brand?:string, priceMin?:number,
  *         priceMax?:number, sort?:string}} [filter]
- * @returns {Promise<{items: Array<import('../seed/products.js').Product>, total:number, hasMore:boolean}>}
+ * @returns {Promise<{items: object[], total: number, hasMore: boolean}>}
  */
 function applyFilter(filter) {
   let items = [...storeProducts];
@@ -54,7 +56,14 @@ function applyFilter(filter) {
   const sort = filter.sort || 'featured';
   if (sort === 'price-asc') items.sort((a, b) => a.price - b.price);
   else if (sort === 'price-desc') items.sort((a, b) => b.price - a.price);
-  else {
+  else if (sort === 'catalog') {
+    // catalog/seed order — the main-store home slice needs the FIRST 4
+    // featured + FIRST 4 shop-all in the ARCHITECTURE §4.2 record order
+    // (P-231/198/140/087 then P-052/111/064/208), which the default
+    // "featured" sort scrambles by re-ordering within each group. Keep the
+    // seed order intact (no sort) so the main-store 8-item grid matches the
+    // committed mockup-bottom.png row by row.
+  } else {
     // default "Featured": featured first, then on-sale, then cheaper first
     items.sort(
       (a, b) =>
@@ -66,10 +75,20 @@ function applyFilter(filter) {
   return items;
 }
 
+/**
+ * The products section of the mockApi facade (ARCHITECTURE §4.3):
+ * getProducts / getProduct / createProduct / updateProduct.
+ * @type {object}
+ */
 export const mockApiProducts = {
   /**
    * GET /products?query&category&brand&priceMin&priceMax&sort
    * used by main-store, search-browse.
+   * sort: 'featured' (default) | 'price-asc' | 'price-desc' | 'catalog'.
+   * 'catalog' keeps the ARCHITECTURE §4.2 seed/record order intact (no
+   * re-ordering) — the main-store home slice needs the first-4 featured +
+   * first-4 shop-all in record order, which the default featured sort
+   * scrambles by re-ordering within each group.
    * @param {object} [filter]
    * @returns {Promise<{items: object[], total:number, hasMore:boolean}>}
    */
@@ -84,7 +103,7 @@ export const mockApiProducts = {
   /**
    * GET /products/:id — product-details.
    * @param {string} id
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async getProduct(id) {
     const fail = injected();
@@ -102,7 +121,7 @@ export const mockApiProducts = {
   /**
    * POST /products (per-product-dashboard create). Form includes specs pairs + stock.
    * @param {object} form
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async createProduct(form) {
     const fail = injected();
@@ -112,10 +131,10 @@ export const mockApiProducts = {
   },
 
   /**
-   * PATCH /products/:id (per-product-dashboard edit, incl. round-9 specs + stock).
+   * PATCH /products/:id (per-product-dashboard edit, incl. specs + stock).
    * @param {string} id
    * @param {object} form
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async updateProduct(id, form) {
     const fail = injected();

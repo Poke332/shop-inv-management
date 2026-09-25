@@ -3,12 +3,11 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { FiChevronDown, FiLogOut, FiShoppingCart, FiUser } from 'react-icons/fi'
 
-import { useAuth } from '../contexts/AuthContext.jsx'
-import { useCart } from '../contexts/CartContext.jsx'
-import BrandMark from '../components/BrandMark.jsx'
+import { useAuth } from '../hooks/useAuth.js'
+import { useCart } from '../hooks/useCart.js'
 
 /**
- * P1 StorefrontHeader — the 56px white bar of the buyer-facing pages
+ * StorefrontHeader — the 56px white bar of the buyer-facing pages
  * (docs/main-store/design.md): logo -> /; pill search -> /search?query=;
  * cart icon with count badge (CartStore); account menu per role.
  *
@@ -22,13 +21,13 @@ import BrandMark from '../components/BrandMark.jsx'
  * to its own full-width line below (44px min — the header wraps per
  * docs/main-store/design.md).
  *
- * Consumes useAuth() + useCart() from the P1 context pair. The cart count
+ * Consumes useAuth() + useCart() from the shared context pair. The cart count
  * badge shows only when the session user is a buyer (staff+ get the
  * read-only storefront variant, which hides the cart/Cart link per the
  * main-store role-gating note in docs). The account menu routes buyer ->
  * /orders and staff/manager/admin -> their respective ops home
  * (postLoginHome).
- * @returns {import('react').ReactElement} the header + the nested Outlet.
+ * @returns {object} the header + the nested Outlet.
  */
 export default function StorefrontHeader() {
   const { user, signOut } = useAuth()
@@ -47,6 +46,11 @@ export default function StorefrontHeader() {
     setMenuOpen(false)
     signOut()
     navigate('/login', { replace: true })
+  }
+
+  const onGuestLink = (to) => {
+    setMenuOpen(false)
+    navigate(to)
   }
 
   const accountLabel = user ? user.username : 'Sign in'
@@ -76,19 +80,26 @@ export default function StorefrontHeader() {
             className="flex items-center gap-2 shrink-0"
             aria-label="Sunset Electronics — Main Store"
           >
-            <BrandMark size={32} />
-            <span className="text-card text-ink">Sunset</span>
+            <span className="text-card font-bold text-atomicTangerine-600 whitespace-nowrap">
+              Sunset Electronics
+            </span>
           </Link>
 
-          {/* desktop pill search (hidden on mobile — drops to its own row) */}
-          <form onSubmit={submitSearch} role="search" className="hidden md:block flex-1 max-w-md">
+          {/* desktop pill search (hidden on mobile — drops to its own row).
+              No max-width cap — the search bar spans the entire space between
+              the wordmark and the cart/account group. */}
+          <form onSubmit={submitSearch} role="search" className="hidden md:block flex-1">
             {searchInput}
           </form>
 
           <div className="md:ml-auto flex items-center gap-2">
-            {/* cart: item-count badge from CartStore. Hidden for staff+ —
-                the read-only storefront variant carries no cart/Cart link
-                (docs/main-store/design.md role-gating note). */}
+            {/* cart: item-count badge from the cart context. The link stays
+                visible for guests (the cart is login-gated — clicking as a
+                guest redirects to /login via RequireBuyer); the badge itself
+                only renders for a SIGNED-IN buyer, so a guest sees an
+                empty/0 badge with no session-dependent state.
+                Hidden for staff+ — the read-only storefront variant carries
+                no cart/Cart link (docs/main-store/design.md role-gating note). */}
             {!(user && user.role !== 'buyer') ? (
               <Link
                 to="/cart"
@@ -96,13 +107,15 @@ export default function StorefrontHeader() {
                 className="relative h-11 w-11 rounded-lg flex items-center justify-center text-ink"
               >
                 <FiShoppingCart size={22} />
-                {loaded && count > 0 ? (
+                {user && user.role === 'buyer' && loaded && count > 0 ? (
                   <span className="nbadge absolute -top-0.5 -right-0.5">{count}</span>
                 ) : null}
               </Link>
             ) : null}
 
-            {/* account menu: buyer -> Orders Placed; staff+ -> ops console */}
+            {/* account menu: a guest sees Sign in / Create account;
+                buyer -> Orders Placed; staff+ -> ops console. The menu is the
+                guest's entry point to the auth pair. */}
             <div className="relative">
               <button
                 type="button"
@@ -122,7 +135,11 @@ export default function StorefrontHeader() {
                       {user.username}
                       <span className="text-meta text-blueSlate-500"> · {user.role}</span>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="px-4 py-2 text-meta text-blueSlate-700">
+                      Browsing as guest
+                    </div>
+                  )}
                   {user && user.role === 'buyer' ? (
                     <NavLink
                       to="/orders"
@@ -141,14 +158,36 @@ export default function StorefrontHeader() {
                       Open ops console
                     </NavLink>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={onLogout}
-                    className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
-                  >
-                    <FiLogOut size={16} />
-                    {user ? 'Sign out' : 'Sign in'}
-                  </button>
+                  {user ? null : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => onGuestLink('/login')}
+                        className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
+                      >
+                        <FiUser size={16} />
+                        Sign in
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onGuestLink('/register')}
+                        className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
+                      >
+                        <FiUser size={16} />
+                        Create account
+                      </button>
+                    </>
+                  )}
+                  {user ? (
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
+                    >
+                      <FiLogOut size={16} />
+                      Sign out
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -166,7 +205,7 @@ export default function StorefrontHeader() {
         </form>
       </header>
 
-      {/* the routed storefront page (P3–P6 fill these slots) */}
+      {/* the routed storefront page */}
       <Outlet />
     </>
   )

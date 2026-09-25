@@ -185,6 +185,34 @@ repo/
 └─ docs/                  — the design + planning docs this tree is built from
 ```
 
+### 3.1 RBAC route table (P3.1 — guest access model)
+
+P3.1 REV 8 ruling: **the whole browse surface is guest-accessible** while the
+purchase features stay login-gated. Guards are client-side route-level
+components in `frontend/src/guards.jsx` (a sanctioned multi-export module);
+non-actors **redirect**, never 403.
+
+| Route | Guard | Who reaches it |
+|---|---|---|
+| `/` (main-store), `/search` (browse) | `RequireGuestOrBuyer` | anonymous → browse; buyer → browse; staff/manager/admin → their ops home |
+| `/products/:id` (product-details) | **public (unguarded)** | everyone; guests see variant A, staff+ see the read-only variant B (null-safe `user?.role`) |
+| `/cart`, `/checkout`, `/orders` | `RequireBuyer` | buyer; anonymous → `/login`; staff+ → their ops home |
+| `/login`, `/register` | `RequireAnon` | anonymous; signed-in → post-login home (or the guest-CTA origin, see note) |
+| `/ops/*` (7 ops routes) | `RequireOps` (+ per-route tiers) | staff/manager/admin; buyer/anonymous → post-login home / `/login` |
+
+Guard export list (all in `guards.jsx`): `postLoginHome`, `RequireUser`,
+`RequireBuyer`, `RequireOps`, `RequireAnon`, and the new `RequireGuestOrBuyer`.
+
+**Guest CTA login-redirect flow.** A guest clicking a purchase CTA ("Add to
+cart" / "Sign in to buy" on `ProductCard` / `ProductDetailsPage`) navigates to
+`/login` with `state {from: '/products/<id>', pendingAdd: <id>, buyNow: bool}`.
+On successful sign-in, `RequireAnon` owns post-login routing: when that
+`from` intent is present it returns the user to the product carrying the
+pending payload; the product page performs the deferred `addToCart` on mount
+(success toast; `buyNow` continues to `/cart`). A guest's cart badge renders
+empty (0) with **no** console error — `CartContext` hydrates from
+`mockApi.getCart()` regardless of session.
+
 ## 4. Dummy data design
 
 All sample records are exactly the data the committed mockups render (generator arrays in

@@ -39,7 +39,7 @@ const NAMED = [
     lowStockThreshold: 5,
     description: 'Active noise cancellation with ambient sound mode, Bluetooth 5.3 multipoint and up to 13 hours of battery with the charging case. IPX4 water resistance for everyday use.',
     image: '/products/p-231.png',
-    // the round-9 specs editor pre-fill — same 6 pairs as the product-details table
+    // specs editor pre-fill — same 6 pairs as the product-details table
     specs: [
       { key: 'Model', value: 'WF-C710N' },
       { key: 'Bluetooth', value: '5.3, multipoint' },

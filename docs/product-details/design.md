@@ -5,6 +5,17 @@ Matrix: "view product details" T for **all 4 roles** — this page is the only s
 page that staff/manager/admin legitimately open (e.g. to check stock or read reviews;
 moderation itself lives on the Per Product Review Panel — round 6). The two variants
 are in §INTERACTIONS.
+
+**P3.1 REV 8 (guest access):** the route is now **public** (unguarded), so
+anonymous guests reach it too — the matrix grant to "all 4 roles" is extended
+to the unauthenticated guest as well. A guest sees **variant A without the
+purchase affordances** (no quantity stepper, no "Add to cart"): instead a
+single "Sign in to buy" CTA appears in the purchase row. Clicking it
+redirects to `/login` with `state {from: '/products/<id>', pendingAdd:
+<id>, buyNow: false}`; after sign-in the login's pendingAdd return flow
+(docs/login) lands back on this product, which performs the deferred
+`addToCart` on mount (success toast). Staff/manager/admin still see variant
+B, keyed on the null-safe `user?.role` check.
 Typography & spacing per `docs/design-tokens-round3.md` (Roboto 400/500/600, 8pt grid,
 unified pill badges, filled CTA stack).
 

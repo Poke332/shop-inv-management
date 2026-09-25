@@ -6,6 +6,13 @@
  * buyer_311 2★ hidden + replacement comment). The other 124 are synthesized so the
  * distribution yields avg 4.3 / 128.
  *
+ * The newest-first public list must LEAD with the §4.2 sample rows so the
+ * product-details "one public review with seller comment" (the committed mockup's
+ * visible row, buyer_102 + "Thanks — firmware 2.1 improved ANC.") renders. The
+ * synthesized set spans 02–28 Sep, so the two public sample rows are dated just
+ * past that range (30 / 29 Sep); counts, average, hidden state, and the 409-review
+ * contract are unchanged (smoke.test.js stays 32/32).
+ *
  * @typedef {Object} SellerComment
  * @property {string} text
  * @property {string} at
@@ -22,7 +29,6 @@
  * @property {string} createdAt  "12 Sep 2026"
  */
 
-/** @type {import('./products.js').Product} */
 // The P-231 id is referenced here; the store wires the two.
 const PRODUCT_ID = 'P-231';
 
@@ -31,14 +37,14 @@ const SAMPLES = [
   {
     id: 'R-0001', productId: PRODUCT_ID, buyer: 'buyer_102', orderId: '#WB-0987',
     rating: 4, body: 'Solid build, ANC keeps up on the train…', state: 'public',
-    sellerComment: { text: 'Thanks — firmware 2.1 improved ANC.', at: '14 Sep' },
-    createdAt: '12 Sep 2026',
+    sellerComment: { text: 'Thanks — firmware 2.1 improved ANC.', at: '30 Sep' },
+    createdAt: '30 Sep 2026',
   },
   {
     id: 'R-0002', productId: PRODUCT_ID, buyer: 'buyer_207', orderId: '#WB-0951',
     rating: 5, body: 'Fast charge, great for travel', state: 'public',
-    sellerComment: { text: 'We ship the 20 000 mAh variant — 36 h max.', at: '15 Sep' },
-    createdAt: '11 Sep 2026',
+    sellerComment: { text: 'We ship the 20 000 mAh variant — 36 h max.', at: '29 Sep' },
+    createdAt: '29 Sep 2026',
   },
   {
     id: 'R-0003', productId: PRODUCT_ID, buyer: 'buyer_348', orderId: '#WB-0922',
