@@ -9,24 +9,23 @@ import { CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast } from '../utils/ut
 import { TileGlyph } from './TileGlyph.jsx'
 
 /**
- * The round-11 product card (docs/main-store "ProductGrid + ProductCard").
+ * The product card (docs/main-store "ProductGrid + ProductCard").
  * Tile = image asset when the product carries one (`image` field starting
  * with "/products/" / "/img/"), else the category-keyed gradient tile with
  * its glyph; out of stock dims the tile and flips both CTAs to disabled.
  * Single export (code-org rule: one component per file; helpers in utils).
- * P3.1 REV 5: the CTA row is a guaranteed single line — both labels
- * whitespace-nowrap, no flex-wrap, flex-1 pair; on mobile (<640px) the
- * Add-to-cart leading FiPlus icon drops and both buttons go text-sm so
- * "Buy now" + "Add to cart" both fit one line at 390px. P3.1 REV 8: an
- * anonymous (guest) session's CTA click redirects to /login carrying
- * {from, pendingAdd, buyNow} — the product page performs the deferred add
- * on mount after sign-in.
+ * The CTA row is a guaranteed single line — both labels whitespace-nowrap,
+ * no flex-wrap, flex-1 pair; on mobile (<640px) the Add-to-cart leading
+ * FiPlus icon drops and both buttons go text-sm so "Buy now" + "Add to
+ * cart" both fit one line at 390px. An anonymous (guest) session's CTA
+ * click redirects to /login carrying {from, pendingAdd, buyNow} — the
+ * product page performs the deferred add on mount after sign-in.
  * @param {object} p  a product record (mockApi shape).
  * @param {function} [onBuy]  custom "Buy now" override (default = add qty 1 +
  *   navigate to /cart, per the CTA-target decision in the main-store doc).
  * @param {function} [onAdd]  custom "Add to cart" override (default = the
  *   optimistic in-place add below, with the ~600ms willowGreen check flash).
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function ProductCard({ p, onBuy, onAdd }) {
   const navigate = useNavigate()
@@ -36,6 +35,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const flashTimer = useRef(null)
   const [imgOk, setImgOk] = useState(true)
 
+  // cancel the ~600ms add-flash timer on unmount (avoids setState after unmount)
   useEffect(
     () => () => {
       if (flashTimer.current) clearTimeout(flashTimer.current)
@@ -48,7 +48,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const tileClass = `${CATEGORY_TILE[p.category] || 'tile-fallback'}${oos ? ' tile-outstock' : ''}`
   const hasImage = /^\/(products|img)\//.test(p.image || '') && imgOk
 
-  // P3.1 REV 8: guests (user === null) can browse, but the purchase CTAs are
+  // guests (user === null) can browse, but the purchase CTAs are
   // login-gated — click lands on /login with the deferred-add payload.
   const guestCta = (buyNow) => () => {
     navigate('/login', {
@@ -100,6 +100,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
             alt={p.name}
             loading="lazy"
             className="absolute inset-0 w-full h-full object-cover"
+            // image load failed -> fall back to the category tile
             onError={() => setImgOk(false)}
           />
         ) : (

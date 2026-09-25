@@ -28,7 +28,7 @@ function NavItem({ to, label, badge, annotation, end }) {
 }
 
 /**
- * P1 OpsShell — the shared v4 layout wrapper for every /ops/* route
+ * OpsShell — the shared layout wrapper for every /ops/* route
  * (docs/control-panel/IMPLEMENTATION.md + design.md QA):
  *
  *   <div class="ops-shell">          flex row, min-height 100dvh
@@ -47,7 +47,7 @@ function NavItem({ to, label, badge, annotation, end }) {
  * control-panel spec's staff read-only view — see the decision #8 note).
  * nbadge counts read lazily from the same mockApi feeds the pages use
  * (Ongoing Orders = open pending+processing; Inventory = items at/below
- * threshold) — a shared "counts" fetch is P7, not the shell.
+ * threshold) — a shared "counts" fetch is out of scope for the shell.
  *
  * The mobile topbar is inline (<header class="ops-topbar">: 44px menu
  * button + sign-out row), not a separate component — it renders only
@@ -56,8 +56,8 @@ function NavItem({ to, label, badge, annotation, end }) {
  * Route context: every /ops/* route nests inside this shell under
  * RequireOps (+ the per-route role tiers in router.jsx). Consumes useAuth
  * for the role-gated nav rows; the drawer state is in-page (mobile).
- * @returns {import('react').ReactElement} the .ops-shell (topbar + sidebar +
- *   .ops-content gutter wrapping the nested <Outlet/>).
+ * @returns {object} the .ops-shell (topbar + sidebar + .ops-content
+ *   gutter wrapping the nested <Outlet/>).
  */
 export default function OpsShell() {
   const { user, signOut } = useAuth()

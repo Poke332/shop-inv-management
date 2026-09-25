@@ -2,7 +2,7 @@
  * Static card skeletons (no shimmer, docs §4 loading state).
  * One component per file (code-org rule).
  * @param {number} [n]  how many skeletons (default 8).
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function ProductCardSkeleton({ n = 8 }) {
   return (

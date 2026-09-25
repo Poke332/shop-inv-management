@@ -1,5 +1,5 @@
 /**
- * P1 SunLogo / BrandMark — the pure-CSS "Sunset Glow" sun mark
+ * BrandMark — the pure-CSS "Sunset Glow" sun mark
  * (docs/login/IMPLEMENTATION.md decision: a circle with a two-stop tuscanSun
  * radial gradient + 6–8 short 2px tuscanSun-500 ray strokes; no asset file,
  * no icon — a React Icon would only be a static glyph, not a sunmark).
@@ -13,7 +13,7 @@
  * @param {boolean} [rays]  draw the 8 ray strokes (default false — the small
  *   marks stay tight).
  * @param {string} [className]  extra utility classes on the mark's box.
- * @returns {import('react').ReactElement} the aria-hidden mark.
+ * @returns {object} the aria-hidden mark.
  */
 export default function BrandMark({ size = 96, rays = false, className = '' }) {
   const sun = size

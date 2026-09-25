@@ -6,21 +6,21 @@ import { mockApi } from '../data'
 import { ProductGrid } from '../components/ProductGrid.jsx'
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton.jsx'
 
-/** First 8 items = 4 FEATURED + first-4 SHOP_ALL (the round-11 2 desktop rows). */
+/** First 8 items = 4 FEATURED + first-4 SHOP_ALL (2 desktop rows). */
 const HOME_SLICE = 8
 
 /**
- * P3 main-store page (docs/main-store/IMPLEMENTATION.md): full-bleed hero
+ * Main-store page (docs/main-store/IMPLEMENTATION.md): full-bleed hero
  * banner -> 3x2 category image grid (deep-links /search?category=<slug>) ->
  * "Our Products" 8-item preview with "See more" on the heading row (right
- * side; full-width on <768 where the row stacks). P3.1 REV 4: "See more"
- * navigates to /search (the browse page) — the in-place load-more state was
- * removed; the section always previews the first 8 items. P3.1 REV 3: the
- * hero height is svh-based (viewport minus the 56px header) so its bottom
- * edge lands at the display bottom with no bleed past the first fold.
- * Section order per round-11: header -> hero (full-bleed, outside the
- * centered container) -> "Browse by category" -> "Our Products".
- * P3.1 REV 8: route / is guest-or-buyer (RequireGuestOrBuyer).
+ * side; full-width on <768 where the row stacks). "See more" navigates to
+ * /search (the browse page) — the in-place load-more state was removed; the
+ * section always previews the first 8 items. The hero height is svh-based
+ * (viewport minus the 56px header) so its bottom edge lands at the display
+ * bottom with no bleed past the first fold.
+ * Section order: header -> hero (full-bleed, outside the centered container)
+ * -> "Browse by category" -> "Our Products".
+ * Route / is guest-or-buyer (RequireGuestOrBuyer).
  */
 export default function HomePage() {
   const navigate = useNavigate()
@@ -61,10 +61,9 @@ export default function HomePage() {
   return (
     <>
       {/* ---- full-bleed hero (edge-to-edge, outside the .page container) ----
-          P3.1 REV 3: svh-based height = viewport minus the 56px sticky header
-          so the hero bottom edge lands at the display bottom (no bleed past
-          the first fold). The image-failure fallback keeps the same svh
-          height (the old h-40 is gone). */}
+          svh-based height = viewport minus the 56px sticky header, so the
+          hero bottom edge lands at the display bottom (no bleed past the
+          first fold). The image-failure fallback keeps the same svh height. */}
       <div
         className={`relative w-full overflow-hidden mb-section-rhythm ${heroOk ? '' : 'bg-[var(--atomicTangerine-50)]'}`}
         style={{ height: 'calc(100svh - 4rem)' }}
@@ -113,7 +112,7 @@ export default function HomePage() {
       </div>
 
       <div className="page pb-section-rhythm">
-        {/* ---- Browse by category: 3x2 image grid (round-11) ---- */}
+        {/* ---- Browse by category: 3x2 image grid ---- */}
         <section aria-labelledby="browse-category" className="mb-section-rhythm">
           <h2
             id="browse-category"
@@ -121,7 +120,7 @@ export default function HomePage() {
           >
             Browse by category
           </h2>
-          {/* round-11: 3×2 image grid on desktop; a horizontal-scroll rail
+          {/* 3×2 image grid on desktop; a horizontal-scroll rail
                (tile min-width 320px, 24px gutter) on mobile <768 */}
           <div className="flex gap-card-gutter overflow-x-auto pb-1 md:grid md:grid-cols-3">
             {[
@@ -159,8 +158,8 @@ export default function HomePage() {
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-section-label-gap">
             <h2 className="text-section text-ink tracking-[0.05em]">Our Products</h2>
-            {/* P3.1 REV 4: "See more" links to the browse page (/search) —
-                the in-place load-more state was removed. */}
+            {/* "See more" links to the browse page (/search) — the in-place
+                load-more state was removed. */}
             <button
               type="button"
               className="btn-primary btn-loadmore"

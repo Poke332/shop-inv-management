@@ -9,15 +9,16 @@ import {
 } from 'react-icons/fi'
 
 /*
- * P0 token smoke page.
+ * Token smoke page.
  *
  * Purpose (not a shipping page): prove on the live dev server that the full
  * Tailwind theme extension + the CSS component layer compiled and resolved.
  * It renders the 60:30:10 ground, the type scale, the 7-color x 11-step scale,
- * semantic aliases, and every component-layer class from docs/design-tokens-round3.md
- * + docs/control-panel/design.md (v4 ops-shell gutter). P1 moved this to
- * /dev/token-smoke (this file) and added the real 14-route tree in
- * src/router.jsx; it stays available in dev as the theme-pipeline proof.
+ * semantic aliases, and every component-layer class from the design-tokens
+ * reference (docs/design-tokens*.md) + docs/control-panel/design.md
+ * (the ops-shell gutter). The route tree in
+ * src/router.jsx keeps this available at /dev/token-smoke as the
+ * theme-pipeline proof.
  *
  * Discipline check baked into the markup (gate references):
  *   - no out-of-scale hex (all color via token keys)
@@ -64,11 +65,12 @@ function ScaleSwatches() {
 }
 
 /**
- * Route /dev/token-smoke — dev-only theme-pipeline proof (P0, `import.meta.env.DEV`
- * in router.jsx; not part of the 14-route table). Renders the 60:30:10 ground,
+ * Route /dev/token-smoke — dev-only theme-pipeline proof
+ * (`import.meta.env.DEV` in router.jsx; not part of the 14-route table).
+ * Renders the 60:30:10 ground,
  * the type scale, the 7x11 scale swatches, semantic aliases, and every
  * component-layer class (buttons, badges, tiles, skeletons, receipt table) +
- * the ops-shell v4 gutter proof, from the file doc above.
+ * the ops-shell gutter proof, from the file doc above.
  */
 export default function TokenSmokePage() {
   return (
@@ -77,7 +79,7 @@ export default function TokenSmokePage() {
       <div className="bg-canvas border border-blueSlate-200 rounded-lg p-card-padding">
         <h1 className="text-h1 font-h1 text-ink">Sunset Electronics</h1>
         <p className="text-section text-inkMuted mt-section-label-gap">
-          P0 scaffold - token theme smoke test
+          Dev-only page - token theme smoke test
         </p>
 
         {/* type scale (text-* carry the size+weight hierarchy; font-* are the
@@ -208,9 +210,9 @@ export default function TokenSmokePage() {
           </div>
         </section>
 
-        {/* ops-shell v4 gutter proof */}
+        {/* ops-shell gutter proof */}
         <section className="mt-section-rhythm">
-          <h2 className="text-section text-ink">Ops shell v4 (230px sidebar + --ops-page-pad gutter)</h2>
+          <h2 className="text-section text-ink">Ops shell (230px sidebar + --ops-page-pad gutter)</h2>
           <div className="mt-section-label-gap">
             <div className="ops-shell border border-blueSlate-200 rounded-lg overflow-hidden">
               <aside className="ops-sidebar" aria-label="Ops navigation">

@@ -14,7 +14,7 @@ import { CATEGORY_LABEL, formatIdr } from '../utils/utils.js'
  *          priceMin?: number, priceMax?: number,
  *          onRemove: (key: string, value?: string) => void,
  *          onClearAll: () => void}} props
- * @returns {import('react').ReactElement} the chip row, or null when idle.
+ * @returns {object} the chip row, or null when idle.
  */
 export function FilterChips({ query, category, brands, priceMin, priceMax, onRemove, onClearAll }) {
   const hasAny =

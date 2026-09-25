@@ -3,16 +3,16 @@ import { createContext, useCallback, useMemo, useState } from 'react'
 import { postLoginHome } from '../guards.jsx'
 
 /**
- * P1 AuthContext (docs/login/IMPLEMENTATION.md "Surviving state"): the session
+ * AuthContext (docs/login/IMPLEMENTATION.md "Surviving state"): the session
  * user + role for the lifetime of the session. Drives every route guard and
- * the header account menu. Built from mockApi.login/register (P2) — the
+ * the header account menu. Built from mockApi.login/register — the
  * session persists across refresh via sessionStorage so back/refresh on any
  * page keeps the user signed in.
  *
- * P3.1 REV 10 (code-org rule: one custom hook per file): the useAuth
- * accessor moved to src/hooks/useAuth.js — this module keeps the context +
- * provider co-located (sanctioned multi-export module). Consumers import
- * useAuth from ../hooks/useAuth.js.
+ * Code-org rule (one custom hook per file): the useAuth accessor lives in
+ * src/hooks/useAuth.js — this module keeps the context + provider co-located
+ * (sanctioned multi-export module). Consumers import useAuth from
+ * ../hooks/useAuth.js.
  */
 const SESSION_KEY = 'sunset.session'
 
@@ -36,9 +36,10 @@ function readSession() {
  * Session provider: the user + role every guard, header menu, and page
  * reads. signIn persists {username, role} to sessionStorage and returns
  * the post-login home; signOut clears the session.
- * @param {{children: import('react').ReactNode}} props
+ * @param {{children: object}} props
  */
 export function AuthProvider({ children }) {
+  // useState(readSession): the sessionStorage session hydrates on mount, so refresh keeps the user signed in
   const [session, setSession] = useState(readSession)
 
   const signIn = useCallback((user, role) => {

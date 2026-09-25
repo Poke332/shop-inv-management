@@ -13,7 +13,7 @@ import { TileGlyph } from './TileGlyph.jsx'
  * thumb carries the 2px atomicTangerine-500 ring. P-231 renders 3 thumbs.
  * A swap is announced via aria-live. One component per file (code-org rule).
  * @param {object} product  the product record.
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function ProductImageGallery({ product }) {
   const [selected, setSelected] = useState(0)

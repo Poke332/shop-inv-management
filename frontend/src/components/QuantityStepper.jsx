@@ -3,7 +3,7 @@
  * stock, "+" disabled at max). One component per file (code-org rule).
  * @param {number} value  @param {number} min  @param {number} max
  * @param {(n:number)=>void} onChange
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function QuantityStepper({ value, min, max, onChange }) {
   return (

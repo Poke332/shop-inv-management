@@ -5,7 +5,7 @@ import { formatIdr } from '../utils/utils.js'
  * range inputs overlaid on one track — min clamped so it can never exceed
  * max (dragging min past max snaps min back to max; dragging max below min
  * snaps max back to min), so the effective range is always [min, max].
- * P3.1 REV 6: a visible 4px rail (blueSlate-200 base) renders BEHIND the
+ * A visible 4px rail (blueSlate-200 base) renders BEHIND the
  * two knobs, with the selected min→max span filled atomicTangerine-500 —
  * fill % computed from the current min/max against floor/ceil. Thumbs
  * disabled while a request is in flight; visible values = the clamped ones.
@@ -14,7 +14,7 @@ import { formatIdr } from '../utils/utils.js'
  * @param {{min: number, max: number, floor: number, ceil: number,
  *          step: number, busy: boolean,
  *          onChange: (min: number, max: number) => void}} props
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function PriceRange({ min, max, floor, ceil, step, busy, onChange }) {
   const setMin = (v) => {
@@ -25,7 +25,7 @@ export function PriceRange({ min, max, floor, ceil, step, busy, onChange }) {
     const n = Math.max(v, min) // never drop below min
     onChange(min, n)
   }
-  // P3.1 REV 6: the fill bar's span as % of the track (floor -> ceil).
+  // The fill bar's span as % of the track (floor -> ceil).
   const span = ceil - floor
   const fillLeft = span > 0 ? ((min - floor) / span) * 100 : 0
   const fillRight = span > 0 ? ((ceil - max) / span) * 100 : 0
@@ -41,6 +41,9 @@ export function PriceRange({ min, max, floor, ceil, step, busy, onChange }) {
             style={{ left: `${fillLeft}%`, right: `${fillRight}%` }}
           />
         </div>
+  // dual range: two full-width native inputs stacked over the track;
+  // pointer-events-none on the inputs keeps the track free for the fill bar,
+  // re-enabled only on the thumbs ([&::-webkit-slider-thumb]:pointer-events-auto)
         <input
           type="range"
           min={floor}

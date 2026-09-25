@@ -6,13 +6,17 @@
  * Totals recompute from the store: total = public + hidden; the average INCLUDES
  * hidden reviews (the v1 data-layer decision, §4.1 note / §1 V1 decisions).
  * getProductReviews is the public list only — hidden reviews never render on
- * Product Details (round-6).
+ * Product Details.
  */
 
 import { storeReviews, storeSetReviewHidden, storeSetSellerComment } from '../store.js';
 
 const delay = () => new Promise((res) => setTimeout(res, 150 + Math.floor(Math.random() * 200)));
 
+/** Per-section failure-injection flag: set `.on = true` to make the NEXT
+ * call of this section reject (the "error" mockup states are exercisable).
+ * @type {{on: boolean}}
+ */
 export const failure = { on: false };
 function injected() {
   if (failure.on) {
@@ -38,6 +42,11 @@ function productReviewStats(productId) {
   return { total, public: publicCount, hidden: hiddenCount, average };
 }
 
+/**
+ * The reviews section of the mockApi facade (ARCHITECTURE §4.3):
+ * getProductReviews / getProductReviewsAll / setReviewHidden / setSellerComment.
+ * @type {object}
+ */
 export const mockApiReviews = {
   /**
    * GET /products/:id/reviews — product-details review list.
@@ -76,7 +85,7 @@ export const mockApiReviews = {
    * PATCH /reviews/:id/hidden — review panel Hide/Unhide toggle.
    * @param {string} reviewId
    * @param {boolean} hidden
-   * @returns {Promise<import('../seed/reviews.js').Review>}
+   * @returns {Promise<object>}
    */
   async setReviewHidden(reviewId, hidden) {
     const fail = injected();
@@ -95,7 +104,7 @@ export const mockApiReviews = {
    * PUT /reviews/:id/seller-comment — review panel SellerCommentComposer.
    * @param {string} reviewId
    * @param {string} text  empty string clears the comment
-   * @returns {Promise<import('../seed/reviews.js').Review>}
+   * @returns {Promise<object>}
    */
   async setSellerComment(reviewId, text) {
     const fail = injected();

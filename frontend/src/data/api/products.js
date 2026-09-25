@@ -34,9 +34,11 @@ function injected() {
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
 /**
+ * Apply the search-browse filter (query / category / brand / price bounds / sort)
+ * to the live products slice.
  * @param {{query?:string, category?:string, brand?:string, priceMin?:number,
  *         priceMax?:number, sort?:string}} [filter]
- * @returns {Promise<{items: Array<import('../seed/products.js').Product>, total:number, hasMore:boolean}>}
+ * @returns {Promise<{items: object[], total: number, hasMore: boolean}>}
  */
 function applyFilter(filter) {
   let items = [...storeProducts];
@@ -73,6 +75,11 @@ function applyFilter(filter) {
   return items;
 }
 
+/**
+ * The products section of the mockApi facade (ARCHITECTURE §4.3):
+ * getProducts / getProduct / createProduct / updateProduct.
+ * @type {object}
+ */
 export const mockApiProducts = {
   /**
    * GET /products?query&category&brand&priceMin&priceMax&sort
@@ -96,7 +103,7 @@ export const mockApiProducts = {
   /**
    * GET /products/:id — product-details.
    * @param {string} id
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async getProduct(id) {
     const fail = injected();
@@ -114,7 +121,7 @@ export const mockApiProducts = {
   /**
    * POST /products (per-product-dashboard create). Form includes specs pairs + stock.
    * @param {object} form
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async createProduct(form) {
     const fail = injected();
@@ -124,10 +131,10 @@ export const mockApiProducts = {
   },
 
   /**
-   * PATCH /products/:id (per-product-dashboard edit, incl. round-9 specs + stock).
+   * PATCH /products/:id (per-product-dashboard edit, incl. specs + stock).
    * @param {string} id
    * @param {object} form
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async updateProduct(id, form) {
     const fail = injected();

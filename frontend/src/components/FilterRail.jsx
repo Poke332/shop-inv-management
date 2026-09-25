@@ -12,13 +12,12 @@ import { PriceRange } from './PriceRange.jsx'
  * (code-org rule); the rail renders from props the page derives from the
  * URL.
  * @param {{categories: string[], brands: string[], activeBrands: string[],
- *          category: string|null,
- *          priceMin: number, priceMax: number, floor: number, ceil: number,
- *          step: number, busy: boolean,
+ *          category: string|null, priceMin: number, priceMax: number,
+ *          floor: number, ceil: number, step: number, busy: boolean,
  *          onCategory: (slug: string|null) => void,
  *          onBrand: (brand: string) => void,
  *          onPrice: (min: number, max: number) => void}} props
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function FilterRail({
   categories,

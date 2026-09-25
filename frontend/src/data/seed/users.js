@@ -70,6 +70,11 @@ export const credentials = [
   { case: 'duplicate email (register 409)', username: 'rian_w', role: 'buyer', email: 'rian@mock.local', password: 'sunset123', result: 'register with any existing email (e.g. rian@mock.local) → 409 duplicate' },
 ];
 
+/**
+ * The user-count contract asserted by the smoke test: 128 users total
+ * (3 staff + 2 managers + 1 admin + the rest buyers).
+ * @type {object}
+ */
 export const USERS_CONTRACT = {
   total: users.length, // 128
   staff: users.filter((u) => u.role === 'staff').length, // 3

@@ -57,10 +57,9 @@ export function discountPercent(p) {
 }
 
 /**
- * Toast seam (P7 owns the global toast system; P3 fires these on the two
- * cart-write paths). `fireToast({ tone, text, actionLabel, to })` posts a
- * window event the StorefrontLayout host renders; both callers (card
- * add-to-cart, product-details add) share the host.
+ * Toast seam: `fireToast({ tone, text, actionLabel, to })` posts a window
+ * event that the StorefrontLayout host renders. Both callers (the card
+ * add-to-cart and the product-details add) share that host.
  * @param {{tone:'success'|'error', text:string, actionLabel?:string, to?:string}} t
  */
 export function fireToast(t) {

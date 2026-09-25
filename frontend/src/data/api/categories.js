@@ -25,6 +25,11 @@ function injected() {
   return null;
 }
 
+/**
+ * The categories section of the mockApi facade (ARCHITECTURE §4.3 — the
+ * one extra: static domain content): getCategories.
+ * @type {object}
+ */
 export const mockApiCategories = {
   /** GET /categories (static seed; §4.3 "used by": main-store category tiles) */
   async getCategories() {

@@ -4,7 +4,7 @@
  * file (code-org rule).
  * @param {number} value  0–5.
  * @param {number} [count]  optional review count to render after the stars.
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function StarRating({ value, count }) {
   const full = Math.floor(value)
@@ -40,6 +40,7 @@ export function StarRating({ value, count }) {
               <span className="absolute inset-0">{star(true, i)}</span>
             ) : null}
             {i === full && half ? (
+              // half star: the filled star is clipped to 50% width over the empty one
               <span className="absolute inset-0 overflow-hidden" style={{ width: '50%' }}>
                 <span className="absolute inset-0">{star(true, i)}</span>
               </span>

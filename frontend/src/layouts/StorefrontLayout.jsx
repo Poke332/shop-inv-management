@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { useCart } from '../hooks/useCart.js'
 
 /**
- * P1 StorefrontHeader — the 56px white bar of the buyer-facing pages
+ * StorefrontHeader — the 56px white bar of the buyer-facing pages
  * (docs/main-store/design.md): logo -> /; pill search -> /search?query=;
  * cart icon with count badge (CartStore); account menu per role.
  *
@@ -21,13 +21,13 @@ import { useCart } from '../hooks/useCart.js'
  * to its own full-width line below (44px min — the header wraps per
  * docs/main-store/design.md).
  *
- * Consumes useAuth() + useCart() from the P1 context pair. The cart count
+ * Consumes useAuth() + useCart() from the shared context pair. The cart count
  * badge shows only when the session user is a buyer (staff+ get the
  * read-only storefront variant, which hides the cart/Cart link per the
  * main-store role-gating note in docs). The account menu routes buyer ->
  * /orders and staff/manager/admin -> their respective ops home
  * (postLoginHome).
- * @returns {import('react').ReactElement} the header + the nested Outlet.
+ * @returns {object} the header + the nested Outlet.
  */
 export default function StorefrontHeader() {
   const { user, signOut } = useAuth()
@@ -86,8 +86,8 @@ export default function StorefrontHeader() {
           </Link>
 
           {/* desktop pill search (hidden on mobile — drops to its own row).
-              P3.1 REV 1: no max-width cap — the search bar spans the entire
-              space between the wordmark and the cart/account group. */}
+              No max-width cap — the search bar spans the entire space between
+              the wordmark and the cart/account group. */}
           <form onSubmit={submitSearch} role="search" className="hidden md:block flex-1">
             {searchInput}
           </form>
@@ -97,7 +97,7 @@ export default function StorefrontHeader() {
                 visible for guests (the cart is login-gated — clicking as a
                 guest redirects to /login via RequireBuyer); the badge itself
                 only renders for a SIGNED-IN buyer, so a guest sees an
-                empty/0 badge with no session-dependent state (P3.1 REV 8).
+                empty/0 badge with no session-dependent state.
                 Hidden for staff+ — the read-only storefront variant carries
                 no cart/Cart link (docs/main-store/design.md role-gating note). */}
             {!(user && user.role !== 'buyer') ? (
@@ -113,7 +113,7 @@ export default function StorefrontHeader() {
               </Link>
             ) : null}
 
-            {/* account menu: P3.1 REV 8 — a guest sees Sign in / Create account;
+            {/* account menu: a guest sees Sign in / Create account;
                 buyer -> Orders Placed; staff+ -> ops console. The menu is the
                 guest's entry point to the auth pair. */}
             <div className="relative">
@@ -205,7 +205,7 @@ export default function StorefrontHeader() {
         </form>
       </header>
 
-      {/* the routed storefront page (P3–P6 fill these slots) */}
+      {/* the routed storefront page */}
       <Outlet />
     </>
   )

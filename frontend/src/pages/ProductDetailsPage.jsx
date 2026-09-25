@@ -13,8 +13,8 @@ import { StarRating } from '../components/StarRating.jsx'
 import { QuantityStepper } from '../components/QuantityStepper.jsx'
 
 /**
- * P3 product-details page (docs/product-details/IMPLEMENTATION.md). P3.1
- * REV 8: the route is now PUBLIC (guests see variant A; staff+ still see
+ * Product-details page (docs/product-details/IMPLEMENTATION.md). The
+ * route is PUBLIC (guests see variant A; staff+ still see
  * variant B — every role read is null-safe via user?.role). A guest's
  * "Add to cart" CTA redirects to /login carrying {from, pendingAdd, buyNow};
  * the product page returns after sign-in and performs the deferred add on
@@ -26,10 +26,10 @@ import { QuantityStepper } from '../components/QuantityStepper.jsx'
  * spec table); ReviewList = PUBLIC reviews only (hidden never render but
  * count in the "Reviews (128)" total); stock line states (in-stock
  * willowGreen / 1–5 "Only N left" / 0 out-of-stock) per the doc; AddToCart
- * is wired to the P2 cart module via mockApi.addToCart + the cart context's
- * refresh (the P1 seam), firing the "Added — View cart" toast.
+ * is wired to the cart module via mockApi.addToCart + the cart context's
+ * refresh, firing the "Added — View cart" toast.
  *
- * Route /products/:id — PUBLIC (P3.1 REV 8); back link is history-aware
+ * Route /products/:id — PUBLIC; back link is history-aware
  * (falls back to /). Page-local state (selected thumb, quantity) resets on
  * navigation; the quantity chosen here seeds the cart line.
  */
@@ -50,7 +50,7 @@ export default function ProductDetailsPage() {
   const isBuyer = user?.role === 'buyer'
   const isGuest = user === null
 
-  // P3.1 REV 8: guest CTA return flow — after sign-in, location.state
+  // guest CTA return flow — after sign-in, location.state
   // carries {pendingAdd, buyNow}. The page mounts with the product already
   // known (same id), so fire the deferred add once the product lands; the
   // buyNow variant continues to /cart after the add.
@@ -97,7 +97,7 @@ export default function ProductDetailsPage() {
       fireToast({ tone: 'success', text: 'Added — View cart', actionLabel: 'View cart', to: '/cart' })
       if (buyNow) navigate('/cart')
     } catch {
-      // P4 owns the full cart; on failure clamp qty to the live stock and
+      // on failure clamp qty to the live stock and
       // report the error per the doc.
       setQty(Math.min(q, p.stock))
       fireToast({ tone: 'error', text: "Couldn't add to cart — stock changed. Reload." })
@@ -222,7 +222,7 @@ export default function ProductDetailsPage() {
 
             {/* variant B extra links (staff/manager/admin ONLY — a guest is
                 user === null and must not see them; null-safe user?.role
-                reads throughout, P3.1 REV 8) */}
+                reads throughout) */}
             {user && user.role !== 'buyer' ? (
               <>
                 <Link to={user.role === 'staff' ? '/ops/orders' : `/ops/products/${id}/edit`} className="text-meta font-medium text-atomicTangerine-600 hover:underline">
@@ -238,7 +238,7 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* buyer purchase row: quantity stepper + Add to Cart. Variant B
-              (staff+) removes both. P3.1 REV 8: a guest gets a single
+              (staff+) removes both. A guest gets a single
               "Sign in to buy" CTA that carries the deferred-add payload to
               /login — the guest sees variant A otherwise (no stepper). */}
           {isBuyer ? (

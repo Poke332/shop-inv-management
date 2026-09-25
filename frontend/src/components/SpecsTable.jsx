@@ -1,12 +1,12 @@
 /**
- * The round-9 spec table (docs/product-details "SpecsTable"): a 2-col
+ * The spec table (docs/product-details "SpecsTable"): a 2-col
  * key/value grid, 1px blueSlate-200 borders, 10px radius. The pairs ride
  * on the product record (`specs: [{ key, value }]`, ordered) — P-231 carries
  * the 6 pairs Model / Bluetooth / Battery / ANC / IP rating / Weight.
  * Empty when the record has no spec pairs (nothing renders). One component
  * per file (code-org rule).
- * @param {Array<{key: string, value: string}>} specs  the ordered pairs.
- * @returns {import('react').ReactElement}
+ * @param {object[]} specs  the ordered {key, value} pairs.
+ * @returns {object}
  */
 export function SpecsTable({ specs }) {
   if (!specs || specs.length === 0) return null

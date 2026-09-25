@@ -28,6 +28,10 @@ import {
 
 const delay = () => new Promise((res) => setTimeout(res, 150 + Math.floor(Math.random() * 200)));
 
+/** Per-section failure-injection flag: set `.on = true` to make the NEXT
+ * call of this section reject (the "error" mockup states are exercisable).
+ * @type {{on: boolean}}
+ */
 export const failure = { on: false };
 function injected() {
   if (failure.on) {
@@ -45,13 +49,18 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 const MOCK_BUYERS = ['jordan.wjy', 'buyer_102'];
 const ORDER_FLOW = ['pending', 'processing', 'shipped', 'delivered'];
 
+/**
+ * The orders section of the mockApi facade (ARCHITECTURE §4.3):
+ * createOrder / getMyOrders / submitReview / getOrders / advanceOrderStatus.
+ * @type {object}
+ */
 export const mockApiOrders = {
   /**
    * POST /orders — checkout.
    * @param {{id:string, buyer?:string, buyerContact?:object, shippingAddress?:object,
-   *         paymentMethod:string, lines: Array<{productId:string, qty:number}>,
+   *         paymentMethod:string, lines: object[],
    *         shipping?:number}} payload
-   * @returns {Promise<import('../seed/orders.js').Order>} rejects 409 on stock
+   * @returns {Promise<object>} rejects 409 on stock
    *   conflict (err.code = 'STOCK_CONFLICT', err.conflicts = [{productId, available, requested}]).
    */
   async createOrder(payload) {
@@ -115,7 +124,7 @@ export const mockApiOrders = {
 
   /**
    * GET /orders/mine — orders-placed (the mock buyer's history, newest first).
-   * @returns {Promise<import('../seed/orders.js').Order[]>}
+   * @returns {Promise<object[]>}
    */
   async getMyOrders() {
     const fail = injected();
@@ -134,7 +143,7 @@ export const mockApiOrders = {
    * @param {string} productId
    * @param {number} rating  1–5
    * @param {string} [comment]
-   * @returns {Promise<import('../seed/reviews.js').Review>}
+   * @returns {Promise<object>}
    */
   async submitReview(orderId, productId, rating, comment) {
     const fail = injected();
@@ -153,7 +162,7 @@ export const mockApiOrders = {
       orderId: `#${orderId}`,
       rating,
       body: comment || '',
-      state: 'public', // round-6: public on submission (auto-approve)
+      state: 'public', // public on submission (auto-approve)
       createdAt: nowStamp(),
     };
     storeSubmitReview(review, orderId);
@@ -164,7 +173,7 @@ export const mockApiOrders = {
    * GET /ops/orders?status= — ongoing-orders queue (staff/manager/admin).
    * @param {string} [statusTab]  "pending" | "processing" | "shipped" | "delivered";
    *   undefined/"all" = the full queue.
-   * @returns {Promise<{items: object[], tabs: Record<string, number>}>}
+   * @returns {Promise<{items: object[], tabs: object}>}
    */
   async getOrders(statusTab) {
     const fail = injected();
@@ -182,7 +191,7 @@ export const mockApiOrders = {
    * PATCH /orders/:id/status — forward-only v1 (pending → processing → shipped → delivered).
    * @param {string} id
    * @param {string} status  the NEXT status in the machine
-   * @returns {Promise<import('../seed/orders.js').Order>}
+   * @returns {Promise<object>}
    */
   async advanceOrderStatus(id, status) {
     const fail = injected();

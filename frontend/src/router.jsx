@@ -30,7 +30,7 @@ import {
 } from './pages/OpsPages.jsx'
 
 /**
- * P1 — the single route tree (docs/IMPLEMENTATION.md §route table, the source
+ * The single route tree (docs/IMPLEMENTATION.md §route table, the source
  * of truth). All 14 routes + the dev-only token-smoke check:
  *
  *   /                main-store        storefront, guest or buyer (RequireGuestOrBuyer)
@@ -44,11 +44,11 @@ import {
  *
  * Guards REDIRECT non-actors (staff+ hitting browse -> their ops home,
  * anonymous hitting cart/checkout/orders -> /login, buyer on ops routes -> /)
- * — NEVER a 403 page. P3.1 REV 8: browse (/, /search) is guest-or-buyer and
+ * — NEVER a 403 page. Browse (/, /search) is guest-or-buyer and
  * /products/:id is public; the purchase CTAs inside them self-gate to /login
  * for guests.
  *
- * /dev/token-smoke keeps P0's theme smoke check available in dev; it is NOT
+ * /dev/token-smoke keeps the theme smoke check available in dev; it is NOT
  * part of the route table.
  */
 
@@ -58,7 +58,7 @@ import {
  * expression; top-level element constants avoid the quirk entirely —
  * behaviour is identical: each is a <RequireOps role=…/> wrapper.)
  *
- * @type {import('react').ReactElement}
+ * @type {object}
  */
 const requireManagerOrAdmin = <RequireOps role={['manager', 'admin']} />
 const requireAdmin = <RequireOps role={['admin']} />
@@ -67,14 +67,14 @@ const requireAdmin = <RequireOps role={['admin']} />
  * The single route tree (module doc = the route table): 14 storefront /
  * auth / ops routes, the dev-only /dev/token-smoke, and the top-level
  * 404 catch-all.
- * @returns {import('react').ReactElement} the <Routes/> tree.
+ * @returns {object} the <Routes/> tree.
  */
 export default function AppRoutes() {
   const DevSmoke = import.meta.env.DEV ? DevTokenSmokePage : null
   return (
     <Routes>
       {/* ---- storefront routes: StorefrontHeader layout ---- */}
-      {/* P3.1 REV 8: browse is guest-or-buyer; product-details is PUBLIC;
+      {/* browse is guest-or-buyer; product-details is PUBLIC;
           cart/checkout/orders stay buyer-only. */}
       <Route element={<StorefrontLayout />}>
         <Route element={<RequireGuestOrBuyer />}>
@@ -117,10 +117,10 @@ export default function AppRoutes() {
         </Route>
       </Route>
 
-      {/* dev-only token smoke check (P0), not in the route table */}
+      {/* dev-only token smoke check, not in the route table */}
       {DevSmoke ? <Route path="/dev/token-smoke" element={<DevSmoke />} /> : null}
 
-      {/* unknown path: the dedicated 404 page (P1.1 — replaced the old
+      {/* unknown path: the dedicated 404 page (replaced the old
           <Navigate to="/" /> redirect). Top-level, outside the layout/guard
           groups, so it applies to ANY unknown path (incl. unknown /ops/*) and
           is reachable regardless of auth state — anon sees the 404, not a

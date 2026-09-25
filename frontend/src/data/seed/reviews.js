@@ -6,7 +6,7 @@
  * buyer_311 2★ hidden + replacement comment). The other 124 are synthesized so the
  * distribution yields avg 4.3 / 128.
  *
- * P3 note: the newest-first public list must LEAD with the §4.2 sample rows so the
+ * The newest-first public list must LEAD with the §4.2 sample rows so the
  * product-details "one public review with seller comment" (the committed mockup's
  * visible row, buyer_102 + "Thanks — firmware 2.1 improved ANC.") renders. The
  * synthesized set spans 02–28 Sep, so the two public sample rows are dated just
@@ -29,7 +29,6 @@
  * @property {string} createdAt  "12 Sep 2026"
  */
 
-/** @type {import('./products.js').Product} */
 // The P-231 id is referenced here; the store wires the two.
 const PRODUCT_ID = 'P-231';
 

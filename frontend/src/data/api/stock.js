@@ -12,6 +12,10 @@ import { nowStamp, productById, storeProducts, storeSetStock, storeStock } from 
 
 const delay = () => new Promise((res) => setTimeout(res, 150 + Math.floor(Math.random() * 200)));
 
+/** Per-section failure-injection flag: set `.on = true` to make the NEXT
+ * call of this section reject (the "error" mockup states are exercisable).
+ * @type {{on: boolean}}
+ */
 export const failure = { on: false };
 function injected() {
   if (failure.on) {
@@ -24,10 +28,15 @@ function injected() {
 }
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
+/**
+ * The stock section of the mockApi facade (ARCHITECTURE §4.3):
+ * getStockOverview / setStock.
+ * @type {object}
+ */
 export const mockApiStock = {
   /**
    * GET /ops/products — inventory-dashboard "Needs attention" rows.
-   * @returns {Promise<{items: Array<{productId:string, name:string, category:string, price:number, stock:number, status:"out"|"low"}>, total:number}>}
+   * @returns {Promise<{items: object[], total: number}>}
    *   out-of-stock first, then low stock (ascending).
    */
   async getStockOverview() {
@@ -53,7 +62,7 @@ export const mockApiStock = {
    * Appends a "manual-set" StockSnapshot audit row.
    * @param {string} id
    * @param {number} qty
-   * @returns {Promise<import('../seed/products.js').Product>}
+   * @returns {Promise<object>}
    */
   async setStock(id, qty) {
     const fail = injected();
@@ -76,4 +85,6 @@ export const mockApiStock = {
 };
 
 // audit rows are exported for the inventory "history" affordance (optional UI)
+/** Re-exported for the inventory "history" affordance: the live stock-snapshot
+ * audit array, the display-timestamp helper, and the product lookup helper. */
 export { storeStock, nowStamp, productById };

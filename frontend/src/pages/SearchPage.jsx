@@ -16,9 +16,9 @@ const PRICE_CEIL = 5000000
 const PRICE_STEP = 50000
 
 /**
- * P3 search-browse page (docs/search-browse/IMPLEMENTATION.md): FilterRail
+ * Search-browse page (docs/search-browse/IMPLEMENTATION.md): FilterRail
  * (220px, white, Category/Brand/Price) + FilterChips + SearchResults
- * (count + sort + 3-col ProductGrid, round-11 dual CTA). ALL filter state
+ * (count + sort + 3-col ProductGrid, dual CTA). ALL filter state
  * lives in URL query params (query/category/brand/priceMin/priceMax/sort) —
  * filters refetch in place via param updates, never a route change. Free
  * text is debounced 300ms; category/brand/price are immediate; the result
@@ -70,6 +70,7 @@ export default function SearchPage() {
     }
   }, [])
 
+  // join every filter into one key so ANY change refetches + resets the load-more offset
   const paramKey = [query, category, activeBrands.join('|'), priceMin, priceMax, sort].join('~')
 
   // Refetch on ANY param change. Free-text is debounced 300ms; every other

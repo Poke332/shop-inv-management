@@ -16,7 +16,7 @@ import { StarRating } from './StarRating.jsx'
  * @param {string} [productName]  for the "purchased …" provenance line.
  * @param {number} [limit]  max rows to render (default 5 — the list is a
  *            newest-first sample; the full public set stays in the data).
- * @returns {import('react').ReactElement}
+ * @returns {object}
  */
 export function ReviewList({ reviews, productName, limit = 5 }) {
   const rows = (reviews?.items || []).slice(0, limit)

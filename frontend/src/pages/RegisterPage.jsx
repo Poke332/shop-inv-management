@@ -6,7 +6,7 @@ import { mockApi } from '../data'
 import { useAuth } from '../hooks/useAuth.js'
 
 /**
- * P3 register page (docs/register/IMPLEMENTATION.md) on the shared AuthLayout
+ * Register page (docs/register/IMPLEMENTATION.md) on the shared AuthLayout
  * two-panel shell. Creates BUYER accounts only (staff/manager/admin are
  * provisioned by an admin — documented assumption). Fields: name (required),
  * email (required + format), password (required, min 8, show toggle),
@@ -120,7 +120,7 @@ export default function RegisterPage() {
               aria-label="Password"
               className={`${inputCls(false)} w-full pr-14`}
             />
-            {/* P3.1 REV 7: bordered box button toggle (matches LoginPage). */}
+            {/* bordered box button toggle (matches LoginPage). */}
             <button
               type="button"
               onClick={() => setShowPw((s) => !s)}
