@@ -30,7 +30,7 @@ a first-class check from P0 onward.
 | P0 scaffold | **DONE** | commit `15957c0`: `frontend/` Vite app (sibling of `docs/`), full Sunset Glow token theme, static assets + 12 product photos, linter, .gitignore; verified by review + pushed (draft PR #8) |
 | P1 router + layouts | **DONE** | commit `b9a505b` (code) + `docs` flip: full 14-route tree in `frontend/src/router.jsx` + RBAC guards (redirects, never 403), `StorefrontHeader` (56px bar) / `OpsShell` (v4 32/24px gutter, role-gated NavLink nav, mobile drawer) / `AuthLayout` layouts, `AuthContext` + P1 `CartStore` seam, placeholder route slots; verified live at 1280/1312/390 |
 | P2 data layer | **DONE** (pulled ahead of P1, by user ruling) | commit `617f4f2`: `frontend/src/data/` split one `.js` per API section (`store.js`, `seed/*`, `api/*`, `mockApi.js` facade) + ARCHITECTURE §4.4; verified by review + pushed |
-| P3 storefront pages | NOT STARTED | 5 pages (main-store, search-browse, product-details, login, register) |
+| P3 storefront pages | **DONE** | commits `f82d5a6` (shared card set split into single-export components + `utils/utils.js`) + `a58cf8c` (5 page bodies) on `feat/frontend-p3`: main-store, search-browse, product-details, login, register; verified live at 1312/390 |
 | P4 cart + checkout | NOT STARTED | 2 pages + `CartStore` wiring + 4-state wizard |
 | P5 ops console | NOT STARTED | 4 pages inside `OpsShell` |
 | P6 review panel | NOT STARTED | 1 page (round-6 moderation model) |
@@ -113,7 +113,7 @@ stock 5 → LOW; ASUS RT-AX58 stock 0 → OUT; search-browse "128 results" count
 from one page (e.g. staff advancing WB-1042) is reflected by the next `mockApi` read on
 another page; all 4 role logins + `ops_dan` denied work off the credentials table.
 
-### P3 — Storefront pages  ⬜ NOT STARTED
+### P3 — Storefront pages  ✅ DONE (`f82d5a6` + `a58cf8c`, `feat/frontend-p3`)
 
 `main-store`, `search-browse`, `product-details`, `login`, `register` (per each page's
 `IMPLEMENTATION.md`). Shared `ProductCard`/`ProductGrid` first (main-store defines, others
