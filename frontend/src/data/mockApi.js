@@ -42,6 +42,7 @@ import { resetStore } from './store.js';
 // further down as *Failure.
 import { failure as ordersFlag } from './api/orders.js';
 import { failure as cartFlag } from './api/cart.js';
+import { failure as reviewsFlag } from './api/reviews.js';
 
 /**
  * The one object the app imports (`import { mockApi } from '@/data'`). Every method
@@ -87,7 +88,9 @@ export const mockApi = {
 // surface): `mockApi` re-exports the facade; `armOrdersFailure()` arms the
 // NEXT createOrder to reject 5xx; `armCartFailure(n)` arms the cart-load 5xx
 // for the next `n` getCart reads, surviving a reload via the sessionStorage
-// pre-arm key consumed at api/cart.js module init.
+// pre-arm key consumed at api/cart.js module init; `armReviewsFailure()`
+// arms the NEXT reviews-section call to reject (the review-panel revert
+// states, per section).
 if (import.meta.env?.DEV && typeof window !== 'undefined') {
   window.__sunset = {
     mockApi,
@@ -101,6 +104,9 @@ if (import.meta.env?.DEV && typeof window !== 'undefined') {
       } catch {
         /* node / storage unavailable — the in-memory flag still arms */
       }
+    },
+    armReviewsFailure: () => {
+      reviewsFlag.on = true;
     },
   };
 }
