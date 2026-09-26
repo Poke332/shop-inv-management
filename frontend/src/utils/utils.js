@@ -212,3 +212,58 @@ export function paymentSummaryLine(method, payment = {}) {
   }
   return 'QRIS — QR code available once the order is confirmed'
 }
+
+/**
+ * Stock status for a product record: "out" (0), "low" (0 < stock ≤ the
+ * product's lowStockThreshold — 5 for every product, consistent with
+ * Product Details), otherwise "in". Drives the inventory status pill and
+ * the product-list badge ("In · 34" / "Low · 5" / "Out · 0").
+ * @param {object} p  a product record (stock + lowStockThreshold).
+ * @returns {string} "out" | "low" | "in"
+ */
+export function stockStatus(p) {
+  if (!p) return 'out'
+  const s = Number(p.stock)
+  if (s === 0) return 'out'
+  if (s <= Number(p.lowStockThreshold)) return 'low'
+  return 'in'
+}
+
+/** The inventory status pill class per stockStatus value (text label always present). */
+export const STOCK_PILL_CLASS = {
+  in: 'stock-pill-in',
+  low: 'stock-pill-low',
+  out: 'stock-pill-out',
+}
+
+/** The inventory status pill label per stockStatus value. */
+export const STOCK_PILL_LABEL = {
+  in: 'In stock',
+  low: 'Low',
+  out: 'Out of stock',
+}
+
+/** The product-list stock badge label ("In · 34" / "Low · 5" / "Out · 0"). */
+export function stockBadgeLabel(p) {
+  const s = stockStatus(p)
+  return `${s === 'in' ? 'In' : s === 'low' ? 'Low' : 'Out'} · ${Number(p?.stock) || 0}`
+}
+
+/**
+ * The user-dashboard role-permission note shown in the role-change confirm
+ * dialog (which capability the role grants).
+ * @param {string} role  "buyer" | "staff" | "manager" | "admin".
+ * @returns {string} the one-line note.
+ */
+export function roleNote(role) {
+  switch (role) {
+    case 'staff':
+      return 'They gain order-status updates and product alerts.'
+    case 'manager':
+      return 'They gain product and order management.'
+    case 'admin':
+      return 'They gain full ops console access, including user management.'
+    default:
+      return 'They keep buyer-only access.'
+  }
+}
