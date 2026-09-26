@@ -16,7 +16,10 @@ export function ProgressBar({ step }) {
     <div
       role="group"
       aria-label="Checkout progress"
-      className="bg-canvas border border-blueSlate-200 rounded-xl p-card-padding flex items-start"
+      // mobile: tighter box padding (16px / 12px) so the 3 segments + 2
+      // tracks fit 320; desktop restores the 24px card padding (matching
+      // longhands so the override is unambiguous in the cascade)
+      className="bg-canvas border border-blueSlate-200 rounded-xl px-4 py-3 md:px-card-padding md:py-card-padding flex items-start"
     >
       {labels.map((label, i) => {
         const n = i + 1
@@ -24,8 +27,11 @@ export function ProgressBar({ step }) {
         const active = step === n
         return (
           <div key={label} className="contents">
+            {/* mobile: flex-1 min-w-0 so the 3 segments + 2 tracks share the
+                available width evenly (no side clip at 390/320); the labels
+                wrap under the circle. desktop: the fixed 96px layout. */}
             <div
-              className="flex flex-col items-center gap-2 w-12 min-[390px]:w-[96px] shrink-0"
+              className="flex flex-col items-center gap-2 flex-1 min-w-0 md:w-[96px] md:flex-none md:shrink-0"
               aria-current={active ? 'step' : undefined}
             >
               <div

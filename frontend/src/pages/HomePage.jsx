@@ -72,8 +72,9 @@ export default function HomePage() {
           <img
             src="/hero-banner.png"
             alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ objectPosition: 'center right' }}
+            // mobile keeps the full composition centered; only the desktop
+            // right-third crop (>=768) shifts the focal point right
+            className="absolute inset-0 w-full h-full object-cover object-center md:[object-position:center_right]"
             loading="eager"
             fetchPriority="high"
             onError={() => setHeroOk(false)}
@@ -120,9 +121,11 @@ export default function HomePage() {
           >
             Browse by category
           </h2>
-          {/* 3×2 image grid on desktop; a horizontal-scroll rail
-               (tile min-width 320px, 24px gutter) on mobile <768 */}
-          <div className="flex gap-card-gutter overflow-x-auto pb-1 md:grid md:grid-cols-3">
+          {/* 3×2 image grid on desktop; a horizontal-scroll rail on mobile
+               <768 — each card is a discrete 78%-wide snap card (2-peek) so
+               the row scrolls one card at a time instead of squeezing/clipping
+               all 6 into the visible width. Desktop keeps the 320px tiles. */}
+          <div className="flex gap-card-gutter overflow-x-auto snap-x snap-mandatory pb-1 md:grid md:grid-cols-3">
             {[
               ['audio', 'Audio'],
               ['smart-home', 'Smart Home'],
@@ -134,7 +137,7 @@ export default function HomePage() {
               <Link
                 key={slug}
                 to={`/search?category=${slug}`}
-                className="block flex-1 overflow-hidden rounded-lg border border-blueSlate-200 bg-canvas transition-colors hover:border-atomicTangerine-400 focus-visible:outline-2 focus-visible:outline-atomicTangerine-500 md:min-w-[320px] md:flex-none"
+                className="block min-w-[78%] snap-start overflow-hidden rounded-lg border border-blueSlate-200 bg-canvas transition-colors hover:border-atomicTangerine-400 focus-visible:outline-2 focus-visible:outline-atomicTangerine-500 md:min-w-[320px]"
               >
                 <div className="relative w-full" style={{ aspectRatio: '4 / 1' }}>
                   <img
