@@ -1,22 +1,17 @@
 import { CATEGORY_LABEL } from '../utils/utils.js'
 
-import { PriceRange } from './PriceRange.jsx'
-
 /**
  * The desktop-only 220px filter rail (docs/search-browse "FilterRail"): white
- * surface, right border blueSlate-200, Category / Brand / Price sections.
+ * surface, right border blueSlate-200, Category / Brand sections.
  * Category rows select on click (single-select — the URL contract carries one
  * category), selected row = atomicTangerine-50 bg + atomicTangerine-600 text;
- * brand = checkboxes (accent atomicTangerine-500); Price = the dual-range
- * control. Hidden on mobile <768 (catalog-only view). One component per file
- * (code-org rule); the rail renders from props the page derives from the
- * URL.
+ * brand = checkboxes (accent atomicTangerine-500). Hidden on mobile <768
+ * (catalog-only view). One component per file (code-org rule); the rail
+ * renders from props the page derives from the URL.
  * @param {{categories: string[], brands: string[], activeBrands: string[],
- *          category: string|null, priceMin: number, priceMax: number,
- *          floor: number, ceil: number, step: number, busy: boolean,
+ *          category: string|null, busy: boolean,
  *          onCategory: (slug: string|null) => void,
- *          onBrand: (brand: string) => void,
- *          onPrice: (min: number, max: number) => void}} props
+ *          onBrand: (brand: string) => void}} props
  * @returns {object}
  */
 export function FilterRail({
@@ -24,15 +19,9 @@ export function FilterRail({
   brands,
   activeBrands,
   category,
-  priceMin,
-  priceMax,
-  floor,
-  ceil,
-  step,
   busy,
   onCategory,
   onBrand,
-  onPrice,
 }) {
   return (
     <aside
@@ -67,7 +56,7 @@ export function FilterRail({
         </ul>
       </section>
 
-      <section className="px-5 pb-5">
+      <section className="px-5 pb-8">
         <h3 className="text-meta font-semibold text-blueSlate-950 mb-2">Brand</h3>
         <ul className="flex flex-col gap-1.5">
           {brands.map((b) => (
@@ -86,19 +75,6 @@ export function FilterRail({
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="px-5 pb-8">
-        <h3 className="text-meta font-semibold text-blueSlate-950 mb-2">Price</h3>
-        <PriceRange
-          min={priceMin}
-          max={priceMax}
-          floor={floor}
-          ceil={ceil}
-          step={step}
-          busy={busy}
-          onChange={onPrice}
-        />
       </section>
     </aside>
   )

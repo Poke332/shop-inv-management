@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useSearchParams } from 'react-router'
 
@@ -10,18 +10,14 @@ import { FilterChips } from '../components/FilterChips.jsx'
 
 /** Load-more batch for the 3-col results grid (the mockup's 3x2 row). */
 const PAGE = 6
-/** Price track bounds per the mockup rail label "Rp 50k – Rp 5.000.000". */
-const PRICE_FLOOR = 50000
-const PRICE_CEIL = 5000000
-const PRICE_STEP = 50000
 
 /**
  * Search-browse page (docs/search-browse/IMPLEMENTATION.md): FilterRail
- * (220px, white, Category/Brand/Price) + FilterChips + SearchResults
+ * (220px, white, Category/Brand) + FilterChips + SearchResults
  * (count + sort + 3-col ProductGrid, dual CTA). ALL filter state
- * lives in URL query params (query/category/brand/priceMin/priceMax/sort) —
+ * lives in URL query params (query/category/brand/sort) —
  * filters refetch in place via param updates, never a route change. Free
- * text is debounced 300ms; category/brand/price are immediate; the result
+ * text is debounced 300ms; category/brand are immediate; the result
  * count is announced aria-live; empty = "No matches for …" + Clear all
  * (blueSlate-50 panel), error = strawberryRed panel + retry with the last
  * good results kept on screen behind it. The load-more offset is
@@ -41,8 +37,6 @@ export default function SearchPage() {
     () => (params.get('brand') ? params.get('brand').split(',').filter(Boolean) : []),
     [params],
   )
-  const priceMin = params.get('priceMin') ? Number(params.get('priceMin')) : null
-  const priceMax = params.get('priceMax') ? Number(params.get('priceMax')) : null
   const sort = params.get('sort') || 'featured'
 
   const [items, setItems] = useState(null) // last good results (null = first paint)
@@ -71,10 +65,10 @@ export default function SearchPage() {
   }, [])
 
   // join every filter into one key so ANY change refetches + resets the load-more offset
-  const paramKey = [query, category, activeBrands.join('|'), priceMin, priceMax, sort].join('~')
+  const paramKey = [query, category, activeBrands.join('|'), sort].join('~')
 
   // Refetch on ANY param change. Free-text is debounced 300ms; every other
-  // filter (category/brand/price/sort) is immediate.
+  // filter (category/brand/sort) is immediate.
   useEffect(() => {
     let alive = true
     const run = () => {
@@ -87,8 +81,6 @@ export default function SearchPage() {
       // case; multi-brand is refined client-side (order preserved: the API
       // sorts before we filter).
       if (activeBrands.length === 1) filter.brand = activeBrands[0]
-      if (priceMin != null) filter.priceMin = priceMin
-      if (priceMax != null) filter.priceMax = priceMax
       mockApi
         .getProducts(filter)
         .then((res) => {
@@ -138,15 +130,10 @@ export default function SearchPage() {
       const map = {
         query: 'query',
         category: 'category',
-        price: null, // clears both price bounds
       }
       const patch = {}
       if (key === 'query') patch.query = null
       if (key === 'category') patch.category = null
-      if (key === 'price') {
-        patch.priceMin = null
-        patch.priceMax = null
-      }
       set(patch)
     }
   }
@@ -159,18 +146,6 @@ export default function SearchPage() {
   }
 
   const toggleCategory = (slug) => set({ category: slug })
-  // Price drags fire on every input tick — debounce the URL commit 300ms
-  // (same rhythm as the free-text debounce) so the track stays smooth.
-  const priceTimer = useRef(null)
-  const onPrice = (min, max) => {
-    clearTimeout(priceTimer.current)
-    priceTimer.current = setTimeout(() => {
-      set({
-        priceMin: min === PRICE_FLOOR ? null : min,
-        priceMax: max === PRICE_CEIL ? null : max,
-      })
-    }, 300)
-  }
 
   const showAll = items && visible >= total && total > 0
   const slice = items ? items.slice(0, visible) : []
@@ -184,15 +159,9 @@ export default function SearchPage() {
           brands={catalogBrands}
           activeBrands={activeBrands}
           category={category}
-          priceMin={priceMin ?? PRICE_FLOOR}
-          priceMax={priceMax ?? PRICE_CEIL}
-          floor={PRICE_FLOOR}
-          ceil={PRICE_CEIL}
-          step={PRICE_STEP}
           busy={busy}
           onCategory={toggleCategory}
           onBrand={toggleBrand}
-          onPrice={onPrice}
         />
 
         <div className="flex-1 min-w-0 pt-5">
@@ -200,8 +169,6 @@ export default function SearchPage() {
             query={query}
             category={category}
             brands={activeBrands}
-            priceMin={priceMin}
-            priceMax={priceMax}
             onRemove={removeChip}
             onClearAll={clearAll}
           />
