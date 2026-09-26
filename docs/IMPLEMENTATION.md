@@ -33,7 +33,7 @@ a first-class check from P0 onward.
 | P3 storefront pages | **DONE** | commits `f82d5a6` (shared card set split into single-export components + `utils/utils.js`) + `a58cf8c` (5 page bodies) on `feat/frontend-p3`: main-store, search-browse, product-details, login, register; verified live at 1312/390 |
 | P3.1 revisions | **IN PROGRESS** | revision round on `feat/frontend-p3` (base `48dd105`): REV 1 header search full-width; REV 2 text wordmark; REV 3 hero svh; REV 4 "See more" → /search; REV 5 CTA single-line; REV 6 visible price rail; REV 7 bordered pw toggles; REV 8 guest access (`RequireGuestOrBuyer`, public `/products/:id`, CTA login-redirect); REV 10 `src/hooks/` (one hook per file). Docs: 4 design.md + ARCHITECTURE §3.1. User judges on the live dev server — no mockup PNGs |
 | P4 cart + checkout | **DONE** | commit `d7275f9` on `feat/frontend-p4`: cart page (lines + 320px summary panel + mobile sticky bar) + 4-state checkout wizard (personal → shipping → payment → receipt) + `CartStore` wiring (optimistic/pessimistic ops, session-persisted, live stock clamp) + the `/orders` closure (just-placed order on top, pending chip, auto-expanded); verified live at 1312/390, node smoke 32/32 |
-| P5 ops console | NOT STARTED | 4 pages inside `OpsShell` |
+| P5 ops console | **DONE** | commit `c7f7345` on `feat/frontend-p5` (base `eb08119`): 4 ops pages inside `OpsShell` — ongoing-orders (queue + status tabs + receipt-table detail expand, WB-1042 expanded by default, forward-only `StatusAdvanceButton` with optimistic update + success flash + revert-on-failure), inventory-dashboard (needs-attention banner out-of-stock first + full product table, `StockStepper` + "Open editor" links for manager/admin, staff read-only via visibility gating), per-product-dashboard (330px list + pre-filled editor incl. the repeatable name/value Specs card, "New product" starts at zero spec pairs), user-dashboard (user table, role select + disable toggle with confirm dialogs, "Role updated to <role> · <username>" success flash, self-protection own-row controls absent, ops_dan 3px `strawberryRed-500` left bar, admin-only nav item); verified live at 1312/390, node smoke 32/32 |
 | P6 review panel | NOT STARTED | 1 page (round-6 moderation model) |
 | P7 polish + gates | NOT STARTED | cross-page pass: toasts, a11y floor, 390px audit, conformance gate re-run |
 
@@ -159,7 +159,7 @@ the same commit: it was the P1 "route slot under construction" placeholder whose
 intended consumers were the P1 Cart/Checkout/Orders stub pages that P4 replaced with
 the real pages — zero importers remain (grep across `src/` + the route table: 0 refs).
 
-### P5 — Ops console pages  ⬜ NOT STARTED
+### P5 — Ops console pages  ✅ DONE
 
 `ongoing-orders`, `inventory-dashboard`, `per-product-dashboard`, `user-dashboard`
 (all inside `OpsShell`). Ongoing-orders: queue + status tabs + receipt-table detail expand
