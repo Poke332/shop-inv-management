@@ -1,4 +1,4 @@
-import { StarRating } from './StarRating.jsx'
+import { StarRating } from '../StarRating.jsx'
 
 /**
  * The product-details review rows (docs/product-details "ReviewList"): the

@@ -24,7 +24,7 @@ check('getProducts returns the 48-product catalog', total === 48, `total=${total
 const p = await mockApi.getProduct('P-231');
 check('P-231 sale price 1 290 000 / was 1 518 000', p.price === 1290000 && p.originalPrice === 1518000 && p.onSale === true);
 check('P-231 34 in stock, featured', p.stock === 34 && p.featured === true);
-check('P-231 specs = the 6 round-9 pairs', p.specs.length === 6 && p.specs[0].key === 'Model' && p.specs[5].value === '5.4 g per bud');
+check('P-231 specs = the 6 spec pairs', p.specs.length === 6 && p.specs[0].key === 'Model' && p.specs[5].value === '5.4 g per bud');
 const anker = await mockApi.getProduct('P-198');
 check('P-198 Anker 735 PB stock 5 → LOW', anker.stock === 5 && anker.featured === true);
 const router = await mockApi.getProduct('P-064');
@@ -73,8 +73,8 @@ const c1 = await mockApi.createOrder({
   shipping: 0,
 });
 check('createOrder WB-1043 lands pending', c1.id === 'WB-1043' && c1.status === 'pending');
-const p2 = await mockApi.getProduct('P-231');
-check('createOrder decremented P-231 stock', p2.stock === 33, `34 → ${p2.stock}`);
+const prod231 = await mockApi.getProduct('P-231');
+check('createOrder decremented P-231 stock', prod231.stock === 33, `34 → ${prod231.stock}`);
 try {
   await mockApi.createOrder({ id: 'WB-1044', lines: [{ productId: 'P-064', qty: 1 }], shipping: 0 });
   check('createOrder 409 on out-of-stock P-064', false);

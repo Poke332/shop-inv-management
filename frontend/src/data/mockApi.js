@@ -37,6 +37,11 @@ import { mockApiUsers } from './api/users.js';
 import { mockApiStock } from './api/stock.js';
 import { mockApiCart } from './api/cart.js';
 import { resetStore } from './store.js';
+// The per-section `failure` flags the DEV QA bridge below arms (the "error"
+// mockup states); each section module already exports its own flag, re-exported
+// further down as *Failure.
+import { failure as ordersFlag } from './api/orders.js';
+import { failure as cartFlag } from './api/cart.js';
 
 /**
  * The one object the app imports (`import { mockApi } from '@/data'`). Every method
@@ -70,6 +75,35 @@ export const mockApi = {
     resetStore();
   },
 };
+
+// DEV-only QA bridge (inert in production builds — `import.meta.env?.DEV` is
+// false under Vite, undefined in node, and the `typeof window` guard keeps
+// module load side-effect-free; the app's normal code paths never read it).
+// It exposes the facade + the two alt-flow arming handles on `window` so the
+// "stock conflict" and "order placement 5xx" states are reachable from the
+// console or a headless QA harness (a mock/test seam, like resetData() above).
+//
+// window.__sunset (dev-only console handle; not part of the app's import
+// surface): `mockApi` re-exports the facade; `armOrdersFailure()` arms the
+// NEXT createOrder to reject 5xx; `armCartFailure(n)` arms the cart-load 5xx
+// for the next `n` getCart reads, surviving a reload via the sessionStorage
+// pre-arm key consumed at api/cart.js module init.
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
+  window.__sunset = {
+    mockApi,
+    armOrdersFailure: () => {
+      ordersFlag.on = true;
+    },
+    armCartFailure: (n = 8) => {
+      cartFlag.on = true;
+      try {
+        sessionStorage.setItem('sunset.failnext.cart', String(n));
+      } catch {
+        /* node / storage unavailable — the in-memory flag still arms */
+      }
+    },
+  };
+}
 
 // Exposed so a page or test can arm the NEXT section call to reject (the
 // "error" mockup states are exercisable per section; each section module also
