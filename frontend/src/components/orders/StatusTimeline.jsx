@@ -1,4 +1,4 @@
-import { ORDER_FLOW } from '../utils/utils.js'
+import { ORDER_FLOW } from '../../utils/utils.js'
 
 /**
  * The 4-step order status timeline (docs/orders-placed "StatusTimeline"):

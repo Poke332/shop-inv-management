@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
 import { mockApi } from '../data'
-import { OrderCard } from '../components/OrderCard.jsx'
+import { OrderCard } from '../components/orders/OrderCard.jsx'
 
 /**
  * The Orders Placed page (docs/orders-placed): "My orders" h1 + the

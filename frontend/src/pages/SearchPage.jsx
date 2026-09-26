@@ -5,8 +5,8 @@ import { useSearchParams } from 'react-router'
 import { mockApi } from '../data'
 import { ProductGrid } from '../components/ProductGrid.jsx'
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton.jsx'
-import { FilterRail } from '../components/FilterRail.jsx'
-import { FilterChips } from '../components/FilterChips.jsx'
+import { FilterRail } from '../components/search/FilterRail.jsx'
+import { FilterChips } from '../components/search/FilterChips.jsx'
 
 /** Load-more batch for the 3-col results grid (the mockup's 3x2 row). */
 const PAGE = 6

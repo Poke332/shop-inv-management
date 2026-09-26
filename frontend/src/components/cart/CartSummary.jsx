@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router'
 
-import { formatIdr } from '../utils/utils.js'
+import { formatIdr } from '../../utils/utils.js'
 
 /**
  * The cart summary panel (docs/cart "CartSummary", 320px, blueSlate-50):

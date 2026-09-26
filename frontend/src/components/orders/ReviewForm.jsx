@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { mockApi } from '../data'
+import { mockApi } from '../../data'
 
 /**
  * The purchase-rating block (docs/orders-placed "ReviewForm"): per

@@ -5,9 +5,9 @@ import { Navigate, useNavigate } from 'react-router'
 import { useCart } from '../hooks/useCart.js'
 import { useCheckoutWizard } from '../hooks/useCheckoutWizard.js'
 import { formatIdr } from '../utils/utils.js'
-import { CheckoutWizard } from '../components/CheckoutWizard.jsx'
-import { OrderReview } from '../components/OrderReview.jsx'
-import { PlaceOrderButton } from '../components/PlaceOrderButton.jsx'
+import { CheckoutWizard } from '../components/checkout/CheckoutWizard.jsx'
+import { OrderReview } from '../components/checkout/OrderReview.jsx'
+import { PlaceOrderButton } from '../components/checkout/PlaceOrderButton.jsx'
 
 /**
  * The checkout page (docs/checkout): the 3-step wizard + receipt view.

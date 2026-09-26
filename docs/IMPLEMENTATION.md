@@ -149,6 +149,16 @@ just-placed order pinned on top + auto-expanded, delivered-line review block, em
 5xx states) was built to close the receipt flow — no dead link from "View my orders".
 Verified live at 1312/390 (headless, 0 console errors) + node smoke 32/32.
 
+**Component-folder convention (reorg):** `frontend/src/components/` now splits into
+per-page subfolders named after the route they serve — `cart/`, `checkout/`,
+`orders/`, `product-details/`, `search/` — holding the components used only within
+that page tree; general-use components shared across 2+ page trees (BrandMark,
+ProductCard, ProductGrid, ProductCardSkeleton, TileGlyph, SquareTile, QuantityStepper,
+StarRating) stay at the `components/` root. `StorefrontPlaceholder.jsx` was deleted in
+the same commit: it was the P1 "route slot under construction" placeholder whose only
+intended consumers were the P1 Cart/Checkout/Orders stub pages that P4 replaced with
+the real pages — zero importers remain (grep across `src/` + the route table: 0 refs).
+
 ### P5 — Ops console pages  ⬜ NOT STARTED
 
 `ongoing-orders`, `inventory-dashboard`, `per-product-dashboard`, `user-dashboard`

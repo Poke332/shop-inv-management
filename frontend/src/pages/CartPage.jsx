@@ -5,8 +5,8 @@ import { Link, useNavigate } from 'react-router'
 import { useCart } from '../hooks/useCart.js'
 import { useCheckoutWizard } from '../hooks/useCheckoutWizard.js'
 import { formatIdr } from '../utils/utils.js'
-import { CartLine } from '../components/CartLine.jsx'
-import { CartSummary } from '../components/CartSummary.jsx'
+import { CartLine } from '../components/cart/CartLine.jsx'
+import { CartSummary } from '../components/cart/CartSummary.jsx'
 
 /**
  * The cart page (docs/cart): the "Cart (N items)" heading + meta, the

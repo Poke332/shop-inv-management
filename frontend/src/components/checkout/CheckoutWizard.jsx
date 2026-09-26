@@ -1,5 +1,5 @@
-import { useCheckoutWizard } from '../hooks/useCheckoutWizard.js'
-import { isValidPhone, isValidEmail, paymentSummaryLine } from '../utils/utils.js'
+import { useCheckoutWizard } from '../../hooks/useCheckoutWizard.js'
+import { isValidPhone, isValidEmail, paymentSummaryLine } from '../../utils/utils.js'
 import { PersonalInfoForm } from './PersonalInfoForm.jsx'
 import { ShippingForm } from './ShippingForm.jsx'
 import { PaymentMethod } from './PaymentMethod.jsx'

@@ -1,6 +1,6 @@
 import { FiX } from 'react-icons/fi'
 
-import { CATEGORY_LABEL } from '../utils/utils.js'
+import { CATEGORY_LABEL } from '../../utils/utils.js'
 
 /**
  * The active-filter chip row (docs/search-browse "FilterChips"): one removable

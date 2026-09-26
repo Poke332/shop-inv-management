@@ -1,8 +1,8 @@
 import { FiTrash2 } from 'react-icons/fi'
 
-import { QuantityStepper } from './QuantityStepper.jsx'
-import { SquareTile } from './SquareTile.jsx'
-import { formatIdr, isLowStock } from '../utils/utils.js'
+import { QuantityStepper } from '../QuantityStepper.jsx'
+import { SquareTile } from '../SquareTile.jsx'
+import { formatIdr, isLowStock } from '../../utils/utils.js'
 
 /**
  * One cart line row (docs/cart "CartLine"): 84px category tile + name

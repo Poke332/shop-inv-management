@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 
-import { formatIdr } from '../utils/utils.js'
+import { formatIdr } from '../../utils/utils.js'
 
 /**
  * The receipt confirmation view (docs/checkout "Receipt", step 4): the

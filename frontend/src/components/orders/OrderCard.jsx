@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 
-import { formatIdr, ORDER_STATUS_CHIP, ORDER_STATUS_GLYPH } from '../utils/utils.js'
-import { SquareTile } from './SquareTile.jsx'
+import { formatIdr, ORDER_STATUS_CHIP, ORDER_STATUS_GLYPH } from '../../utils/utils.js'
+import { SquareTile } from '../SquareTile.jsx'
 import { StatusTimeline } from './StatusTimeline.jsx'
 import { ReviewForm } from './ReviewForm.jsx'
 

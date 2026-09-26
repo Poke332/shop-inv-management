@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 
-import { formatIdr } from '../utils/utils.js'
-import { SquareTile } from './SquareTile.jsx'
+import { formatIdr } from '../../utils/utils.js'
+import { SquareTile } from '../SquareTile.jsx'
 import { PlaceOrderButton } from './PlaceOrderButton.jsx'
 
 /**

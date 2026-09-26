@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 
-import { PAYMENT_METHODS, formatCardNumber } from '../utils/utils.js'
+import { PAYMENT_METHODS, formatCardNumber } from '../../utils/utils.js'
 import { PaymentMethodIcon } from './PaymentMethodIcon.jsx'
 
 /**

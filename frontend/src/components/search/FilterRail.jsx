@@ -1,4 +1,4 @@
-import { CATEGORY_LABEL } from '../utils/utils.js'
+import { CATEGORY_LABEL } from '../../utils/utils.js'
 
 /**
  * The desktop-only 220px filter rail (docs/search-browse "FilterRail"): white

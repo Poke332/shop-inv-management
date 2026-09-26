@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-import { CATEGORY_GRADIENT } from '../utils/utils.js'
-import { TileGlyph } from './TileGlyph.jsx'
+import { CATEGORY_GRADIENT } from '../../utils/utils.js'
+import { TileGlyph } from '../TileGlyph.jsx'
 
 /**
  * The product-details hero gallery (docs/product-details "ProductImageGallery"):
