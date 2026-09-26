@@ -31,7 +31,7 @@ function NavItem({ to, label, badge, annotation, end }) {
  * OpsShell — the shared layout wrapper for every /ops/* route
  * (docs/control-panel/IMPLEMENTATION.md + design.md QA):
  *
- *   <div class="ops-shell">          flex row, min-height 100dvh
+ *   <div class="ops-shell">          flex row, height 100dvh, overflow hidden
  *     <header class="ops-topbar">    mobile only (<768px): 56px bar + drawer toggle
  *     <aside class="ops-sidebar">    230px blueSlate-900, role-gated nav (NavLink)
  *       + footer sign-out button (always visible: desktop foot, drawer foot)
@@ -43,13 +43,16 @@ function NavItem({ to, label, badge, annotation, end }) {
  * an off-canvas drawer (transform 150ms; reduced-motion = instant) opened by
  * the top bar's 44x44 menu button; it resets closed on navigation.
  *
- * The sidebar is a flex column: the nav block (.ops-sidebar-nav, flex-1)
- * scrolls when it overflows while the foot (a "Sign out" button, FiLogOut,
- * 44px min tap target, 1px blueSlate-800 top border, 16px padding) stays
- * pinned to the sidebar bottom — reachable on desktop and inside the open
- * mobile drawer alike. The mobile topbar's username chip carries the same
- * sign-out action (title="Sign out") plus a FiLogOut icon so the chip reads
- * as logout, not a profile menu. Both call signOutAndGoHome(): signOut()
+ * The sidebar is a flex column: the shell is viewport-pinned (height: 100dvh,
+ * overflow hidden) and the nav block (.ops-sidebar-nav, flex-1) never scrolls
+ * (the four nav items always fit a full-viewport sidebar) while the foot (a
+ * "Sign out" button, FiLogOut, 44px min tap target, 1px blueSlate-800 top
+ * border, 16px padding) stays pinned to the sidebar bottom — reachable on
+ * desktop and inside the open mobile drawer alike. The PAGE scrolls, not the
+ * sidebar: .ops-content (overflow: auto) is the only scroller, so the foot is
+ * visible at every scroll position. The mobile topbar's username chip carries
+ * the same sign-out action (title="Sign out") plus a FiLogOut icon so the chip
+ * reads as logout, not a profile menu. Both call signOutAndGoHome(): signOut()
  * (clears the AuthContext session + sessionStorage) + navigate('/',
  * {replace:true}) — the post-sign-out state is the guest session, which
  * '/' renders as the guest main store (Sign in / Create account header).
@@ -136,14 +139,15 @@ export default function OpsShell() {
       </header>
 
       {/* 230px blueSlate-900 sidebar: static on desktop, off-canvas drawer <768px.
-          Flex column so the foot (sign-out) pins to the sidebar bottom — the nav
-          block scrolls inside (.ops-sidebar-nav) while the foot stays reachable. */}
+          Viewport-pinned (the shell is height:100dvh, overflow:hidden): the sidebar
+          is unscrollable, the .ops-content pane is the page scroller, so the foot
+          (sign-out) stays pinned to the sidebar bottom at every scroll position. */}
       <aside
         id="ops-sidebar"
         className={`ops-sidebar flex flex-col ${drawerOpen ? 'open' : ''}`}
         aria-label="Ops navigation"
       >
-        <div className="ops-sidebar-nav p-4 flex-1 min-h-0 overflow-y-auto">
+        <div className="ops-sidebar-nav p-4 flex-1">
           <p className="text-badge text-blueSlate-50 mb-3" style={{ letterSpacing: '0.1em' }}>
             OPS
           </p>

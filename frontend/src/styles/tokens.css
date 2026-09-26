@@ -962,15 +962,26 @@ textarea:focus-visible,
      (specificity 0,1,0) beats any universal reset / preflight. */
   .ops-shell {
     display: flex;
-    min-height: 100dvh;
+    /* Viewport-pinned shell (was min-height: 100dvh, which let the whole shell
+       stretch with page content and push the sidebar foot — the Sign out row —
+       below the fold on data load). Fixed height + overflow: hidden: the
+       sidebar stays pinned to the viewport and .ops-content (overflow: auto)
+       is the ONLY scroller. 100vh is the baseline; 100dvh (dynamic viewport)
+       wins on engines that support it. */
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
     background: var(--canvas);
   }
   .ops-sidebar {
     width: var(--ops-sidebar-w);
     flex: none;
+    height: 100%;
     background: var(--blueSlate-900);
     color: var(--blueSlate-50);
-    overflow-y: auto;
+    /* Pinned, unscrollable: the nav block always fits in a full-viewport
+       height (the foot pins below it). The page scrolls, not the sidebar. */
+    overflow: hidden;
   }
   .ops-sidebar .ops-nav-item {
     display: flex;
