@@ -219,7 +219,7 @@ still proves `docs/` mockups == generator output (no drift introduced by the doc
 | `/ops/orders` | ongoing-orders | staff, manager, admin | OpsShell |
 | `/ops/orders/:id` | ongoing-orders (expanded) | staff, manager, admin | OpsShell |
 | `/ops/inventory` | inventory-dashboard | staff (read), manager, admin | OpsShell |
-| `/ops/products` · `/ops/products/:id/edit` | per-product-dashboard | manager, admin | OpsShell |
+| `/ops/products` · `/ops/products/:id/edit` | per-product-dashboard | staff = read-only view, manager/admin = editor (list is the base ops tier; editor deep-link + reviews stay manager, admin) | OpsShell |
 | `/ops/reviews?product=<id>` | per-product-review-panel | manager, admin | OpsShell |
 | `/ops/users` | user-dashboard | admin only | OpsShell |
 

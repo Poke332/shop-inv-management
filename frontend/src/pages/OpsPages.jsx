@@ -8,6 +8,7 @@ import { ProductTable } from '../components/inventory-dashboard/ProductTable.jsx
 import { OrderQueue } from '../components/ongoing-orders/OrderQueue.jsx'
 import { ProductForm } from '../components/per-product-dashboard/ProductForm.jsx'
 import { ProductList } from '../components/per-product-dashboard/ProductList.jsx'
+import { ProductReadonly } from '../components/per-product-dashboard/ProductReadonly.jsx'
 import { UserTable } from '../components/user-dashboard/UserTable.jsx'
 import { mockApi } from '../data'
 import { useAuth } from '../hooks/useAuth.js'
@@ -458,15 +459,20 @@ export function InventoryPage() {
 }
 
 /**
- * Per-product dashboard list (docs/per-product-dashboard). Route
- * /ops/products — manager/admin (requireManagerOrAdmin): the 330px
- * ProductList + ProductForm master/detail split. A standalone arrival
- * pre-fills the editor with the first catalog product; "+ New product"
- * seeds the add form (empty spec list — the Specs card starts at zero
- * pairs). A create success highlights the new list row.
+ * Per-product dashboard (docs/per-product-dashboard). Route /ops/products,
+ * the base ops tier (RequireOps): the 330px ProductList on the left, and
+ * the detail pane on the right gated by the session role — manager/admin
+ * get the ProductForm master/detail split (a standalone arrival pre-fills
+ * the editor with the first catalog product; "+ New product" seeds the
+ * add form; a create success highlights the new list row); staff get the
+ * read-only ProductReadonly view of the selected product (list + data,
+ * no editor controls — the /ops/products/:id/edit deep-link stays
+ * manager/admin, so a read-only session has no editor to open).
  * @returns {object} the page.
  */
 export function ProductsPage() {
+  const role = useAuth().user?.role
+  const canEdit = role === 'manager' || role === 'admin'
   const [products, setProducts] = useState(null)
   const [error, setError] = useState(false)
   const [retry, setRetry] = useState(0)
@@ -526,22 +532,23 @@ export function ProductsPage() {
           <ProductList
             products={products || []}
             loading={!products && !error}
-            selectedId={mode === 'create' ? null : selectedId}
+            selectedId={canEdit && mode === 'create' ? null : selectedId}
             createdId={createdId}
             onSelect={(pid) => {
               setMode('edit')
               setSelectedId(pid)
             }}
-            onNew={() => {
-              setMode('create')
-              setSelectedId(null)
-            }}
+            onNew={canEdit ? () => { setMode('create'); setSelectedId(null) } : undefined}
           />
-          <ProductForm
-            key={mode === 'create' ? 'create' : selectedId || 'blank'}
-            product={mode === 'create' ? null : selected}
-            onSaved={(p, isCreate) => onSaved(p, isCreate)}
-          />
+          {canEdit ? (
+            <ProductForm
+              key={mode === 'create' ? 'create' : selectedId || 'blank'}
+              product={mode === 'create' ? null : selected}
+              onSaved={(p, isCreate) => onSaved(p, isCreate)}
+            />
+          ) : (
+            <ProductReadonly product={selected} loading={!products} />
+          )}
         </div>
       )}
     </div>

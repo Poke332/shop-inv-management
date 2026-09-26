@@ -106,8 +106,11 @@ export default function AppRoutes() {
           <Route path="/ops/orders" element={<OngoingOrdersPage />} />
           <Route path="/ops/orders/:id" element={<OngoingOrderDetailPage />} />
           <Route path="/ops/inventory" element={<InventoryPage />} />
+          {/* /ops/products lives in the base ops tier: staff open the
+              read-only view; the editor deep-link + the review panel
+              below stay manager/admin. */}
+          <Route path="/ops/products" element={<ProductsPage />} />
           <Route element={requireManagerOrAdmin}>
-            <Route path="/ops/products" element={<ProductsPage />} />
             <Route path="/ops/products/:id/edit" element={<ProductEditPage />} />
             <Route path="/ops/reviews" element={<ReviewsPage />} />
           </Route>

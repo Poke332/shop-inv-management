@@ -8,11 +8,12 @@
  *   manager  -> + Reviews
  *   admin    -> + Users
  *
- * Note (decision #8 / sheet inconsistency): the route table grants
- * /ops/products to manager/admin only, but the control-panel spec gives
- * staff a read-only Products item. Until the team resolves it, the staff
- * Products link opens the /ops/products list; the page guard may tighten
- * it to redirect staff back to /ops/inventory — no 403, per the RBAC guards.
+ * Note (decision #8, resolved): the staff Products item opens /ops/products,
+ * which lives in the base ops tier — the page branches on the session role:
+ * staff = read-only view (selectable list + the selected product's data, no
+ * editor controls), manager/admin = the full editor. The /ops/products/:id/
+ * edit deep link + /ops/reviews stay manager/admin only. No 403, per the
+ * RBAC guards.
  */
 export const OPS_NAV_ITEMS = [
   { label: 'Ongoing Orders', to: '/ops/orders', roles: ['staff', 'manager', 'admin'], badge: 'orders' },

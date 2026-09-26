@@ -7,8 +7,10 @@ Phase P5 (inside the ops app shell). Visual/interaction source:
 ## Route
 
 - Path: `/ops/products` (list) + `/ops/products/:id/edit` (pre-filled editor) — roles:
-  **manager / admin only** (matrix: add new product / update stock quantity / change
-  product details all F for buyer + staff). No staff/buyer UI on this page.
+  the list is the **base ops tier** (staff = read-only view: selectable product
+  list + the selected product's data, no editor controls); the editor deep-link
+  `/ops/products/:id/edit` stays **manager / admin only** (matrix: add new product
+  / update stock quantity / change product details all F for buyer + staff).
 - Arrival: ops nav "Products"; Inventory Dashboard "Open editor" (pre-filled for that
   product — the sheet's "pre-filled edit form"); deep-link `/ops/products/:id/edit`.
 

@@ -13,7 +13,9 @@ import { CATEGORY_LABEL, formatIdr, stockBadgeLabel, stockStatus } from '../../u
  * product's row flashes willowGreen-100 for 2s.
  * @param {{products: object[], loading: boolean, selectedId: string | null,
  *   createdId: string | null, onSelect: (id: string) => void,
- *   onNew: () => void}} props
+ *   onNew?: () => void}} props  onNew = the "+ New product" control; when
+ *   omitted (the staff read-only view) the button is NOT rendered —
+ *   visibility gating, not disabled styling.
  * @returns {object} the list column.
  */
 export function ProductList({ products, loading, selectedId, createdId, onSelect, onNew }) {
@@ -103,11 +105,13 @@ export function ProductList({ products, loading, selectedId, createdId, onSelect
         <p className="p-4 text-meta text-blueSlate-700">No products match.</p>
       ) : null}
 
-      <div className="p-3 border-t border-blueSlate-200">
-        <button type="button" className="btn-primary w-full" onClick={onNew}>
-          + New product
-        </button>
-      </div>
+      {onNew ? (
+        <div className="p-3 border-t border-blueSlate-200">
+          <button type="button" className="btn-primary w-full" onClick={onNew}>
+            + New product
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

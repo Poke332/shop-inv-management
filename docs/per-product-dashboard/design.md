@@ -12,9 +12,11 @@ App shell & gutter (v4): `docs/control-panel/design.md` — the ops sidebar is a
 > `docs/control-panel/design.md` specifies. If the `.ops-content` area sits on
 > the warm ground, that is acceptable; the panel chrome is unchanged.
 
-Access: **manager/admin only** (matrix: add new product / update stock
-quantity / change product details all F for buyer+staff). This is the
-product CRUD console: list, add, edit (pre-filled form per the sheet).
+Access: **staff = read-only view, manager/admin = editor** (matrix: add new product /
+update stock quantity / change product details all F for buyer+staff). Staff open
+the list + the selected product's data with no controls; the CRUD editor
+(pre-filled form per the sheet) is manager/admin only (incl. the
+`/ops/products/:id/edit` deep link).
 
 ## FEATURES
 
