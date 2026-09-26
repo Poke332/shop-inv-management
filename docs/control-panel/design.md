@@ -55,8 +55,14 @@ DOM contract (the per-page wireframes in each `design.md` map onto this):
 
 ```
 <div class="ops-shell">                 /* flex row, full height */
-  <aside class="ops-sidebar">           /* 230px fixed, blueSlate-900 */
+  <aside class="ops-sidebar">           /* 230px fixed, blueSlate-900, flex column */
     …ops nav (round-3: role-gated items, nbadges, active bar)…
+    <div> sidebar foot: "Sign out" row (FiLogOut + label, ≥44px tap target,
+          blueSlate-50 on blueSlate-900, hover blueSlate-800;
+          1px blueSlate-800 top border + 16px padding separating it from the nav)
+          — signOut() + navigate('/', {replace:true}); the nav block scrolls
+          internally (flex-1 min-h-0 overflow-y-auto) so the foot stays pinned
+          to the bottom on desktop and inside the open mobile drawer */
   </aside>
   <main class="ops-content">           /* flex: 1; the GUTTER lives here */
     <div class="ops-page">…page-specific (table/list/panel/form)…</div>
@@ -149,8 +155,16 @@ but that is not the round-3/4 situation.)
   single source of sidebar-to-content spacing. (Per-page multi-column
   layouts, e.g. Per Product Dashboard's list|editor split, keep their own
   internal gaps *inside* `.ops-page`; the shell gutter is separate.)
-- Sidebar height = full `100dvh`; its own internal scroll (if nav overflows)
-  is `overflow-y:auto` on `.ops-sidebar`, independent of content scroll.
+- Sidebar height = full `100dvh`; the **nav block** scrolls internally when it
+  overflows (`flex-1 min-h-0 overflow-y:auto` inside the flex-column sidebar),
+  while the **sidebar foot** (the "Sign out" row, `FiLogOut` + label, ≥44px
+  tap target, `blueSlate-50` on `blueSlate-900`, hover `blueSlate-800`,
+  separated by a 1px `blueSlate-800` top border + 16px padding) stays pinned
+  to the sidebar bottom — on desktop and inside the open mobile drawer.
+  Sign-out = `signOut()` + `navigate('/', {replace:true}`; the signed-out
+  user lands on the guest main store (`/`). The mobile topbar username chip
+  is the same sign-out action and now carries a `FiLogOut` icon (the chip is
+  unambiguous: username + log-out glyph + chevron).
 
 ## MOBILE (<768px)
 
