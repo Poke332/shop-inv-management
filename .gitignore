@@ -15,9 +15,21 @@ frontend/dist/
 # GitNexus code-intelligence index — regenerable via `gitnexus analyze`.
 .gitnexus/
 # GitNexus-generated AI-tool artifacts (repo-specific skills + agent docs).
+# AGENTS.md is rewritten by `gitnexus analyze` every run — untracked, local-only.
 .claude/
 CLAUDE.md
-# One-off frontend verify harnesses (worker scratch, not part of the build).
+AGENTS.md
+# One-off frontend verify harnesses (worker scratch, not part of the build):
+# named per phase in the past; the pattern below covers verify-p<N>.mjs for
+# every future phase so no per-file line is ever needed again.
+frontend/verify-*.mjs
 frontend/gutter-check.mjs
-frontend/verify-p3.mjs
-frontend/verify-p31.mjs
+# Logs + local env (never commit credentials / local config).
+*.log
+npm-debug.log*
+.env
+.env.*
+# Editor / OS noise (mirrors frontend/.gitignore at the repo root).
+.vscode/
+.idea/
+.DS_Store

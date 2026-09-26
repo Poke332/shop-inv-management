@@ -346,6 +346,36 @@ textarea:focus-visible,
     color: var(--blueSlate-400);
     cursor: not-allowed;
   }
+  /* willowGreen confirm (the user-dashboard "enable account" flow) */
+  .btn-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: 0 20px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    background: var(--willowGreen-500);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    transition: background-color 150ms ease;
+  }
+  .btn-success:hover {
+    background: var(--willowGreen-600);
+  }
+  .btn-success:active {
+    background: var(--willowGreen-700);
+  }
+  .btn-success:disabled {
+    background: var(--blueSlate-100);
+    color: var(--blueSlate-400);
+    cursor: not-allowed;
+  }
 
   /* "Load more / See more": filled 44px button; desktop 320px, mobile full */
   .btn-loadmore {
@@ -611,20 +641,347 @@ textarea:focus-visible,
     font-weight: 600;
   }
 
+  /* ---- 9b. Ops receipt table (ongoing-orders: the receipt-table detail
+     expand — itemized rows + Subtotal/Shipping/Total + ship-to block, all
+     inside the order card). Mobile 390px tightens the cell padding to 8px
+     so Item/Unit price/Qty/Amount hold one row. */
+  .ops-receipt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .ops-receipt th {
+    text-align: left;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    color: var(--blueSlate-700);
+    background: var(--blueSlate-50);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--blueSlate-200);
+  }
+  .ops-receipt td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--blueSlate-200);
+    color: var(--blueSlate-950);
+    font-weight: 400;
+  }
+  .ops-receipt .ops-receipt-num {
+    text-align: right;
+    font-weight: 400;
+  }
+  .ops-receipt .ops-receipt-totals td {
+    font-weight: 500;
+  }
+  .ops-receipt .ops-receipt-total {
+    color: var(--atomicTangerine-600);
+  }
+  /* ship-to block: below the receipt table, 1px top divider */
+  .ops-receipt-ship {
+    border-top: 1px solid var(--blueSlate-200);
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  .ops-receipt-ship-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--blueSlate-700);
+    margin-bottom: 4px;
+  }
+  .ops-receipt-ship-address {
+    display: block;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--blueSlate-950);
+  }
+  .ops-receipt-ship-buyer {
+    display: block;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--blueSlate-700);
+    margin-top: 2px;
+  }
+  @media (max-width: 767px) {
+    .ops-receipt th,
+    .ops-receipt td {
+      padding: 8px; /* 390px: the 4 receipt columns hold one row */
+    }
+  }
+
+  /* ---- 9c. Ongoing-orders filter tabs: active = 3px tangerine underline,
+     idle = blueSlate-700 500; the row scrolls horizontally at 390px. */
+  .ops-tabs {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--blueSlate-200);
+  }
+  .ops-tabs button {
+    flex: none;
+    border: 0;
+    background: none;
+    padding: 10px 0;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--blueSlate-700);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .ops-tabs button.active {
+    font-weight: 600;
+    color: var(--blueSlate-950);
+    border-bottom-color: var(--atomicTangerine-500);
+  }
+
+  /* ---- 9d. Inline success-flash row tint (ops pages: ~2s after a
+     successful optimistic update). !important: the tinted element also
+     carries a bg-* utility (later cascade layer) that would otherwise
+     paint over the component-layer background. */
+  .flash-row {
+    background: var(--willowGreen-100) !important;
+    color: var(--willowGreen-600);
+  }
+  .flash-banner {
+    background: var(--willowGreen-100);
+    border: 1px solid var(--willowGreen-300);
+    color: var(--willowGreen-700);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  /* ---- 9e. Inventory "Needs attention" banner (carrotOrange-100 bg +
+     carrotOrange-300 border; row click scrolls/expands its table row). */
+  .alert-banner {
+    background: var(--carrotOrange-100);
+    border: 1px solid var(--carrotOrange-300);
+    border-radius: 8px;
+    padding: var(--card-padding);
+    color: var(--blueSlate-950);
+  }
+  .alert-banner .alert-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--carrotOrange-600);
+    color: #fff;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+  }
+  .alert-banner .alert-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    min-height: var(--touch-min);
+  }
+
+  /* ---- 9f. Stock status pill (in / low / out — text label always present). */
+  .stock-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-pill);
+    padding: var(--badge-pad-y) var(--badge-pad-x);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--blueSlate-900);
+  }
+  .stock-pill-in {
+    background: var(--willowGreen-100);
+  }
+  .stock-pill-low {
+    background: var(--carrotOrange-100);
+  }
+  .stock-pill-out {
+    background: var(--strawberryRed-100);
+  }
+
+  /* ---- 9g. Stock stepper (inventory inline quick-set): reuses the
+     .stepper 44px cells; the value is a 44px editable input. */
+  .input {
+    min-height: var(--touch-min);
+    border: 1px solid var(--blueSlate-200);
+    border-radius: 8px;
+    background: var(--canvas);
+    padding: 0 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--blueSlate-950);
+  }
+  .input::placeholder {
+    color: var(--blueSlate-500);
+  }
+  .input:focus-visible {
+    outline: 2px solid var(--atomicTangerine-500);
+    outline-offset: 2px;
+  }
+  .btn-del {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-min);
+    height: var(--touch-min);
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    background: var(--strawberryRed-600);
+    color: #fff;
+    font-size: 16px;
+    transition: background-color 150ms ease;
+  }
+  .btn-del:hover {
+    background: var(--strawberryRed-700);
+  }
+  .btn-del:active {
+    background: var(--strawberryRed-800);
+  }
+  .btn-del:disabled {
+    background: var(--blueSlate-100);
+    color: var(--blueSlate-400);
+    cursor: not-allowed;
+  }
+  .stock-stepper-input {
+    width: 56px;
+    min-height: var(--touch-min);
+    border: 0;
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--blueSlate-950);
+    background: var(--canvas);
+  }
+  .stock-stepper-input:focus-visible {
+    outline: 2px solid var(--atomicTangerine-500);
+    outline-offset: 2px;
+  }
+
+  /* ---- 9h. User-dashboard bits: disabled-row left bar, status toggle,
+     the confirm-dialog modal. */
+  .user-row-disabled > td:first-child {
+    box-shadow: inset 3px 0 0 var(--strawberryRed-500);
+  }
+  li.user-row-disabled {
+    box-shadow: inset 3px 0 0 var(--strawberryRed-500);
+  }
+  .switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .switch-track {
+    position: relative;
+    width: 40px;
+    height: 24px;
+    border-radius: var(--radius-pill);
+    background: var(--blueSlate-200);
+    transition: background-color 150ms ease;
+    flex: none;
+  }
+  .switch[aria-checked="true"] .switch-track {
+    background: var(--willowGreen-500);
+  }
+  .switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 150ms ease;
+  }
+  .switch[aria-checked="true"] .switch-thumb {
+    transform: translateX(16px);
+  }
+  .switch-label {
+    margin-left: 8px;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--blueSlate-700);
+  }
+  .confirm-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(13, 18, 22, 0.4);
+  }
+  .confirm-dialog {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+    padding: var(--card-padding);
+    background: var(--strawberryRed-100);
+    color: var(--blueSlate-950);
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .confirm-dialog h2 {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: var(--strawberryRed-700);
+    margin: 0 0 8px;
+  }
+  .confirm-dialog .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
   /* ---- 10. Ops shell v4 (control-panel/design.md) ----
      Gutter = .ops-content padding via --ops-page-pad (32/24). Class rule
      (specificity 0,1,0) beats any universal reset / preflight. */
   .ops-shell {
     display: flex;
-    min-height: 100dvh;
+    /* Viewport-pinned shell (was min-height: 100dvh, which let the whole shell
+       stretch with page content and push the sidebar foot — the Sign out row —
+       below the fold on data load). Fixed height + overflow: hidden: the
+       sidebar stays pinned to the viewport and .ops-content (overflow: auto)
+       is the ONLY scroller. 100vh is the baseline; 100dvh (dynamic viewport)
+       wins on engines that support it. */
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
     background: var(--canvas);
   }
   .ops-sidebar {
     width: var(--ops-sidebar-w);
     flex: none;
+    height: 100%;
     background: var(--blueSlate-900);
     color: var(--blueSlate-50);
-    overflow-y: auto;
+    /* Pinned, unscrollable: the nav block always fits in a full-viewport
+       height (the foot pins below it). The page scrolls, not the sidebar. */
+    overflow: hidden;
   }
   .ops-sidebar .ops-nav-item {
     display: flex;
