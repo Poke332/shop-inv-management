@@ -7,6 +7,7 @@ import { ProductGrid } from '../components/ProductGrid.jsx'
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton.jsx'
 import { FilterRail } from '../components/search/FilterRail.jsx'
 import { FilterChips } from '../components/search/FilterChips.jsx'
+import { MobileFilterPanel } from '../components/search/MobileFilterPanel.jsx'
 
 /** Load-more batch for the 3-col results grid (the mockup's 3x2 row). */
 const PAGE = 6
@@ -165,6 +166,18 @@ export default function SearchPage() {
         />
 
         <div className="flex-1 min-w-0 pt-5">
+          {/* mobile (<768): the filter disclosure panel stands in for the
+              hidden desktop rail; desktop shows the 220px rail instead */}
+          <MobileFilterPanel
+            categories={['audio', 'smart-home', 'gaming', 'laptops', 'accessories', 'wearables']}
+            brands={catalogBrands}
+            activeBrands={activeBrands}
+            category={category}
+            busy={busy}
+            onCategory={toggleCategory}
+            onBrand={toggleBrand}
+          />
+
           <FilterChips
             query={query}
             category={category}
