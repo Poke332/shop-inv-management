@@ -57,7 +57,7 @@ export function StockStepper({ value, id, onCommit, failed, onRetry }) {
           type="button"
           aria-label={`Decrease stock for ${id}`}
           disabled={value <= 0}
-          onClick={() => setDraft(String(Math.max(0, (Number(draft) || 0) - 1)))}
+          onClick={() => stepCommit(-1)}
         >
           −
         </button>
@@ -75,7 +75,7 @@ export function StockStepper({ value, id, onCommit, failed, onRetry }) {
         <button
           type="button"
           aria-label={`Increase stock for ${id}`}
-          onClick={() => setDraft(String((Number(draft) || 0) + 1))}
+          onClick={() => stepCommit(1)}
         >
           +
         </button>
