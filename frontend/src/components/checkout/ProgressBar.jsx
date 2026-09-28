@@ -44,7 +44,7 @@ export function ProgressBar({ step }) {
                 {n}
               </div>
               <div
-                className={`text-meta hidden min-[390px]:block ${
+                className={`text-meta hidden min-[390px]:block text-center ${
                   active ? 'text-blueSlate-950 font-semibold' : 'text-blueSlate-700 font-medium'
                 }`}
               >
