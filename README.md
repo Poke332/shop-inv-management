@@ -1,12 +1,42 @@
 # shop-inv-management
 
-**Online store + integrated stock-management panel** — a web application (and, at Final, a client mobile app) built by our team for the *Web & Mobile Application Development* course.
+**Online store + integrated stock-management panel** ("Sunset Electronics") — a web application (and, at Final, a client mobile app) built by our team for the *Web & Mobile Application Development* course.
 
-At the **Midterm (UTS)** we deliver the web application built on **hardcoded (fake) data** — no backend, no database, no real authentication. This repo currently contains the full **design layer** of that system: requirements analysis, per-page design specs, the color/typography token system, and the mockup build + verification pipeline. The hardcoded web app is the next build step on top of these designs, deployed to GitHub Pages.
+At the **Midterm (UTS)** we deliver the web application built on **hardcoded (mock) data** — no backend, no database, no real authentication. This repo currently contains:
+
+- **`frontend/`** — the built web app: React SPA (Vite + Tailwind) with a full mock data layer that stands in for the future Express + SQLite backend. Implementation status per phase: see `docs/IMPLEMENTATION.md` — the storefront, cart/checkout, ops console, review panel, and the mobile buyer pass are done; P7 polish is the remaining phase.
+- **`docs/`** — the design layer the app was built from: requirements analysis (`Sheets-report.md`), per-page design specs, the color/typography token system, and the phased implementation plan.
+- **`_mockup-build/`** — the pixel-stable mockup render + verification pipeline.
 
 > One continuous project in two stages: Midterm = web app on hardcoded data; Final = the same web app reconnected to a real backend (Express + SQLite), plus a Client-only mobile app and one AI-powered feature.
 
----
+## Run it
+
+```
+cd frontend
+npm install
+npm run dev        # Vite dev server (default port 5173)
+```
+
+Mock login (every password is `sunset123`):
+
+| Role | Login | Lands on |
+|---|---|---|
+| buyer | `buyer_102@mock.local` | Main Store (`/`) |
+| staff | `marta@mock.local` | Ongoing Orders (`/ops/orders`) |
+| manager | `rina@mock.local` | Inventory (`/ops/inventory`) |
+| admin | `ria@mock.local` | Inventory (`/ops/inventory`) |
+
+Guests (no login) can browse the main store, search, and open product pages; cart/checkout/orders require a buyer session. A first-visit session is pre-seeded with a demo cart (P-231 + P-198, Rp 1.670.000). The 5 mock-login credential rows + edge cases (403 disabled, 409 duplicate register) are shown on the login page and documented in `frontend/src/data/seed/users.js`.
+
+Checks:
+
+```
+cd frontend
+npm run lint                       # oxlint over src/
+node src/data/smoke.test.js        # 36-assertion mock-data contract (32/32 gate)
+npm run build                      # production build to dist/
+```
 
 ## Course context — what the Midterm requires
 
@@ -61,9 +91,16 @@ All five ops pages share the app-shell layout spec in `docs/control-panel/design
 
 Each page folder contains `design.md` (features, wireframe notes, color usage) and `mockup.png` — a pixel-stable render of the page (checkout has per-step mockups; main-store also ships hero + 6 category images).
 
-## Rough data sketch (first-draft data model — will evolve)
+## Data layer (how the "hardcoded data" is wired)
 
-Per the midterm requirements, a rough sketch of the two records the system revolves around (plus the two supporting ones). Hardcoded as JS arrays at Midterm; becomes the SQLite schema at Final:
+The Midterm data requirement is met by a mock API that mirrors the future Express endpoints, so the backend swap later is a one-module change (`frontend/src/data/mockApi.js`):
+
+- **Seed data** (`src/data/seed/*`): 48 products (12 hand-authored + 36 synthesized), 6 categories, 5 mock orders, 128 reviews (122 public / 6 hidden, avg 4.3) on P-231, 128 users (3 staff / 2 managers / 1 admin / the rest buyers), and a stock audit trail (`init` → `order-decrement` / `manual-set` rows).
+- **Mock API** (`src/data/api/*` + `mockApi.js` facade): 26 Promise-returning functions across 7 sections (categories, products, orders, reviews, users, stock, cart) — the same names the future Express routes will have.
+- **Persistence**: the 5 mutable slices (products, orders, reviews, users, stock) persist to a versioned `localStorage` key and survive reloads; the cart keeps *session* semantics (`sessionStorage`, per the §4.5 ruling) and dies with the tab; `resetData()` in the dev-only `window.__sunset` bridge re-seeds everything.
+- **Shape contract**: `node src/data/smoke.test.js` asserts 36 values (counts, averages, mockup-locked totals, credential edge cases) so a seed edit can't silently drift the mockup numbers.
+
+The rough schema below is the same model, shown flat (it becomes the SQLite schema at Final):
 
 **Product**
 | field | type | notes |
@@ -99,3 +136,13 @@ Per the midterm requirements, a rough sketch of the two records the system revol
 | Midterm (now) | Web app: login, menu, role-conditional dashboard, form — both roles — deployed to GitHub Pages | Hardcoded |
 | Mid-course (not separately graded) | Same web app reconnected to our own Express + SQLite backend | Real database |
 | Final | Web (admin + client) + mobile (client only) + shared backend + 1 AI feature, fully deployed | Real database |
+
+## Repo layout
+
+```
+frontend/          the web app (see frontend/README.md)
+docs/              per-page design specs + token docs + IMPLEMENTATION.md (phase status)
+_mockup-build/     mockup render pipeline + verification scripts
+Sheets-report.md   requirements analysis from the plan-web sheet
+COLORS-draft.md    "Sunset Glow" palette (source of truth for color names)
+```
