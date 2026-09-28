@@ -54,7 +54,7 @@ export function ProgressBar({ step }) {
                 }`}
               />
               <div
-                className={`text-meta hidden min-[390px]:block text-center ${
+                className={`text-meta hidden min-[390px]:block text-center md:whitespace-nowrap ${
                   active ? 'text-blueSlate-950 font-semibold' : 'text-blueSlate-700 font-medium'
                 }`}
               >
