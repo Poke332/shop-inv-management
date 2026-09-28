@@ -19,13 +19,15 @@ import OrdersPage from './pages/OrdersPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
-import { OngoingOrdersPage } from './pages/OngoingOrdersPage.jsx'
-import { OngoingOrderDetailPage } from './pages/OngoingOrderDetailPage.jsx'
-import { InventoryPage } from './pages/InventoryPage.jsx'
-import { ProductsPage } from './pages/ProductsPage.jsx'
-import { ProductEditPage } from './pages/ProductEditPage.jsx'
-import { ReviewsPage } from './pages/ReviewsPage.jsx'
-import { UsersPage } from './pages/UsersPage.jsx'
+import {
+  OngoingOrdersPage,
+  OngoingOrderDetailPage,
+  InventoryPage,
+  ProductsPage,
+  ProductEditPage,
+  ReviewsPage,
+  UsersPage,
+} from './pages/OpsPages.jsx'
 
 /**
  * The single route tree (docs/IMPLEMENTATION.md §route table, the source
