@@ -1,12 +1,15 @@
 /**
  * The 3-segment checkout progress bar pinned above the form
- * (docs/checkout "ProgressBar"): 32px numbered circles + labels + a 2px
- * connecting track. Active / done = tangerine-600 fill + white 14/600
- * digit; pending = blueSlate-200 border + blueSlate-500 digit; labels
- * blueSlate-700 13/500 (active -> blueSlate-950 13/600). role="group",
- * the active step carries aria-current="step"; the receipt view renders
- * all segments done. Labels hide <=389px (the mobile compression in the
- * checkout doc).
+ * (docs/checkout "ProgressBar"): 32px status circles + labels + a 2px
+ * connecting track. Active / done = tangerine-600 fill; pending =
+ * blueSlate-200 border on canvas (empty circles — the numbered-glyph
+ * variant was optically off-center on the 32px circle, so step number
+ * rides the label + aria only). Labels blueSlate-700 13/500 (active ->
+ * blueSlate-950 13/600), centered so a wrapped desktop block sits under
+ * its circle. role="group", the active step carries aria-current="step";
+ * each circle is role="img" with a per-step aria-label; the receipt view
+ * renders all segments done. Labels hide <=389px (the mobile compression
+ * in the checkout doc).
  * @param {number} step  1–3; 4 (receipt) = all done.
  * @returns {object} the progress indicator.
  */
@@ -34,15 +37,22 @@ export function ProgressBar({ step }) {
               className="flex flex-col items-center gap-2 flex-1 min-w-0 md:w-[96px] md:flex-none md:shrink-0"
               aria-current={active ? 'step' : undefined}
             >
+              {/* the digit was optically off-center in the 32px circle on
+                  desktop (the 20px line box can't be centered by
+                  place-items-center), so the step is marked by an empty
+                  status circle: filled tangerine = done/active, hollow =
+                  pending. the label under it + aria-current carry the
+                  meaning; the circle itself is role="img" + a per-step
+                  aria-label so the sequence stays navigable by screen readers. */}
               <div
-                className={`w-8 h-8 rounded-full grid place-items-center text-price font-semibold ${
+                role="img"
+                aria-label={`Step ${n} of 3: ${label} — ${active ? 'in progress' : done ? 'completed' : 'upcoming'}`}
+                className={`w-8 h-8 rounded-full ${
                   active || done
-                    ? 'bg-atomicTangerine-600 text-white'
-                    : 'border-2 border-blueSlate-200 bg-canvas text-blueSlate-500'
+                    ? 'bg-atomicTangerine-600'
+                    : 'border-2 border-blueSlate-200 bg-canvas'
                 }`}
-              >
-                {n}
-              </div>
+              />
               <div
                 className={`text-meta hidden min-[390px]:block text-center ${
                   active ? 'text-blueSlate-950 font-semibold' : 'text-blueSlate-700 font-medium'
