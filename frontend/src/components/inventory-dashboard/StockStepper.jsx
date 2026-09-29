@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
  * StockStepper — the inventory table's inline quick-set (docs/inventory-
  * dashboard "StockStepper": open decision #2 — the NUMBER only is edited
  * inline; the full edit lives in the per-product editor). 44px cells,
- * blueSlate-200 border; the value is an editable input (type −/digits/+)
- * that commits on blur or Enter (mockApi.setStock, absolute value, min
- * 0); success tints the row willowGreen-100 for ~1s (the page's
+ * blueSlate-200 border; the value is an editable input (type −/digits/+).
+ * The ± buttons step AND save immediately (a one-step off the current draft
+ * is unambiguous, so it doesn't wait for the input's blur); a typed value
+ * commits on blur or Enter (mockApi.setStock, absolute value, min 0).
+ * success tints the row willowGreen-100 for ~1s (the page's
  * flashRow), a failure shows the inline "Save failed — retry" link.
  * Rendered by manager/admin ONLY — staff never see it (visibility
  * gating). aria-valuenow carries the live value.
@@ -24,6 +26,17 @@ export function StockStepper({ value, id, onCommit, failed, onRetry }) {
   useEffect(() => {
     setDraft(String(value))
   }, [value])
+
+  // ± step AND save in one action: the new value is unambiguous
+  // (current draft + 1 / - 1), so commit it now instead of waiting for the
+  // input to blur — a stepper tap that only moved the draft (display ahead
+  // of the store) would revert on reload. Typed values still commit on
+  // blur/Enter, where the value can't be assumed.
+  const stepCommit = (delta) => {
+    const q = Math.max(0, Math.floor(Number(draft) || 0) + delta)
+    setDraft(String(q))
+    if (q !== value) onCommit(id, q)
+  }
 
   const commit = () => {
     const q = Math.max(0, Math.floor(Number(draft) || 0))
@@ -44,7 +57,7 @@ export function StockStepper({ value, id, onCommit, failed, onRetry }) {
           type="button"
           aria-label={`Decrease stock for ${id}`}
           disabled={value <= 0}
-          onClick={() => setDraft(String(Math.max(0, (Number(draft) || 0) - 1)))}
+          onClick={() => stepCommit(-1)}
         >
           −
         </button>
@@ -62,7 +75,7 @@ export function StockStepper({ value, id, onCommit, failed, onRetry }) {
         <button
           type="button"
           aria-label={`Increase stock for ${id}`}
-          onClick={() => setDraft(String((Number(draft) || 0) + 1))}
+          onClick={() => stepCommit(1)}
         >
           +
         </button>

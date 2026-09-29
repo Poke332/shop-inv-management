@@ -72,7 +72,17 @@ export function InventoryPage() {
                 ? { ...x, stock: p.stock, status: status === 'out' ? 'out' : 'low' }
                 : x,
             )
-            .filter((x) => x.stock === 0 || x.stock <= 5)
+            // the attention rows (the getStockOverview projection) don't carry
+            // the threshold, so keep/drop joins the catalog: the just-saved
+            // product from p (the products closure is still the pre-update
+            // array inside this updater), every other row from its catalog
+            // record's lowStockThreshold — a raised-still-attention row keeps
+            // its label until the filter drops it.
+            .filter((x) => {
+              const ref = x.productId === p.id ? p : (products || []).find((q) => q.id === x.productId)
+              const threshold = ref ? ref.lowStockThreshold : 5
+              return x.stock === 0 || x.stock <= threshold
+            })
         : a,
     )
     setFlashRow(id)
