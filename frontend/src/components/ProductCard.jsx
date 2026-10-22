@@ -11,8 +11,12 @@ import { TileGlyph } from './TileGlyph.jsx'
 /**
  * The product card (docs/main-store "ProductGrid + ProductCard").
  * Tile = image asset when the product carries one (`image` field starting
- * with "/products/" / "/img/"), else the category-keyed gradient tile with
- * its glyph; out of stock dims the tile and flips both CTAs to disabled.
+ * with "/products/", "/img/", "/uploads/" — a /uploads path is the stored
+ * shape of an uploaded image — or a data:image URL), else the category-
+ * keyed gradient tile with its glyph; while the image is still loading
+ * the tile shows the static skeleton block (the ProductCardSkeleton
+ * pattern, no shimmer); a failed load falls back to the tile. Out of
+ * stock dims the tile and flips both CTAs to disabled.
  * Single export (code-org rule: one component per file; helpers in utils).
  * The CTA row is a guaranteed single line — both labels whitespace-nowrap,
  * no flex-wrap, flex-1 pair; on mobile (<640px) the Add-to-cart leading
@@ -34,6 +38,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const [flash, setFlash] = useState(false)
   const flashTimer = useRef(null)
   const [imgOk, setImgOk] = useState(true)
+  const [loadedSrc, setLoadedSrc] = useState(null)
 
   // cancel the ~600ms add-flash timer on unmount (avoids setState after unmount)
   useEffect(
@@ -46,7 +51,9 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const oos = p.stock === 0
   const low = !oos && p.stock <= p.lowStockThreshold
   const tileClass = `${CATEGORY_TILE[p.category] || 'tile-fallback'}${oos ? ' tile-outstock' : ''}`
- const hasImage = /^(\/(products|img)\/|data:image\/(png|jpeg|webp);base64,)/.test(p.image || '') && imgOk
+  const hasImage = /^(\/(products|img|uploads)\/|data:image\/(png|jpeg|webp);base64,)/.test(p.image || '') && imgOk
+  // a new image src starts unready (the skeleton shows until it loads)
+  const imgReady = loadedSrc === p.image
 
 
   // guests (user === null) can browse, but the purchase CTAs are
@@ -97,14 +104,20 @@ export function ProductCard({ p, onBuy, onAdd }) {
       <div className={`tile ${tileClass}`}>
         <Link to={"/products/" + p.id} className="product-image-link" aria-label={"View " + p.name}>
         {hasImage ? (
-          <img
-            src={p.image}
-            alt={p.name}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover"
-            // image load failed -> fall back to the category tile
-            onError={() => setImgOk(false)}
-          />
+          <>
+            {imgReady ? null : (
+              <div className="skeleton absolute inset-0" aria-hidden="true" />
+            )}
+            <img
+              src={p.image}
+              alt={p.name}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+              onLoad={() => setLoadedSrc(p.image)}
+              // image load failed -> fall back to the category tile
+              onError={() => setImgOk(false)}
+            />
+          </>
         ) : (
           <TileGlyph category={p.category} />
         )}
