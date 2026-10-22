@@ -18,13 +18,13 @@
  * every helper no-ops — the store degrades to in-memory-only there.
  */
 
-export const STORAGE_KEY = 'sunset-mock-data-v1';
+export const STORAGE_KEY = 'sunset-final-project-data-v1';
 export const SNAPSHOT_VERSION = 1;
 
 /** The slice names persisted — must stay in lockstep with store.js's 5 arrays. */
 const SLICES = ['products', 'orders', 'reviews', 'users', 'stock'];
 
-function storage() {
+export function storage() {
   return typeof localStorage === 'undefined' ? null : localStorage;
 }
 

@@ -1,199 +1,49 @@
 import { useEffect, useState } from 'react'
-
-import { Link, useNavigate } from 'react-router'
-
+import { Link } from 'react-router'
+import { FiArrowUpRight, FiArrowRight, FiBox, FiShield, FiHeadphones } from 'react-icons/fi'
 import { mockApi } from '../data'
 import { ProductGrid } from '../components/ProductGrid.jsx'
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton.jsx'
+import { TileGlyph } from '../components/TileGlyph.jsx'
 
-/** First 8 items = 4 FEATURED + first-4 SHOP_ALL (2 desktop rows). */
-const HOME_SLICE = 8
+const categories = [['audio', 'Audio'], ['wearables', 'Wearables'], ['laptops', 'Laptops & PC'], ['gaming', 'Gaming'], ['smart-home', 'Smart home'], ['accessories', 'Accessories']]
 
-/**
- * Main-store page (docs/main-store/IMPLEMENTATION.md): full-bleed hero
- * banner -> 3x2 category image grid (deep-links /search?category=<slug>) ->
- * "Our Products" 8-item preview with "See more" on the heading row (right
- * side; full-width on <768 where the row stacks). "See more" navigates to
- * /search (the browse page) — the in-place load-more state was removed; the
- * section always previews the first 8 items. The hero height is svh-based
- * (viewport minus the 56px header) so its bottom edge lands at the display
- * bottom with no bleed past the first fold.
- * Section order: header -> hero (full-bleed, outside the centered container)
- * -> "Browse by category" -> "Our Products".
- * Route / is guest-or-buyer (RequireGuestOrBuyer).
- */
 export default function HomePage() {
-  const navigate = useNavigate()
-  const [catalog, setCatalog] = useState(null) // null = first paint (skeletons)
-  const [catalogError, setCatalogError] = useState(false)
+  const [products, setProducts] = useState(null)
+  const [error, setError] = useState(false)
   const [retry, setRetry] = useState(0)
-  const [heroOk, setHeroOk] = useState(true)
-
-  // One fetch with sort=catalog keeps the ARCHITECTURE §4.2 record order
-  // intact so the home slice rows match the committed mockup-bottom.png:
-  // row 1 = first 4 FEATURED (P-231/198/140/087), row 2 = first-4 SHOP_ALL
-  // (P-052/111/064/208). The home page previews the first 8 of that order.
+  const [category, setCategory] = useState('all')
   useEffect(() => {
     let alive = true
-    setCatalogError(false)
-    mockApi
-      .getProducts({ sort: 'catalog' })
-      .then((res) => {
-        if (alive) setCatalog(res.items)
-      })
-      .catch(() => {
-        if (alive) setCatalogError(true)
-      })
-    return () => {
-      alive = false
-    }
+    setError(false)
+    mockApi.getProducts({ sort: 'catalog' }).then(({ items }) => {
+      if (alive) setProducts(items)
+    }).catch(() => { if (alive) setError(true) })
+    return () => { alive = false }
   }, [retry])
-
-  // Home preview = 4 FEATURED + first-4 SHOP_ALL, taken in record order.
-  const ordered = catalog
-    ? [
-        ...catalog.filter((p) => p.featured),
-        ...catalog.filter((p) => !p.featured),
-      ]
-    : []
-  const items = ordered.slice(0, HOME_SLICE)
+  const items = products?.filter(p => category === 'all' || p.category === category).slice(0, 8)
 
   return (
-    <>
-      {/* ---- full-bleed hero (edge-to-edge, outside the .page container) ----
-          svh-based height = viewport minus the 56px sticky header, so the
-          hero bottom edge lands at the display bottom (no bleed past the
-          first fold). The image-failure fallback keeps the same svh height. */}
-      <div
-        className={`relative w-full overflow-hidden mb-section-rhythm ${heroOk ? '' : 'bg-[var(--atomicTangerine-50)]'}`}
-        style={{ height: 'calc(100svh - 4rem)' }}
-      >
-        {heroOk ? (
-          <img
-            src="/hero-banner.png"
-            alt="Sunset Glow: headphones, smartwatches, laptop, phone, speaker and game controller on a dark reflective surface"
-            // mobile keeps the full composition centered; only the desktop
-            // right-third crop (>=768) shifts the focal point right
-            className="absolute inset-0 w-full h-full object-cover object-center md:[object-position:center_right]"
-            loading="eager"
-            fetchPriority="high"
-            onError={() => setHeroOk(false)}
-          />
-        ) : null}
-        {/* copy overlay: right-third, vertically centered on desktop; bottom
-             flow on mobile (H2 -> 26/36, CTA full-width) per the design doc */}
-        <div
-          className={`absolute flex flex-col gap-3 text-left left-4 right-4 bottom-4 max-w-none ${
-            heroOk
-              ? 'md:left-auto md:right-12 md:top-1/2 md:-translate-y-1/2 md:bottom-auto md:max-w-[380px]'
-              : ''
-          }`}
-        >
-          <p
-            className={`text-meta font-semibold tracking-[0.05em] uppercase ${
-              heroOk ? 'text-tuscanSun-300' : 'text-blueSlate-700'
-            }`}
-          >
-            New season gear
-          </p>
-          <h2
-            className={`font-semibold text-h1 ${
-              heroOk ? 'text-white md:text-[32px] md:leading-10' : 'text-ink'
-            }`}
-          >
-            Power everything.
-          </h2>
-          <p className={`text-body max-w-md ${heroOk ? 'text-blueSlate-100' : 'text-blueSlate-700'}`}>
-            Audio to wearables — new drops this week.
-          </p>
-          <a href="#shop-all" className={`btn-primary w-full md:w-auto ${heroOk ? 'md:self-start' : ''}`}>
-            Shop the drop
-          </a>
+    <main id="main-content" className="home-page">
+      <section className="hero-wrap" aria-labelledby="hero-title">
+        <div className="hero-copy">
+          <span className="eyebrow"><span className="live-dot" /> A LITTLE UPGRADE. A BIG DIFFERENCE.</span>
+          <h1 id="hero-title">Good tech.<br />Better <span>everyday.</span></h1>
+          <p>Your next favorite, from the brands you love.<br className="desktop-break" /> Discover tech that fits the way you live.</p>
+          <div className="hero-actions"><Link to="/search" className="btn-primary">Find your next upgrade <FiArrowUpRight /></Link><Link to="/search?category=audio" className="text-link">Explore audio <FiArrowRight /></Link></div>
+          <div className="hero-note"><span className="mini-sun" aria-hidden="true">•</span><span>Thoughtfully picked. Ready for your everyday.</span></div>
         </div>
-      </div>
-
-      <div className="page pb-section-rhythm">
-        {/* ---- Browse by category: 3x2 image grid ---- */}
-        <section aria-labelledby="browse-category" className="mb-section-rhythm">
-          <h2
-            id="browse-category"
-            className="text-section text-ink tracking-[0.05em] mb-section-label-gap"
-          >
-            Browse by category
-          </h2>
-          {/* 3×2 image grid on desktop; a horizontal-scroll rail on mobile
-               <768 — each card is a discrete 78%-wide snap card (2-peek) so
-               the row scrolls one card at a time instead of squeezing/clipping
-               all 6 into the visible width. Desktop keeps the 320px tiles. */}
-          <div className="flex gap-card-gutter overflow-x-auto snap-x snap-mandatory pb-1 md:grid md:grid-cols-3">
-            {[
-              ['audio', 'Audio'],
-              ['smart-home', 'Smart Home'],
-              ['gaming', 'Gaming'],
-              ['laptops', 'Laptops & PC'],
-              ['accessories', 'Accessories'],
-              ['wearables', 'Wearables'],
-            ].map(([slug, label]) => (
-              <Link
-                key={slug}
-                to={`/search?category=${slug}`}
-                className="block min-w-[78%] snap-start overflow-hidden rounded-lg border border-blueSlate-200 bg-canvas transition-colors hover:border-atomicTangerine-400 focus-visible:outline-2 focus-visible:outline-atomicTangerine-500 md:min-w-[320px]"
-              >
-                <div className="relative w-full" style={{ aspectRatio: '4 / 1' }}>
-                  <img
-                    src={`/cat-${slug}.png`}
-                    alt={label}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <p className="px-4 py-3 text-card text-ink">{label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* ---- Our Products: heading row + See more + 8-item grid ---- */}
-        <section
-          id="shop-all"
-          className="pb-section-rhythm"
-          style={{ scrollMarginTop: 80 }}
-        >
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-section-label-gap">
-            <h2 className="text-section text-ink tracking-[0.05em]">Our Products</h2>
-            {/* "See more" links to the browse page (/search) — the in-place
-                load-more state was removed. */}
-            <button
-              type="button"
-              className="btn-primary btn-loadmore"
-              onClick={() => navigate('/search')}
-            >
-              See more
-            </button>
-          </div>
-
-          {catalogError ? (
-            <div className="state-error" role="alert">
-              Couldn't load products.{' '}
-              <button type="button" className="btn-destructive ml-2" onClick={() => setRetry((n) => n + 1)}>
-                Try again
-              </button>
-            </div>
-          ) : !catalog ? (
-            <ProductCardSkeleton n={8} />
-          ) : catalog.length === 0 ? (
-            <div className="state-empty">
-              <h2>No products yet</h2>
-              <p>New drops land here weekly.</p>
-              <button type="button" className="btn-primary mt-4" onClick={() => setRetry((n) => n + 1)}>
-                Refresh
-              </button>
-            </div>
-          ) : (
-            <ProductGrid items={items} />
-          )}
-        </section>
-      </div>
-    </>
+        <div className="hero-visual">
+          <img src="/products/p-231.png" alt="Wireless earbuds in their charging case, lit by a warm sunset" fetchPriority="high" />
+          <span className="hero-sticker">SOUND ON.<br />WORLD OFF.<span>↗</span></span>
+          <Link to="/products/P-231" className="hero-product"><span><small>THE EVERYDAY EDIT / 01</small><strong>Sony WF-C710N</strong><span>Wireless. Effortless. Yours.</span></span><span className="round-arrow"><FiArrowUpRight /></span></Link>
+        </div>
+      </section>
+      <section className="brand-strip" aria-label="Featured brands"><span>GOOD COMPANY.<br /><b>GREAT TECH.</b></span><strong>SONY</strong><strong>Anker</strong><strong>logitech</strong><strong className="brand-samsung">SAMSUNG</strong><strong>JBL.</strong><strong>ASUS</strong></section>
+      <section className="home-section" aria-labelledby="category-title"><div className="section-heading"><div><span className="eyebrow">FIND YOUR THING</span><h2 id="category-title">A little something for every day.</h2></div><Link className="text-link" to="/search">All categories <FiArrowUpRight /></Link></div><div className="category-grid">{categories.map(([slug, label]) => <Link key={slug} to={'/search?category=' + slug} className="category-card"><span className="category-icon"><TileGlyph category={slug} size={32} /></span><span>{label}</span><FiArrowUpRight className="category-arrow" /></Link>)}</div></section>
+      <section className="home-section product-section" id="shop-all" aria-labelledby="products-title"><div className="section-heading"><div><span className="eyebrow">THE GOOD STUFF</span><h2 id="products-title">Meet your next favorites.</h2></div><Link className="text-link" to="/search">Shop everything <FiArrowUpRight /></Link></div><div className="catalog-tabs" aria-label="Filter featured products">{[['all', 'All picks'], ...categories].map(([slug, label]) => <button key={slug} type="button" aria-pressed={category === slug} className={category === slug ? 'selected' : ''} onClick={() => setCategory(slug)}>{label}</button>)}</div><div aria-live="polite">{error ? <div className="state-error">We couldn’t load the collection. <button className="btn-secondary" onClick={() => setRetry(n => n + 1)}>Try again</button></div> : !products ? <ProductCardSkeleton n={8} /> : items.length ? <ProductGrid items={items} /> : <div className="state-empty">More favorites are on the way. <Link to="/search">Browse all products</Link></div>}</div></section>
+      <section className="editorial-banner"><div><span className="eyebrow">MAKE ROOM FOR BETTER</span><h2>Small upgrades.<br />A whole new feeling.</h2><p>For the desk, the commute, and everything in between.</p><Link className="btn-primary" to="/search?category=accessories">Upgrade your everyday <FiArrowUpRight /></Link></div><img src="/hero-banner.png" alt="A collection of electronics in warm sunset light" loading="lazy" /></section>
+      <section className="service-strip" aria-label="Shopping benefits"><div><FiBox /><span><strong>Everything in one place</strong><small>From daily essentials to your next upgrade.</small></span></div><div><FiShield /><span><strong>Shop with clarity</strong><small>Clear specs, real stock, and transparent pricing.</small></span></div><div><FiHeadphones /><span><strong>Find your perfect fit</strong><small>Explore details and reviews before you decide.</small></span></div></section>
+    </main>
   )
 }

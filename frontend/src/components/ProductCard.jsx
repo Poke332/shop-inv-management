@@ -94,6 +94,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   return (
     <article className="card group">
       <div className={`tile ${tileClass}`}>
+        <Link to={"/products/" + p.id} className="product-image-link" aria-label={"View " + p.name}>
         {hasImage ? (
           <img
             src={p.image}
@@ -106,6 +107,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
         ) : (
           <TileGlyph category={p.category} />
         )}
+        </Link>
         {p.onSale ? (
           <span className="badge badge-sale absolute top-2 left-2">On sale</span>
         ) : null}

@@ -1,3 +1,4 @@
+> **Final Project frontend checkpoint:** This branch contains the updated Sunset UI in `frontend/`. See [frontend/README.md](frontend/README.md) for setup and the current feature summary. Backend work is excluded from this checkpoint. The `main` branch remains the original project baseline.
 # shop-inv-management
 
 **Online store + integrated stock-management panel** ("Sunset Electronics") — a web application (and, at Final, a client mobile app) built by our team for the *Web & Mobile Application Development* course.

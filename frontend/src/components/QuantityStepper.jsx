@@ -1,3 +1,5 @@
+import { storage } from '../data/persistence.js'
+
 /**
  * The 44px quantity stepper (product-details + cart; docs: min 1, max =
  * stock, "+" disabled at max). One component per file (code-org rule).
@@ -11,13 +13,22 @@
 export function QuantityStepper({ value, min, max, onChange, labelFor }) {
   const dec = labelFor ? `Decrease quantity for ${labelFor}` : 'Decrease quantity'
   const inc = labelFor ? `Increase quantity for ${labelFor}` : 'Increase quantity'
+
+  const changeQty = (v) => {
+    const ls = storage();
+    if (!ls) return
+    ls.setItem('quantity', JSON.stringify({ value: v }));
+  }
   return (
     <div className="stepper">
       <button
         type="button"
         aria-label={dec}
         disabled={value <= min}
-        onClick={() => onChange(Math.max(min, value - 1))}
+        onClick={() => {
+          changeQty(value - 1);
+          onChange(Math.max(min, value - 1));
+        }}
       >
         −
       </button>
@@ -28,7 +39,10 @@ export function QuantityStepper({ value, min, max, onChange, labelFor }) {
         type="button"
         aria-label={inc}
         disabled={value >= max}
-        onClick={() => onChange(Math.min(max, value + 1))}
+        onClick={() => {
+          changeQty(value + 1);
+          onChange(Math.min(max, value + 1));
+        }}
       >
         +
       </button>

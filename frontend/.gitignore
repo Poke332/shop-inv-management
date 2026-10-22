@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+backend/node_modules/
+backend/.env
+backend/data/*.db
+backend/data/*.db-*
+.env.local

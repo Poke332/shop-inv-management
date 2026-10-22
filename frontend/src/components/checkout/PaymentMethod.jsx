@@ -38,7 +38,7 @@ export function PaymentMethod({
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <span className="w-[26px] h-[26px] rounded-full bg-atomicTangerine-600 text-white text-meta font-semibold grid place-items-center">
+        <span className="checkout-section-number w-[26px] h-[26px] rounded-full bg-atomicTangerine-600 text-white text-meta font-semibold grid place-items-center">
           3
         </span>
         <h2 className="text-section text-ink font-semibold">Payment</h2>

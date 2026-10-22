@@ -78,9 +78,9 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h1 className="text-h1 font-h1 text-ink">Sign in</h1>
+      <h1 className="text-h1 font-h1 text-ink">Welcome back.</h1>
       <p className="text-body text-inkMuted mt-2">
-        One sign-in for every role — the server (mock) returns your role and routes you home.
+        Sign in to pick up where you left off.
       </p>
 
       {error ? (
@@ -125,6 +125,7 @@ export default function LoginPage() {
               required
               minLength={8}
               autoComplete="current-password"
+              aria-label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onBlur={() => setPwErr(password && !pwValid ? 'At least 8 characters.' : null)}
@@ -176,7 +177,7 @@ export default function LoginPage() {
 
       {/* dev aid: quick-fill the 5 mock credential rows (§4.2 table) */}
       <div className="mt-6 border-t border-blueSlate-200 pt-4">
-        <p className="text-meta text-blueSlate-700 mb-2">Mock credentials (ARCHITECTURE §4.2)</p>
+        <p className="text-meta text-blueSlate-700 mb-2">Explore the demo · choose an account to fill the form</p>
         <div className="flex flex-wrap gap-2">
           {[
             ['buyer', 'buyer_102@mock.local'],
