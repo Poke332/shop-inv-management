@@ -267,3 +267,36 @@ export function roleNote(role) {
       return 'They keep buyer-only access.'
   }
 }
+
+/**
+ * Pre-submit compression toward the 1 MB product-image cap: decode a data
+ * URL, then step down through fixed (longest-side, webp quality) pairs
+ * until the re-encoded bytes fit under the cap. Returns the compressed
+ * data URL, or null when the cap is still hit at the last step (the
+ * dropzone shows its rejection state).
+ * @param {string} dataUrl  the file's base64 data URL.
+ * @param {number} [capBytes=1000000]  the re-encoded byte cap.
+ * @returns {Promise<string|null>} the compressed data URL, or null.
+ */
+export async function compressImageForUpload(dataUrl, capBytes = 1_000_000) {
+  const image = await new Promise((resolve, reject) => {
+    const el = new Image()
+    el.onload = () => resolve(el)
+    el.onerror = () => reject(new Error('The image is unreadable.'))
+    el.src = dataUrl
+  })
+  for (const [size, quality] of [[1600, 0.8], [1200, 0.6], [900, 0.45], [640, 0.3]]) {
+    const scale = Math.min(1, size / Math.max(image.naturalWidth, image.naturalHeight))
+    const width = Math.max(1, Math.round(image.naturalWidth * scale))
+    const height = Math.max(1, Math.round(image.naturalHeight * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    canvas.getContext('2d').drawImage(image, 0, 0, width, height)
+    const out = canvas.toDataURL('image/webp', quality)
+    // the base64 payload decodes to 3/4 of its length, regardless of MIME
+    const bytes = Math.round(out.split(',')[1].length * 0.75)
+    if (bytes <= capBytes) return out
+  }
+  return null
+}
