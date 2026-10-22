@@ -34,8 +34,6 @@ npm-debug.log*
 .idea/
 .DS_Store
 
-# Frontend-only checkpoint: add backend intentionally in a later change.
-/backend/
 **/node_modules/
 **/dist/
 *.db
