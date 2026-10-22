@@ -1,7 +1,20 @@
 import { randomUUID } from 'node:crypto'
-import db from '../db.js'
+import { writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import db, { uploadsDir } from '../db.js'
 import { product } from './serializer.js'
 import { fail, text, integer } from './validation.js'
+
+// Simpan URL data: sebagai file di disk lalu kembalikan path-nya, agar DB
+// tidak memuat byte gambar. Path yang sudah ada dilewatkan apa adanya.
+function storeImage(image) {
+  if (!image.startsWith('data:image/')) return image
+  const match = /^data:image\/(png|jpeg|webp);base64,(.+)$/.exec(image)
+  const ext = match[1] === 'jpeg' ? 'jpg' : match[1]
+  const file = `img-${randomUUID()}.${ext}`
+  writeFileSync(resolve(uploadsDir, file), Buffer.from(match[2], 'base64'))
+  return `/uploads/${file}`
+}
 
 export function stockChange(productId, qty, actorId) {
   return db.transaction(() => {
@@ -26,26 +39,27 @@ export function saveProduct(id, body, actorId) {
   const stock = integer(form.stock, 'Stock', { max: 1000000 })
   const description = text(form.description ?? '', 'Description', { min: 0, max: 10000 })
   const image = text(form.image, 'Image', { max: 1500000 })
-  if (!/^\/(products|img)\/[\w./-]+$/.test(image)
+  if (!/^\/(products|img|uploads)\/[\w./-]+$/.test(image)
       && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image)) fail(400, 'Format image not supported.')
   if (!Array.isArray(form.specs) || form.specs.length > 50) fail(400, 'Specs not valid.')
   const specs = form.specs.map(item => ({
     key: text(item?.key, 'Spec key', { min: 0, max: 100 }),
     value: text(item?.value, 'Spec value', { min: 0, max: 500 }),
   }))
+  const storedImage = storeImage(image)
   return db.transaction(() => {
     let productId = id
     if (id) {
       if (!db.prepare('SELECT id FROM products WHERE id = ?').get(id)) fail(404, 'Product not found.')
       stockChange(id, stock, actorId)
       db.prepare('UPDATE products SET name=?,brand=?,category_slug=?,price=?,description=?,image=? WHERE id=?')
-        .run(name, brand, category, price, description, image, id)
+        .run(name, brand, category, price, description, storedImage, id)
       db.prepare('DELETE FROM product_specs WHERE product_id = ?').run(id)
     } else {
       productId = 'P-' + randomUUID()
       const position = db.prepare('SELECT COALESCE(MAX(catalog_position),-1)+1 AS value FROM products').get().value
       db.prepare(`INSERT INTO products(id,name,brand,category_slug,price,stock,description,image,catalog_position,created_at)
-        VALUES (?,?,?,?,?,?,?,?,?,?)`).run(productId, name, brand, category, price, stock, description, image, position, new Date().toISOString())
+        VALUES (?,?,?,?,?,?,?,?,?,?)`).run(productId, name, brand, category, price, stock, description, storedImage, position, new Date().toISOString())
       db.prepare('INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at) VALUES (?,?,?,?,?)')
         .run(productId, actorId, stock, 'product-created', new Date().toISOString())
     }

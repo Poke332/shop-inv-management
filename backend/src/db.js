@@ -7,6 +7,9 @@ const backendRoot = fileURLToPath(new URL('../', import.meta.url))
 const databasePath = resolve(backendRoot, process.env.DATABASE_PATH || './data/sunset.db')
 mkdirSync(dirname(databasePath), { recursive: true })
 const db = new Database(databasePath)
+// Direktori upload gambar produk; tetap di backend/data/uploads meski DATABASE_PATH diarahkan ke tempat lain.
+export const uploadsDir = resolve(backendRoot, 'data/uploads')
+mkdirSync(uploadsDir, { recursive: true })
 
 try {
   db.pragma('foreign_keys = ON')

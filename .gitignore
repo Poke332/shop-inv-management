@@ -38,5 +38,7 @@ npm-debug.log*
 **/dist/
 *.db
 *.db-*
+# File gambar unggahan API (diisi saat runtime, bukan sumber).
+backend/data/uploads/
 *.sqlite
 *.sqlite3
