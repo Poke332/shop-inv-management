@@ -30,9 +30,6 @@ export function InventoryPage() {
 
   useEffect(() => {
     let alive = true
-    setProducts(null)
-    setAttention(null)
-    setError(false)
     Promise.all([mockApi.getProducts({ sort: 'catalog' }), mockApi.getStockOverview()])
       .then(([cat, att]) => {
         if (!alive) return
@@ -118,7 +115,7 @@ export function InventoryPage() {
       {error ? (
         <div className="state-error mt-5" role="alert">
           The stock overview could not be loaded.{' '}
-          <button type="button" className="underline font-semibold" onClick={() => setRetry((r) => r + 1)}>
+          <button type="button" className="underline font-semibold" onClick={() => { setProducts(null); setAttention(null); setError(false); setRetry((r) => r + 1) }}>
             Retry
           </button>
         </div>
@@ -151,3 +148,4 @@ export function InventoryPage() {
     </div>
   )
 }
+

@@ -5,11 +5,10 @@ import { PaymentMethodIcon } from './PaymentMethodIcon.jsx'
 
 /**
  * Step 3 of the checkout wizard — payment (docs/checkout "PaymentMethod"):
- * three radio-cards (Card / Bank transfer / QRIS, 44px rows; selected =
+ * two radio-cards (Card / Bank transfer, 44px rows; selected =
  * blueSlate-100 tint + tangerine radio dot + icon) with per-method
  * conditional inputs in a dashed blueSlate-200 block on blueSlate-50
- * (card number auto-masked, expiry + CVV; bank VA number; QRIS
- * placeholder note). CTA row "Back" + the step-3-only "Place order"
+ * (card number auto-masked, expiry + CVV; bank VA number). CTA row "Back" + the step-3-only "Place order"
  * (PlaceOrderButton) + the "Edit cart" link. Presentational — the
  * wizard state above the routes owns the values.
  * @param {{value: {method: string, [k: string]: any},
@@ -164,16 +163,7 @@ export function PaymentMethod({
           </div>
         ) : null}
 
-        {value.method === 'qris' ? (
-          <div>
-            <div className="grid place-items-center my-2 w-16 h-16 border border-dashed border-blueSlate-300 rounded-lg bg-canvas">
-              <PaymentMethodIcon method="qris" />
-            </div>
-            <p className="text-meta text-blueSlate-700">
-              A QRIS code is generated after the order is placed — pay from any e-wallet app.
-            </p>
-          </div>
-        ) : null}
+
       </div>
 
       <div className="flex items-center justify-between gap-6 mt-6">

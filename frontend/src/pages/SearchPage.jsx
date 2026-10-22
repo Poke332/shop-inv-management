@@ -128,10 +128,6 @@ export default function SearchPage() {
       const rest = activeBrands.filter((b) => b !== value)
       set({ brand: rest.length ? rest.join(',') : null })
     } else {
-      const map = {
-        query: 'query',
-        category: 'category',
-      }
       const patch = {}
       if (key === 'query') patch.query = null
       if (key === 'category') patch.category = null
@@ -253,3 +249,4 @@ export default function SearchPage() {
     </main>
   )
 }
+

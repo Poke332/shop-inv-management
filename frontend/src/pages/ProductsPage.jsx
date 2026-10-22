@@ -30,8 +30,6 @@ export function ProductsPage() {
 
   useEffect(() => {
     let alive = true
-    setProducts(null)
-    setError(false)
     mockApi
       .getProducts({ sort: 'catalog' })
       .then((d) => {
@@ -71,7 +69,7 @@ export function ProductsPage() {
       {error ? (
         <div className="state-error mt-5" role="alert">
           The product list could not be loaded.{' '}
-          <button type="button" className="underline font-semibold" onClick={() => setRetry((r) => r + 1)}>
+          <button type="button" className="underline font-semibold" onClick={() => { setProducts(null); setError(false); setRetry((r) => r + 1) }}>
             Retry
           </button>
         </div>

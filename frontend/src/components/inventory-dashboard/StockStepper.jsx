@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 /**
  * StockStepper — the inventory table's inline quick-set (docs/inventory-
@@ -21,11 +21,12 @@ import { useEffect, useState } from 'react'
 export function StockStepper({ value, id, onCommit, failed, onRetry }) {
   const [draft, setDraft] = useState(String(value))
 
-  // re-hydrate the draft when the committed value changes (a failed
-  // retry after the store refreshed elsewhere)
-  useEffect(() => {
+  // Adjust this component's draft before displaying a changed committed value.
+  const [previousValue, setPreviousValue] = useState(value)
+  if (value !== previousValue) {
+    setPreviousValue(value)
     setDraft(String(value))
-  }, [value])
+  }
 
   // ± step AND save in one action: the new value is unambiguous
   // (current draft + 1 / - 1), so commit it now instead of waiting for the

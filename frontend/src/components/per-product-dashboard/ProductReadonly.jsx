@@ -27,7 +27,7 @@ export function ProductReadonly({ product, loading }) {
 
   const status = stockStatus(product)
   const tileClass = CATEGORY_TILE[product.category] || 'tile-fallback'
-  const hasImage = /^\/(products|img)\//.test(product.image || '')
+  const hasImage = /^(\/(products|img)\/|data:image\/(png|jpeg|webp);base64,)/.test(product.image || '')
   const specRows = (product.specs || []).filter((s) => s.key.trim() || s.value.trim())
 
   return (

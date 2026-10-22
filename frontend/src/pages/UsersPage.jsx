@@ -31,9 +31,6 @@ export function UsersPage() {
 
   useEffect(() => {
     let alive = true
-    setUsers(null)
-    setCounts(null)
-    setError(false)
     mockApi
       .getUsers()
       .then((d) => {
@@ -91,7 +88,7 @@ export function UsersPage() {
       {error ? (
         <div className="state-error mt-5" role="alert">
           The user list could not be loaded.{' '}
-          <button type="button" className="underline font-semibold" onClick={() => setRetry((r) => r + 1)}>
+          <button type="button" className="underline font-semibold" onClick={() => { setUsers(null); setCounts(null); setError(false); setRetry((r) => r + 1) }}>
             Retry
           </button>
         </div>

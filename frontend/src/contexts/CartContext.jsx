@@ -1,10 +1,11 @@
 import {
-  createContext, useCallback, useEffect, useMemo, useRef, useState,
+  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react'
 
 import { useLocation } from 'react-router'
 
 import { mockApi } from '../data'
+import { CartContext, CheckoutWizardContext } from './contextObjects.js'
 import { estimatedArrival, generateOrderNumber } from '../utils/utils.js'
 
 /**
@@ -35,15 +36,14 @@ import { estimatedArrival, generateOrderNumber } from '../utils/utils.js'
  * resubmits the same id (idempotent retry).
  *
  * Code-org rule (one custom hook per file): the useCart + useCheckoutWizard
- * accessors live in src/hooks/ — this module keeps the two contexts + the
- * provider co-located (sanctioned multi-export module).
+ * accessors live in src/hooks/; shared context objects live in contextObjects.js.
  */
 /** The cart context value (exported so hooks/useCart.js reads the state). */
-export const CartContext = createContext(null)
+// Cart context is declared in contextObjects.js.
 
 /** The checkout-wizard context value (exported so hooks/useCheckoutWizard.js
  * reads it). */
-export const CheckoutWizardContext = createContext(null)
+// Checkout context is declared in contextObjects.js.
 
 /** The wizard's step-1 (personal) shape. */
 const PERSONAL_INIT = { name: '', phone: '', email: '', note: '' }
@@ -93,9 +93,10 @@ export function CartProvider({ children }) {
     payment: PAYMENT_INIT,
     paymentErrors: {},
     receipt: RECEIPT_INIT,
+    orderNumber: null,
   }))
   const wizardRef = useRef(wizard)
-  wizardRef.current = wizard
+  useLayoutEffect(() => { wizardRef.current = wizard }, [wizard])
   // the client order id: stable per attempt (idempotent retry on 5xx)
   const orderNumberRef = useRef(null)
 
@@ -123,6 +124,7 @@ export function CartProvider({ children }) {
       payment: PAYMENT_INIT,
       paymentErrors: {},
       receipt: RECEIPT_INIT,
+      orderNumber: null,
     })
   }, [])
 
@@ -131,9 +133,20 @@ export function CartProvider({ children }) {
   // Leaving the order flow (any non-cart/checkout route) drops the wizard —
   // the next arrival rebuilds from step 1 off the cart (docs "Surviving
   // state"). "Edit cart" stays inside the flow, so it preserves the state.
-  useEffect(() => {
-    if (!inFlow) finishWizard()
-  }, [inFlow, finishWizard])
+  const [previousInFlow, setPreviousInFlow] = useState(inFlow)
+  if (inFlow !== previousInFlow) {
+    setPreviousInFlow(inFlow)
+    if (!inFlow) {
+      setWizard({
+        active: false, step: 1, personal: PERSONAL_INIT, personalErrors: {},
+        shipping: SHIPPING_INIT, shippingErrors: {}, payment: PAYMENT_INIT,
+        paymentErrors: {}, receipt: RECEIPT_INIT, orderNumber: null,
+      })
+    }
+  }
+  useLayoutEffect(() => {
+    if (!inFlow) orderNumberRef.current = null
+  }, [inFlow])
 
   // refresh() never rejects: a failed read (5xx) flips the error flag so
   // the cart page can render its load-failure panel + retry.
@@ -239,6 +252,8 @@ export function CartProvider({ children }) {
    */
   const placeOrder = useCallback(async (extra = {}) => {
     if (!orderNumberRef.current) orderNumberRef.current = generateOrderNumber()
+    const requestId = orderNumberRef.current
+    setWizard(current => ({ ...current, orderNumber: requestId }))
     const w = wizardRef.current
     const cartLines = (lastGood.current?.lines || cart?.lines || []).map((l) => ({
       productId: l.productId,
@@ -317,7 +332,7 @@ export function CartProvider({ children }) {
       patchWizard,
       finishWizard,
       placeOrder,
-      orderNumber: orderNumberRef.current,
+      orderNumber: wizard.orderNumber,
     }),
     [wizard, beginWizard, patchWizard, finishWizard, placeOrder],
   )

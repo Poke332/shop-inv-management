@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 
-import { CartContext } from '../contexts/CartContext.jsx'
+import { CartContext } from '../contexts/contextObjects.js'
 
 /**
  * The useCart accessor (code-org rule: one custom hook per file), moved

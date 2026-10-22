@@ -74,7 +74,6 @@ export function fireToast(t) {
 export const PAYMENT_METHODS = {
   card: { label: 'Card', sub: 'Visa · Mastercard · JCB — charge on delivery' },
   bank_transfer: { label: 'Bank transfer', sub: 'VA number generated after the order is placed' },
-  qris: { label: 'QRIS', sub: 'Scan & pay from any e-wallet app' },
 }
 
 /**
@@ -210,7 +209,8 @@ export function paymentSummaryLine(method, payment = {}) {
   if (method === 'bank_transfer') {
     return 'Bank transfer — VA number generated after the order is placed'
   }
-  return 'QRIS — QR code available once the order is confirmed'
+  if (method === 'qris') return 'Previously selected QRIS — method no longer available'
+  return 'Payment method unavailable — contact the store'
 }
 
 /**

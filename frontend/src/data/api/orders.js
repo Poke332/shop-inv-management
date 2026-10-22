@@ -68,6 +68,11 @@ export const mockApiOrders = {
     await delay();
     if (fail) throw fail;
 
+    const paymentMethod = payload.paymentMethod === 'bank-transfer' ? 'bank_transfer' : (payload.paymentMethod || 'card');
+    if (!['card', 'bank_transfer'].includes(paymentMethod)) {
+      throw Object.assign(new Error('Invalid payment method.'), { status: 400 });
+    }
+
     // Idempotent retry: same client order id → return the existing order (alt-flow 5a).
     const existing = orderById(payload.id);
     if (existing) return clone(existing);
@@ -109,7 +114,7 @@ export const mockApiOrders = {
       buyer: payload.buyer || 'jordan.wjy',
       buyerContact: payload.buyerContact || null,
       shippingAddress: payload.shippingAddress || null,
-      paymentMethod: payload.paymentMethod || 'card',
+      paymentMethod,
       createdAt: nowStamp(),
       status: 'pending',
       lines,

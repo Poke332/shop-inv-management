@@ -27,16 +27,22 @@ export function OngoingOrdersPage() {
   const [flashing, setFlashing] = useState(() => new Set())
   const { toasts, toast, dismiss } = useToasts()
 
-  const load = useCallback((silent = false) => {
-    if (!silent) {
-      setItems(null)
-      setError(false)
-    }
+  const autoExpanded = useRef(false)
+  const load = useCallback(() => {
     mockApi
       .getOrders(tab === 'all' ? undefined : tab)
       .then((d) => {
         setItems(d.items)
         setTabs(d.tabs)
+        setError(false)
+        if (!autoExpanded.current) {
+          const pending = d.items.filter(o => o.status === 'pending')
+          const newest = pending[pending.length - 1]
+          if (newest) {
+            setExpanded(current => new Set([...current, newest.id]))
+            autoExpanded.current = true
+          }
+        }
       })
       .catch(() => setError(true))
   }, [tab])
@@ -50,23 +56,10 @@ export function OngoingOrdersPage() {
   // skeletons on a tick; it stops while the error state is showing.
   useEffect(() => {
     if (error) return undefined
-    const id = setInterval(() => load(true), 30000)
+    const id = setInterval(() => load(), 30000)
     return () => clearInterval(id)
   }, [load, error])
 
-  // the just-placed order (the newest pending in the queue) expands by
-  // default on the first data load (the WB-1042 fixture). One-shot via a
-  // ref so later queue reloads don't keep auto-expanding.
-  const autoExpanded = useRef(false)
-  useEffect(() => {
-    if (!items?.length || autoExpanded.current) return
-    const pendings = items.filter((o) => o.status === 'pending')
-    const newest = pendings[pendings.length - 1]
-    if (newest) {
-      setExpanded((s) => new Set([...s, newest.id]))
-      autoExpanded.current = true
-    }
-  }, [items])
 
   const toggle = (id) =>
     setExpanded((s) => {
@@ -81,7 +74,7 @@ export function OngoingOrdersPage() {
   // reconciling refetch lands — clearing it first would open a window
   // where the chip snaps back to the stale status. The refetch replaces
   // items + the derived tab counts together, so clear after it settles.
-  const onOk = (id, next) => {
+  const onOk = (id) => {
     setFlashing((s) => new Set(s).add(id))
     setTimeout(
       () =>
@@ -136,7 +129,7 @@ export function OngoingOrdersPage() {
       {error ? (
         <div className="state-error mt-5" role="alert">
           The order queue could not be loaded.{' '}
-          <button type="button" className="underline font-semibold" onClick={() => setRetry((r) => r + 1)}>
+          <button type="button" className="underline font-semibold" onClick={() => { setItems(null); setError(false); setRetry(r => r + 1) }}>
             Retry
           </button>
         </div>
@@ -147,7 +140,7 @@ export function OngoingOrdersPage() {
             displayStatusOf={displayStatusOf}
             tabs={tabs || { all: 0, pending: 0, processing: 0, shipped: 0, delivered: 0 }}
             tab={tab}
-            onTab={setTab}
+            onTab={next => { if (next !== tab) { setItems(null); setError(false); setTab(next) } }}
             expanded={expanded}
             onToggle={toggle}
             flashing={flashing}

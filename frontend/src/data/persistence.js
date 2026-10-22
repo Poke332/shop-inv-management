@@ -97,3 +97,4 @@ export function writeSnapshot(slices) {
     // QuotaExceeded / private-mode storage failure — the store stays in-memory
   }
 }
+

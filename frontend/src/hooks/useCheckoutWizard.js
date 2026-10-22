@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 
-import { CheckoutWizardContext } from '../contexts/CartContext.jsx'
+import { CheckoutWizardContext } from '../contexts/contextObjects.js'
 
 /**
  * The useCheckoutWizard accessor (code-org rule: one custom hook per file):

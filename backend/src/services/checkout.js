@@ -21,7 +21,7 @@ export function checkout(buyer, payload = {}) {
     shippingAddress[field] = text(address[field], field, { max: 100 })
   }
   const paymentMethod = payload.paymentMethod === 'bank-transfer' ? 'bank_transfer' : payload.paymentMethod
-  if (!['card', 'bank_transfer', 'qris'].includes(paymentMethod)) fail(400, 'Invalid payment method.')
+  if (!['card', 'bank_transfer'].includes(paymentMethod)) fail(400, 'Invalid payment method.')
   if (!Array.isArray(payload.lines) || payload.lines.length < 1 || payload.lines.length > 100) fail(400, 'Invalid cart.')
   const quantities = new Map()
   for (const line of payload.lines) {

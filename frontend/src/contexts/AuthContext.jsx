@@ -1,66 +1,77 @@
-import { createContext, useCallback, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { postLoginHome } from '../utils/postLoginHome.js'
+import { AuthContext } from './contextObjects.js'
+import { mockApi } from '../data'
+import { HTTP_ENABLED } from '../data/runtime.js'
+import { token, profile, clearAuth, saveProfile, onAuthChange } from '../data/authStorage.js'
 
-import { postLoginHome } from '../guards.jsx'
-
-/**
- * AuthContext (docs/login/IMPLEMENTATION.md "Surviving state"): the session
- * user + role for the lifetime of the session. Drives every route guard and
- * the header account menu. Built from mockApi.login/register — the
- * session persists across refresh via sessionStorage so back/refresh on any
- * page keeps the user signed in.
- *
- * Code-org rule (one custom hook per file): the useAuth accessor lives in
- * src/hooks/useAuth.js — this module keeps the context + provider co-located
- * (sanctioned multi-export module). Consumers import useAuth from
- * ../hooks/useAuth.js.
- */
 const SESSION_KEY = 'sunset.final-project.session'
-
-/** The auth context value (exported so hooks/useAuth.js reads the state). */
-export const AuthContext = createContext(null)
-
-/** Hydrates/restores the session on mount. */
-function readSession() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    if (!raw) return null
-    const s = JSON.parse(raw)
-    if (!s || typeof s.username !== 'string' || !s.role) return null
-    return s
-  } catch {
-    return null
-  }
+function readMockSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') } catch { return null }
 }
 
-/**
- * Session provider: the user + role every guard, header menu, and page
- * reads. signIn persists {username, role} to sessionStorage and returns
- * the post-login home; signOut clears the session.
- * @param {{children: object}} props
- */
 export function AuthProvider({ children }) {
-  // useState(readSession): the sessionStorage session hydrates on mount, so refresh keeps the user signed in
-  const [session, setSession] = useState(readSession)
+  const [user, setUser] = useState(() => HTTP_ENABLED ? null : readMockSession())
+  const [checking, setChecking] = useState(HTTP_ENABLED)
+  const [error, setError] = useState(null)
+  const [retry, setRetry] = useState(0)
 
-  const signIn = useCallback((user, role) => {
-    const s = { username: user.username, role }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(s))
-    setSession(s)
+  useEffect(() => {
+    if (!HTTP_ENABLED) return undefined
+    let active = true
+    const unsubscribe = onAuthChange(() => {
+      if (active) setUser(profile())
+    })
+    const verify = async () => {
+      if (!token()) { if (active) { setUser(null); setChecking(false) }; return }
+      try {
+        const result = await mockApi.me()
+        if (active) { saveProfile(result.user); setUser(result.user); setError(null) }
+      } catch (failure) {
+        if (!active) return
+        if ([401, 403].includes(failure.status)) { clearAuth(); setUser(null) }
+        else setError('Unable to check the session. Make sure the backend is running.')
+      } finally {
+        if (active) setChecking(false)
+      }
+    }
+    const refresh = () => { verify() }
+    window.addEventListener('sunset-auth-refresh', refresh)
+    verify()
+    return () => { active = false; unsubscribe(); window.removeEventListener('sunset-auth-refresh', refresh) }
+  }, [retry])
+
+  const signIn = useCallback((account, role) => {
+    const next = { ...account, role }
+    if (!HTTP_ENABLED) sessionStorage.setItem(SESSION_KEY, JSON.stringify(next))
+    setUser(next)
+    setError(null)
     return postLoginHome(role)
   }, [])
 
   const signOut = useCallback(() => {
+    if (HTTP_ENABLED) {
+
+      const pending = token() ? mockApi.logout() : Promise.resolve()
+      clearAuth()
+      pending.catch(() => console.warn('Local session terminated; server session termination not yet confirmed.'))
+    }
     sessionStorage.removeItem(SESSION_KEY)
-    setSession(null)
+    setUser(null)
+    setError(null)
+    setChecking(false)
   }, [])
 
-  // Derive the stable user object from the session state (not every render),
-  // and memoize the context value on the session so the provider only re-renders
-  // consumers when the actual session identity changes.
-  const value = useMemo(() => {
-    const user = session ? { username: session.username, role: session.role } : null
-    return { user, role: user ? user.role : null, signIn, signOut }
-  }, [session, signIn, signOut])
+  const value = useMemo(() => ({ user, role: user?.role || null, signIn, signOut }), [user, signIn, signOut])
+  if (checking) return <p role="status" className="p-6">Checking the session…</p>
+  if (error) return <div role="alert" className="p-6">
+    <p>{error}</p>
+    <button type="button" onClick={() => { setChecking(true); setError(null); setRetry(value => value + 1) }}>Retry</button>
+    <button type="button" onClick={signOut}>Sign out</button>
+  </div>
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>
+    {/* Switching accounts triggers a rebuild of the cart/wizard to ensure the buyer's state isn't mixed up. */}
+    <Fragment key={user?.username || 'guest'}>{children}</Fragment>
+  </AuthContext.Provider>
 }

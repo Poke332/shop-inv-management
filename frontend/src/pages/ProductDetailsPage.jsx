@@ -55,7 +55,7 @@ export default function ProductDetailsPage() {
   // known (same id), so fire the deferred add once the product lands; the
   // buyNow variant continues to /cart after the add.
   const pendingHandled = useRef(false)
-
+  
   useEffect(() => {
     let alive = true
     setError(false)

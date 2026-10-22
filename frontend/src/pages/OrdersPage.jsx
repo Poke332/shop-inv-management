@@ -17,6 +17,11 @@ import { OrderCard } from '../components/orders/OrderCard.jsx'
  */
 export default function OrdersPage() {
   const location = useLocation()
+  return <OrdersContent key={location.state?.justPlaced || 'latest'} />
+}
+
+function OrdersContent() {
+  const location = useLocation()
   // the just-placed order id arrives via the receipt's "View my orders"
   // redirect state (the post-checkout context, not the URL)
   const justPlaced = location.state?.justPlaced || null
@@ -30,8 +35,6 @@ export default function OrdersPage() {
 
   useEffect(() => {
     let alive = true
-    setError(false)
-    setOrders(null)
     mockApi
       .getMyOrders()
       .then((o) => {
@@ -40,7 +43,9 @@ export default function OrdersPage() {
         // on top; the rest keep the mock's descending-id order
         const pinned = justPlaced ? o.filter((x) => x.id === justPlaced) : []
         const rest = o.filter((x) => x.id !== justPlaced)
-        setOrders([...pinned, ...rest])
+        const sorted = [...pinned, ...rest]
+        setOrders(sorted)
+        setExpanded(new Set(sorted.length ? [justPlaced || sorted[0].id] : []))
       })
       .catch(() => {
         if (alive) setError(true)
@@ -58,13 +63,6 @@ export default function OrdersPage() {
     }
   }, [justPlaced, retry])
 
-  // the just-placed (or, on a direct arrival, the newest) order starts expanded
-  useEffect(() => {
-    if (orders?.length) {
-      const target = justPlaced ? justPlaced : orders[0].id
-      setExpanded(new Set([target]))
-    }
-  }, [orders, justPlaced])
 
   const productById = useMemo(
     () => new Map((products || []).map((p) => [p.id, p])),
@@ -89,7 +87,7 @@ export default function OrdersPage() {
           <button
             type="button"
             className="underline font-semibold"
-            onClick={() => setRetry((n) => n + 1)}
+            onClick={() => { setError(false); setOrders(null); setRetry((n) => n + 1) }}
           >
             Try again
           </button>

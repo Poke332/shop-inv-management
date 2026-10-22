@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { mockApi } from '../data'
-import { postLoginHome } from '../guards.jsx'
+import { postLoginHome } from '../utils/postLoginHome.js'
 import { useAuth } from '../hooks/useAuth.js'
 
 /**
@@ -205,3 +205,5 @@ export default function LoginPage() {
     </div>
   )
 }
+
+

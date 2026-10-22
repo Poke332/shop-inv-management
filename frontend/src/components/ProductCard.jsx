@@ -46,7 +46,8 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const oos = p.stock === 0
   const low = !oos && p.stock <= p.lowStockThreshold
   const tileClass = `${CATEGORY_TILE[p.category] || 'tile-fallback'}${oos ? ' tile-outstock' : ''}`
-  const hasImage = /^\/(products|img)\//.test(p.image || '') && imgOk
+ const hasImage = /^(\/(products|img)\/|data:image\/(png|jpeg|webp);base64,)/.test(p.image || '') && imgOk
+
 
   // guests (user === null) can browse, but the purchase CTAs are
   // login-gated — click lands on /login with the deferred-add payload.
@@ -177,3 +178,4 @@ export function ProductCard({ p, onBuy, onAdd }) {
     </article>
   )
 }
+
