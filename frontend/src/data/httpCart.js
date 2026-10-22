@@ -14,11 +14,30 @@ function read(owner) {
   } catch { return [] }
 }
 function write(owner, rows) { sessionStorage.setItem(key(owner), JSON.stringify(rows)) }
-async function enrich(rows) {
-  if (!rows.length) return { lines: [], count: 0, subtotal: 0 }
-  const catalog = await request('/products?sort=catalog')
+
+const EMPTY = { lines: [], count: 0, subtotal: 0 }
+
+// Last-known enrichment per product id (catalog rows and single-product
+// rows are both keyed by id). An op records the product row it already
+// fetched; the catalog GET fills only the ids still missing, instead of
+// re-reading the whole catalog on every op.
+const byId = new Map()
+// The result of the last op: current while an op has run since the last
+// getCart, so the addToCart -> refresh() chain reuses it instead of
+// firing a second identical catalog GET.
+let result = null
+let freshFromOp = false
+
+/**
+ * The enriched cart (lines + count + subtotal) for the stored rows,
+ * built from the last-known enrichment of each line.
+ * @param {Array<{productId: string, qty: number}>} rows
+ * @returns {{lines: object[], count: number, subtotal: number}}
+ */
+function compute(rows) {
+  if (!rows.length) return EMPTY
   const lines = rows.map(row => {
-    const product = catalog.items.find(item => item.id === row.productId)
+    const product = byId.get(row.productId)
     return {
       ...row, lineId: row.productId, name: product?.name || 'Unknown product',
       price: product?.price || 0, stock: product?.stock || 0,
@@ -29,23 +48,64 @@ async function enrich(rows) {
   return { lines, count: lines.reduce((sum, row) => sum + row.qty, 0), subtotal: lines.reduce((sum, row) => sum + row.price * row.qty, 0) }
 }
 
+/**
+ * Fetch the catalog once, and only when the rows lack an enrichment.
+ * @param {Array<{productId: string}>} rows
+ */
+async function loadGaps(rows) {
+  if (!rows.some(row => !byId.has(row.productId))) return
+  const catalog = await request('/products?sort=catalog')
+  for (const item of catalog.items) byId.set(item.id, item)
+}
+
 let queue = Promise.resolve()
+/**
+ * Run a cart mutation on the serialized queue. The queue section is local
+ * (read, the row change, write, compute): the op's single product GET
+ * serves the stock clamp, and the enrich never blocks the next op, so
+ * ops stop stacking RTT-for-RTT.
+ * @param {(rows: object[]) => Promise<object|undefined>} change  mutates
+ *   the rows; returning the op's product row ({productId, product}) feeds
+ *   the enrich of the changed line from the row the op already fetched.
+ * @returns {Promise<{lines: object[], count: number, subtotal: number}>}
+ */
 function mutate(change) {
   const owner = identity()
   const task = queue.then(async () => {
     if (!owner || identity() !== owner) throw new Error('Login as a buyer is required.')
     const rows = read(owner)
-    await change(rows)
-    const result = await enrich(rows)
+    const known = await change(rows)
     if (identity() !== owner) throw new Error('Account session has changed.')
     write(owner, rows)
+    if (known) byId.set(known.productId, known.product)
+    result = compute(rows)
+    freshFromOp = true
     return result
   })
   queue = task.catch(() => {})
   return task
 }
+
+/**
+ * The HTTP-backed cart ops (the http twin of api/cart.js): the rows live
+ * in sessionStorage per buyer; reads re-enrich from the last catalog /
+ * product fetches instead of re-reading the whole catalog per read.
+ */
 export const httpCart = {
-  getCart: async () => enrich(read(identity())),
+  /**
+   * The enriched cart. A fresh catalog read when nothing has changed
+   * since the last read; the last op's result when an op just ran.
+   * @returns {Promise<{lines: object[], count: number, subtotal: number}>}
+   */
+  getCart: async () => {
+    if (freshFromOp) {
+      freshFromOp = false
+      return result
+    }
+    await loadGaps(read(identity()))
+    result = compute(read(identity()))
+    return result
+  },
   addToCart: ({ productId, qty = 1 }) => mutate(async rows => {
     if (!Number.isSafeInteger(qty) || qty < 1) throw new Error('Invalid Qty.')
     const product = await request('/products/' + encodeURIComponent(productId))
@@ -54,6 +114,7 @@ export const httpCart = {
     if (quantity < 1) throw new Error('Stock unavailable.')
     if (existing) existing.qty = quantity
     else rows.push({ productId, qty: quantity })
+    return { productId, product }
   }),
   setQty: (lineId, qty) => mutate(async rows => {
     if (!Number.isSafeInteger(qty) || qty < 0) throw new Error('Invalid Qty.')
@@ -63,6 +124,7 @@ export const httpCart = {
     const product = await request('/products/' + encodeURIComponent(lineId))
     rows[index].qty = Math.min(qty, product.stock)
     if (rows[index].qty === 0) rows.splice(index, 1)
+    return { productId: lineId, product }
   }),
   removeLine: lineId => mutate(rows => {
     const index = rows.findIndex(row => row.productId === lineId)
