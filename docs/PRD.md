@@ -1,3 +1,5 @@
+> **Final Project UI update (22 October 2026):** Current screen layout and screenshots are indexed in [docs/README.md](README.md), with theme values in [UI-SYSTEM.md](UI-SYSTEM.md). The functional architecture and requirements below remain reference contracts; descriptions of the original visual design are historical.
+
 # Product Requirements — Sunset Electronics (shop-inv-management)
 
 ## Purpose

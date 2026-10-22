@@ -47,3 +47,7 @@ Use the account buttons on the login page. All local mock passwords are `sunset1
 | Admin | ria@mock.local |
 
 These accounts belong to the fictional browser mock, not a live authentication service.
+
+## Updated mockups
+
+[Current mockup gallery and screen specifications](../docs/README.md) · [UI system](../docs/UI-SYSTEM.md) · [Capture workflow](../docs/RENDER.md).

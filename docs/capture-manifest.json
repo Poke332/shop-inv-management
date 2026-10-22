@@ -1,0 +1,182 @@
+{
+  "capturedAt": "2026-10-22",
+  "sourceCommit": "8e639d9",
+  "source": "Final Project React UI, fictional browser mock data. One local mock checkout was used for receipt; no backend database or live payment was involved.",
+  "screens": [
+    {
+      "path": "docs/main-store/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/",
+      "width": 1440
+    },
+    {
+      "path": "docs/main-store/mockup-full.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/",
+      "width": 1440
+    },
+    {
+      "path": "docs/main-store/navigation-desktop.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/",
+      "width": 1440
+    },
+    {
+      "path": "docs/main-store/mockup-bottom.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/",
+      "width": 1440
+    },
+    {
+      "path": "docs/main-store/mockup-mobile.jpg",
+      "height": 844,
+      "pageWidth": 375,
+      "url": "/",
+      "width": 390
+    },
+    {
+      "path": "docs/main-store/navigation-mobile.jpg",
+      "height": 844,
+      "pageWidth": 375,
+      "url": "/",
+      "width": 390
+    },
+    {
+      "path": "docs/login/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/login",
+      "width": 1440
+    },
+    {
+      "path": "docs/register/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/register",
+      "width": 1440
+    },
+    {
+      "path": "docs/search-browse/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/search",
+      "width": 1440
+    },
+    {
+      "path": "docs/product-details/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/products/P-231",
+      "width": 1440
+    },
+    {
+      "path": "docs/cart/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/cart",
+      "width": 1440
+    },
+    {
+      "path": "docs/orders-placed/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/orders",
+      "width": 1440
+    },
+    {
+      "path": "docs/checkout/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/checkout",
+      "width": 1440
+    },
+    {
+      "path": "docs/checkout/mockup-step2-shipping.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/checkout",
+      "width": 1440
+    },
+    {
+      "path": "docs/checkout/mockup-step3-payment.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/checkout",
+      "width": 1440
+    },
+    {
+      "path": "docs/checkout/mockup-mobile.jpg",
+      "height": 844,
+      "pageWidth": 375,
+      "url": "/checkout",
+      "width": 390
+    },
+    {
+      "path": "docs/checkout/mockup-receipt.jpg",
+      "height": 1000,
+      "pageWidth": 1425,
+      "url": "/checkout",
+      "width": 1440
+    },
+    {
+      "path": "docs/inventory-dashboard/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/inventory",
+      "width": 1440
+    },
+    {
+      "path": "docs/ongoing-orders/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/orders",
+      "width": 1440
+    },
+    {
+      "path": "docs/ongoing-orders/mockup-detail.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/orders/WB-1042",
+      "width": 1440
+    },
+    {
+      "path": "docs/per-product-dashboard/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/products",
+      "width": 1440
+    },
+    {
+      "path": "docs/per-product-dashboard/mockup-editor.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/products/P-231/edit",
+      "width": 1440
+    },
+    {
+      "path": "docs/per-product-review-panel/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/reviews?product=P-231",
+      "width": 1440
+    },
+    {
+      "path": "docs/user-dashboard/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/users",
+      "width": 1440
+    },
+    {
+      "path": "docs/control-panel/mockup.jpg",
+      "height": 1000,
+      "pageWidth": 1440,
+      "url": "/ops/inventory",
+      "width": 1440
+    }
+  ]
+}

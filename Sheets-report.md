@@ -1,3 +1,5 @@
+> **Final Project reference:** Current visuals and mockups are indexed in [docs/README.md](docs/README.md). This document retains the earlier research/requirements context.
+
 # Understanding of the `plan-web` Google Sheet
 
 Source: Google Sheet "plan-web" (ID `107VcwXpwcp1eM1lAuxlMxr0fU5TY5YxQ-sgfxxOYPQE`), read 2026-09-20 by the google-manager profile (task `t_0af0818b` on the `web-mobile-project` board; full raw read report is in that task's completion result and final comment).

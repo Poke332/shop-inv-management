@@ -1,3 +1,5 @@
+> **Final Project reference:** Current visuals and mockups are indexed in [docs/README.md](docs/README.md). This document retains the earlier research/requirements context.
+
 # Template name: Sunset Glow
 ## Main Colors:
 1. Strawberry Red: #F94144

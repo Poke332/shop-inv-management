@@ -1,3 +1,5 @@
+> **Final Project UI update (22 October 2026):** Current screen layout and screenshots are indexed in [docs/README.md](README.md), with theme values in [UI-SYSTEM.md](UI-SYSTEM.md). The functional architecture and requirements below remain reference contracts; descriptions of the original visual design are historical.
+
 # Architecture — Sunset Electronics (storefront + ops console)
 
 Pinned frontend stack: **React.js + React Router + Tailwind CSS + React Icons**. The repo today
