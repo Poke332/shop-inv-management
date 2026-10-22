@@ -60,10 +60,41 @@ export function discountPercent(p) {
  * Toast seam: `fireToast({ tone, text, actionLabel, to })` posts a window
  * event that the StorefrontLayout host renders. Both callers (the card
  * add-to-cart and the product-details add) share that host.
- * @param {{tone:'success'|'error', text:string, actionLabel?:string, to?:string}} t
+ * @param {{tone:'success'|'error', text:string, actionLabel?:string, to?:string,
+ *   onAction?:() => void}} t
+ *   `to` is the action's navigation target; `onAction` (when present) is
+ *   called instead of navigating — the retry affordance for the
+ *   store-unreachable failure class.
  */
 export function fireToast(t) {
   window.dispatchEvent(new CustomEvent('sunset:toast', { detail: t }))
+}
+
+/**
+ * The add-to-cart failure class -> toast copy (the S4 map, the card CTA
+ * error states): a stock conflict (409 / the checkout `conflicts`
+ * payload) keeps the existing copy; 401/403 mean the session died —
+ * "Session expired. Sign in again." routes to the persistent S3 banner
+ * (no "Reload" wording, the re-auth keeps the URL + wizard); a network
+ * failure (status 0) or 5xx is the unreachable-store class, offered a
+ * retry action; anything else is the generic unknown class.
+ * @param {Error & {status?: number, code?: string, conflicts?: unknown}} err
+ *   the data-layer failure (httpClient attaches `status`; network
+ *   unreachable is status 0).
+ * @returns {{tone: 'error', text: string, retry?: boolean}}
+ */
+export function addToCartFailure(err) {
+  const status = err?.status
+  if (status === 409 || err?.conflicts) {
+    return { tone: 'error', text: "Couldn't add to cart — stock changed. Reload." }
+  }
+  if (status === 401 || status === 403) {
+    return { tone: 'error', text: 'Session expired. Sign in again.' }
+  }
+  if (status === 0 || (status >= 500 && status < 600)) {
+    return { tone: 'error', text: 'Store unreachable. Try again.', retry: true }
+  }
+  return { tone: 'error', text: 'Something went wrong.' }
 }
 
 /**
