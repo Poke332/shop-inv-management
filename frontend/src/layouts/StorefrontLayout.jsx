@@ -10,7 +10,7 @@ import { useCart } from '../hooks/useCart.js'
 const categories = [['audio', 'Audio'], ['wearables', 'Wearables'], ['laptops', 'Laptops & PC'], ['gaming', 'Gaming'], ['smart-home', 'Smart home'], ['accessories', 'Accessories']]
 
 export default function StorefrontLayout() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, sessionExpired } = useAuth()
   const { count: cartCount } = useCart()
   const count = user?.role === 'buyer' ? cartCount : 0
   const navigate = useNavigate()
@@ -22,6 +22,30 @@ export default function StorefrontLayout() {
   const categoriesButtonRef = useRef(null)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const categorySelected = location.pathname === '/search' && new URLSearchParams(location.search).has('category')
+
+  // The storefront toast stack (the fireToast seam: the card add-to-cart
+  // and the product-details add post window events, this host renders
+  // them; 4s auto-dismiss, the error tone keeps role="alert").
+  const [toasts, setToasts] = useState([])
+  useEffect(() => {
+    let seq = 0
+    const onToast = (event) => {
+      seq += 1
+      const id = `st-${seq}`
+      const detail = event.detail || {}
+      setToasts((ts) => [...ts, { id, ...detail }])
+      setTimeout(() => {
+        setToasts((ts) => ts.filter((t) => t.id !== id))
+      }, 4000)
+    }
+    window.addEventListener('sunset:toast', onToast)
+    return () => window.removeEventListener('sunset:toast', onToast)
+  }, [])
+  const actToast = (t) => {
+    setToasts((ts) => ts.filter((x) => x.id !== t.id))
+    if (t.onAction) t.onAction()
+    else if (t.to) navigate(t.to)
+  }
 
   const route = location.pathname + location.search
   const [previousRoute, setPreviousRoute] = useState(route)
@@ -152,6 +176,26 @@ export default function StorefrontLayout() {
           </div>
         </div>
       </header>
+      {sessionExpired ? (
+        /* The session-expired STATE (not an event): a persistent banner,
+           polite live-region. "Sign in again" re-auths carrying the
+           current URL — the wizard + cart survive above the routes and
+           resume on the return. */
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-between gap-4 px-[var(--page-gutter)] py-3 bg-atomicTangerine-50 border-b border-atomicTangerine-200 text-atomicTangerine-700"
+        >
+          <span className="text-body">Session expired. Sign in again to continue.</span>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => navigate('/login', { state: { from: location.pathname + location.search } })}
+          >
+            Sign in again
+          </button>
+        </div>
+      ) : null}
       <div id="route-content" tabIndex={-1}><Outlet /></div>
       <footer className="store-footer">
         <div className="footer-main">
@@ -181,6 +225,32 @@ export default function StorefrontLayout() {
           <span>Made for your everyday. <FiSun /></span>
         </div>
       </footer>
+      {toasts.length > 0 ? (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-[360px]">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              role={t.tone === 'error' ? 'alert' : 'status'}
+              className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-body font-medium ${
+                t.tone === 'error'
+                  ? 'bg-strawberryRed-100 border-strawberryRed-300 text-strawberryRed-600'
+                  : 'bg-willowGreen-100 border-willowGreen-300 text-willowGreen-700'
+              }`}
+            >
+              <span className="min-w-0">{t.text}</span>
+              {t.actionLabel ? (
+                <button
+                  type="button"
+                  className="ml-auto text-meta font-semibold underline min-h-[44px] px-2"
+                  onClick={() => actToast(t)}
+                >
+                  {t.actionLabel}
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
     </>
   )
 }
