@@ -108,6 +108,13 @@ export function InventoryPage() {
         </span>
       </div>
 
+      <p className="text-meta text-blueSlate-700 mt-2">Keep your shelves ready for the next order.</p>
+      <div className="inventory-stats" aria-label="Inventory summary">
+        <div className="inventory-stat"><span>Total products <span>↗</span></span><strong>{products ? totalProducts : '—'}</strong><small>Across all categories</small></div>
+        <div className="inventory-stat"><span>Units in stock <span>□</span></span><strong>{products ? products.reduce((n, p) => n + p.stock, 0).toLocaleString() : '—'}</strong><small>Ready for your customers</small></div>
+        <div className="inventory-stat attention"><span>Low stock <span>↘</span></span><strong>{products ? products.filter(p => p.stock > 0 && p.stock <= p.lowStockThreshold).length : '—'}</strong><small>Time to plan a restock</small></div>
+        <div className="inventory-stat"><span>Out of stock <span>○</span></span><strong>{products ? products.filter(p => p.stock === 0).length : '—'}</strong><small>Needs your attention</small></div>
+      </div>
       {error ? (
         <div className="state-error mt-5" role="alert">
           The stock overview could not be loaded.{' '}

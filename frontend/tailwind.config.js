@@ -84,19 +84,19 @@ export default {
         canvas: '#FFFFFF',      // declared neutral white (30% surface, design-tokens §11/§12)
       },
       fontFamily: {
-        sans: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        sans: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         // Single-family system: hierarchy is carried by size + weight (the
         // fontSize scale below -> text-* utilities), never by a second
         // typeface. These aliases exist so the `font-h1` form also resolves
         // (each maps back to the same Roboto/sans stack; weight/size still come
         // from the paired text-* token). No new font files or deps.
-        h1: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        section: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        card: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        body: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        price: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        meta: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        badge: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        h1: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        section: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        card: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        body: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        price: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        meta: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        badge: ['DM Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       fontSize: {
         h1: ['26px', { lineHeight: '36px', fontWeight: '600' }],

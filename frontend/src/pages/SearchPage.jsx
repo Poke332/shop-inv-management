@@ -153,7 +153,7 @@ export default function SearchPage() {
   const empty = !busy && !error && items && total === 0
 
   return (
-    <div className="page">
+    <main className="page"><div className="browse-intro"><span className="eyebrow">FIND YOUR NEXT FAVORITE</span><h1>Good things, all in one place.</h1><p>Explore the collection. Make your everyday a little better.</p></div>
       <div className="flex gap-card-gutter pt-section-rhythm pb-section-rhythm">
         <FilterRail
           categories={['audio', 'smart-home', 'gaming', 'laptops', 'accessories', 'wearables']}
@@ -250,6 +250,6 @@ export default function SearchPage() {
           ) : null}
         </div>
       </div>
-    </div>
+    </main>
   )
 }

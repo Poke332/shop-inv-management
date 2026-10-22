@@ -61,7 +61,15 @@ export default function ProductDetailsPage() {
     setError(false)
     setProduct(null)
     setReviews(null)
-    setQty(1)
+    const savedQty = localStorage.getItem('quantity')
+    if (savedQty) {
+      const parsedQty = JSON.parse(savedQty)
+      if (parsedQty && parsedQty.value) {
+        setQty(parsedQty.value)
+      } else {
+        setQty(1)
+      }
+    }
     mockApi
       .getProduct(id)
       .then((p) => {
@@ -86,7 +94,15 @@ export default function ProductDetailsPage() {
   // Reset the quantity when the product (or its stock) changes so the
   // stepper never clamps above the live stock.
   useEffect(() => {
-    setQty(1)
+    const savedQty = localStorage.getItem('quantity')
+    if (savedQty) {
+      const parsedQty = JSON.parse(savedQty)
+      if (parsedQty && parsedQty.value) {
+        setQty(parsedQty.value)
+      } else {
+        setQty(1)
+      }
+    }
   }, [product?.id, product?.stock])
 
   const performAdd = async (p, q, buyNow) => {

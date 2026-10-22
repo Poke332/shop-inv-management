@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
-import { FiChevronDown, FiLogOut, FiMenu, FiX } from 'react-icons/fi'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import { FiChevronDown, FiLogOut, FiMenu, FiX, FiSun, FiGrid } from 'react-icons/fi'
 
 import { mockApi } from '../data'
 import { useAuth } from '../hooks/useAuth.js'
@@ -20,7 +20,7 @@ function NavItem({ to, label, badge, annotation, end }) {
   const active = ({ isActive }) => (isActive ? 'ops-nav-item active' : 'ops-nav-item')
   return (
     <NavLink to={to} end={end} className={active}>
-      <span>{label}</span>
+      <FiGrid aria-hidden="true" /><span>{label}</span>
       {annotation ? <span className="text-meta text-blueSlate-300">{annotation}</span> : null}
       {badge > 0 ? <span className="nbadge">{badge}</span> : null}
     </NavLink>
@@ -120,6 +120,7 @@ export default function OpsShell() {
           type="button"
           className="rounded-lg flex items-center justify-center text-ink bg-canvas border border-blueSlate-200"
           style={{ height: 'var(--touch-min)', width: 'var(--touch-min)' }}
+          aria-label={drawerOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={drawerOpen}
           aria-controls="ops-sidebar"
           onClick={() => setDrawerOpen((o) => !o)}
@@ -147,9 +148,10 @@ export default function OpsShell() {
         className={`ops-sidebar flex flex-col ${drawerOpen ? 'open' : ''}`}
         aria-label="Ops navigation"
       >
+        <Link to="/ops/inventory" className="ops-brand"><FiSun /><span>sunset.<small>OPERATIONS WORKSPACE</small></span></Link>
         <div className="ops-sidebar-nav p-4 flex-1">
           <p className="text-badge text-blueSlate-50 mb-3" style={{ letterSpacing: '0.1em' }}>
-            OPS
+            YOUR WORKSPACE
           </p>
           <div className="flex flex-col gap-1">
             {visibleItems.map((i) => (
@@ -163,6 +165,14 @@ export default function OpsShell() {
               />
             ))}
           </div>
+          <button
+            type="button"
+            className="ops-storefront-link"
+            disabled
+            title="Storefront browsing is available to guests and buyers."
+          >
+            ←  Back to storefront
+          </button>
         </div>
         {/* sidebar foot: sign-out pinned below the nav list — 1px blueSlate-800
             top border, 16px padding (8pt grid); the nav block scrolls inside */}
@@ -180,7 +190,9 @@ export default function OpsShell() {
         </div>
       </aside>
 
+      {drawerOpen && <button className="drawer-backdrop" aria-label="Close navigation" onClick={() => setDrawerOpen(false)} />}
       <main className="ops-content">
+        <div className="ops-workspace-top"><span>Workspace / {visibleItems.find(i => location.pathname.startsWith(i.to))?.label || "Overview"}</span><div className="workspace-account"><span className="workspace-avatar">{user?.username?.slice(0, 1)}</span><span>{user?.username}<small>{role}</small></span></div></div>
         <Outlet />
       </main>
     </div>

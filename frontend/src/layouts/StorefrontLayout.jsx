@@ -1,212 +1,180 @@
-import { useState } from 'react'
-
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { FiChevronDown, FiLogOut, FiShoppingCart, FiUser } from 'react-icons/fi'
-
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import {
+  FiArrowUpRight, FiSearch, FiShoppingBag, FiUser,
+  FiChevronDown, FiLogOut, FiSun,
+} from 'react-icons/fi'
 import { useAuth } from '../hooks/useAuth.js'
 import { useCart } from '../hooks/useCart.js'
 
-/**
- * StorefrontHeader — the 56px white bar of the buyer-facing pages
- * (docs/main-store/design.md): logo -> /; pill search -> /search?query=;
- * cart icon with count badge (CartStore); account menu per role.
- *
- * The header is ONLY the chrome bar — the routed page renders as a sibling
- * via <Outlet/> below it, never inside the <header> landmark. Bar geometry
- * follows the token layer: 56px height (h-14), content centered on the
- * 1200px page column with the page-gutter padding so the bar aligns with
- * the .page containers below it.
- *
- * Mobile (<768px): logo left, cart + account right, the search pill drops
- * to its own full-width line below (44px min — the header wraps per
- * docs/main-store/design.md).
- *
- * Consumes useAuth() + useCart() from the shared context pair. The cart count
- * badge shows only when the session user is a buyer (staff+ get the
- * read-only storefront variant, which hides the cart/Cart link per the
- * main-store role-gating note in docs). The account menu routes buyer ->
- * /orders and staff/manager/admin -> their respective ops home
- * (postLoginHome).
- * @returns {object} the header + the nested Outlet.
- */
-export default function StorefrontHeader() {
+const categories = [['audio', 'Audio'], ['wearables', 'Wearables'], ['laptops', 'Laptops & PC'], ['gaming', 'Gaming'], ['smart-home', 'Smart home'], ['accessories', 'Accessories']]
+
+export default function StorefrontLayout() {
   const { user, signOut } = useAuth()
-  const { count, loaded } = useCart()
+  const { count: cartCount } = useCart()
+  const count = user?.role === 'buyer' ? cartCount : 0
   const navigate = useNavigate()
+  const location = useLocation()
   const [query, setQuery] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const accountRef = useRef(null)
+  const categoriesRef = useRef(null)
+  const categoriesButtonRef = useRef(null)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const categorySelected = location.pathname === '/search' && new URLSearchParams(location.search).has('category')
 
-  const submitSearch = (e) => {
-    e.preventDefault()
-    const q = query.trim()
-    navigate(q ? `/search?query=${encodeURIComponent(q)}` : '/search')
-  }
-
-  const onLogout = () => {
+  useEffect(() => {
     setMenuOpen(false)
-    signOut()
-    navigate('/login', { replace: true })
+    setCategoriesOpen(false)
+    setQuery(new URLSearchParams(location.search).get('query') || '')
+    window.scrollTo(0, 0)
+  }, [location.pathname, location.search])
+
+  useEffect(() => {
+    const close = (event) => {
+      if (!accountRef.current?.contains(event.target)) setMenuOpen(false)
+      if (!categoriesRef.current?.contains(event.target)) setCategoriesOpen(false)
+    }
+    const escape = (event) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        setCategoriesOpen(false)
+        if (categoriesRef.current?.contains(document.activeElement)) categoriesButtonRef.current?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', close)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [])
+
+  const submit = (event) => {
+    event.preventDefault()
+    navigate(query.trim() ? '/search?query=' + encodeURIComponent(query.trim()) : '/search')
   }
-
-  const onGuestLink = (to) => {
-    setMenuOpen(false)
-    navigate(to)
-  }
-
-  const accountLabel = user ? user.username : 'Sign in'
-
-  const searchInput = (
-    <input
-      type="search"
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
-      placeholder="Search products…"
-      aria-label="Search products"
-      className="h-11 w-full rounded-pill border border-blueSlate-200 bg-surface px-4 text-body text-ink placeholder:text-blueSlate-500 focus:outline-none focus:ring-2 focus:ring-atomicTangerine-500 focus:ring-offset-2"
-    />
-  )
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-canvas border-b border-blueSlate-200">
-        {/* 56px bar row (spec-exact height; pinned so no preflight math can
-            shift it — the 56px bar is the storefront header's QA line) */}
-        <div
-          className="flex items-center gap-4 mx-auto max-w-content"
-          style={{ height: '56px', paddingInline: 'var(--page-gutter)' }}
-        >
-          <Link
-            to="/"
-            className="flex items-center gap-2 shrink-0"
-            aria-label="Sunset Electronics — Main Store"
-          >
-            <span className="text-card font-bold text-atomicTangerine-600 whitespace-nowrap">
-              Sunset Electronics
-            </span>
+      <a href="#route-content" className="skip-link">Skip to content</a>
+      <div className="announcement">
+        <span>A brighter everyday starts with a little upgrade.</span>
+        <Link to="/search">Discover the collection <FiArrowUpRight /></Link>
+      </div>
+      <header className="store-header">
+        <div className="store-header-inner">
+          <Link to="/" className="wordmark" aria-label="Sunset Electronics home">
+            <span className="logo-symbol"><FiSun /></span>
+            <span>sunset<span className="wordmark-dot">.</span><small>ELECTRONICS</small></span>
           </Link>
-
-          {/* desktop pill search (hidden on mobile — drops to its own row).
-              No max-width cap — the search bar spans the entire space between
-              the wordmark and the cart/account group. */}
-          <form onSubmit={submitSearch} role="search" className="hidden md:block flex-1">
-            {searchInput}
+          <nav className="store-nav" aria-label="Main navigation">
+            <NavLink to="/" end>Home</NavLink>
+            <NavLink to="/search" className={({ isActive }) => isActive && !categorySelected ? 'active' : ''}>Shop now</NavLink>
+            <div className="categories-wrap" ref={categoriesRef} onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setCategoriesOpen(false)
+            }}>
+              <button ref={categoriesButtonRef} type="button"
+                className={'categories-trigger' + (categorySelected || categoriesOpen ? ' active' : '')}
+                aria-expanded={categoriesOpen} aria-controls="header-categories"
+                onClick={() => { setCategoriesOpen(!categoriesOpen); setMenuOpen(false) }}>
+                Categories <FiChevronDown aria-hidden="true" />
+              </button>
+              {categoriesOpen && (
+                <div className="categories-popover" id="header-categories">
+                  <small>SHOP BY CATEGORY</small>
+                  {categories.map(([slug, label]) => (
+                    <Link key={slug} to={'/search?category=' + slug}
+                      aria-current={categorySelected && new URLSearchParams(location.search).get('category') === slug ? 'page' : undefined}
+                      onClick={() => setCategoriesOpen(false)}>
+                      {label}<FiArrowUpRight aria-hidden="true" />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <NavLink to="/orders">My orders</NavLink>
+          </nav>
+          <form onSubmit={submit} className="header-search" role="search">
+            <FiSearch aria-hidden="true" />
+            <input
+              aria-label="Search products"
+              placeholder="Find your next favorite"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              type="search"
+            />
+            <button type="submit" aria-label="Submit search"><FiArrowUpRight /></button>
           </form>
-
-          <div className="md:ml-auto flex items-center gap-2">
-            {/* cart: item-count badge from the cart context. The link stays
-                visible for guests (the cart is login-gated — clicking as a
-                guest redirects to /login via RequireBuyer); the badge itself
-                only renders for a SIGNED-IN buyer, so a guest sees an
-                empty/0 badge with no session-dependent state.
-                Hidden for staff+ — the read-only storefront variant carries
-                no cart/Cart link (docs/main-store/design.md role-gating note). */}
-            {!(user && user.role !== 'buyer') ? (
-              <Link
-                to="/cart"
-                aria-label={count > 0 ? `Cart, ${count} items` : 'Cart'}
-                className="relative h-11 w-11 rounded-lg flex items-center justify-center text-ink"
-              >
-                <FiShoppingCart size={22} />
-                {user && user.role === 'buyer' && loaded && count > 0 ? (
-                  <span className="nbadge absolute -top-0.5 -right-0.5">{count}</span>
-                ) : null}
-              </Link>
-            ) : null}
-
-            {/* account menu: a guest sees Sign in / Create account;
-                buyer -> Orders Placed; staff+ -> ops console. The menu is the
-                guest's entry point to the auth pair. */}
-            <div className="relative">
+          <div className="header-tools">
+            <div className="account-wrap" ref={accountRef}>
               <button
                 type="button"
-                onClick={() => setMenuOpen((o) => !o)}
+                className="account-button"
                 aria-expanded={menuOpen}
-                aria-haspopup="true"
-                className="h-11 rounded-lg flex items-center gap-2 px-3 text-meta text-ink border border-blueSlate-200 bg-canvas max-w-[120px] md:max-w-none"
+                aria-controls="account-menu"
+                onClick={() => { setMenuOpen(!menuOpen); setCategoriesOpen(false) }}
               >
-                <FiUser size={18} />
-                <span className="truncate hidden sm:inline">{accountLabel}</span>
-                <FiChevronDown size={14} />
+                <FiUser /><span>{user ? user.username : 'Sign in'}</span><FiChevronDown size={12} />
               </button>
-              {menuOpen ? (
-                <div className="absolute right-0 top-full mt-1 w-52 rounded-lg border border-blueSlate-200 bg-canvas shadow-lg py-1 z-40">
+              {menuOpen && (
+                <div id="account-menu" className="account-popover">
                   {user ? (
-                    <div className="px-4 py-2 text-meta text-blueSlate-700">
-                      {user.username}
-                      <span className="text-meta text-blueSlate-500"> · {user.role}</span>
-                    </div>
-                  ) : (
-                    <div className="px-4 py-2 text-meta text-blueSlate-700">
-                      Browsing as guest
-                    </div>
-                  )}
-                  {user && user.role === 'buyer' ? (
-                    <NavLink
-                      to="/orders"
-                      onClick={() => setMenuOpen(false)}
-                      className="block px-4 py-2.5 text-body text-ink hover:bg-surface"
-                    >
-                      Orders placed
-                    </NavLink>
-                  ) : null}
-                  {user && user.role !== 'buyer' ? (
-                    <NavLink
-                      to={user.role === 'staff' ? '/ops/orders' : '/ops/inventory'}
-                      onClick={() => setMenuOpen(false)}
-                      className="block px-4 py-2.5 text-body text-ink hover:bg-surface"
-                    >
-                      Open ops console
-                    </NavLink>
-                  ) : null}
-                  {user ? null : (
                     <>
-                      <button
-                        type="button"
-                        onClick={() => onGuestLink('/login')}
-                        className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
-                      >
-                        <FiUser size={16} />
-                        Sign in
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onGuestLink('/register')}
-                        className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
-                      >
-                        <FiUser size={16} />
-                        Create account
+                      <small>Signed in as {user.username}</small>
+                      <Link to={user.role === 'buyer' ? '/orders' : '/ops/inventory'}>
+                        {user.role === 'buyer' ? 'My orders' : 'Open workspace'}
+                      </Link>
+                      <button type="button" onClick={() => { signOut(); navigate('/'); setMenuOpen(false) }}>
+                        <FiLogOut /> Sign out
                       </button>
                     </>
+                  ) : (
+                    <>
+                      <Link to="/login">Sign in</Link>
+                      <Link to="/register">Create an account</Link>
+                    </>
                   )}
-                  {user ? (
-                    <button
-                      type="button"
-                      onClick={onLogout}
-                      className="w-full text-left px-4 py-2.5 text-body text-ink hover:bg-surface flex items-center gap-2"
-                    >
-                      <FiLogOut size={16} />
-                      Sign out
-                    </button>
-                  ) : null}
                 </div>
-              ) : null}
+              )}
             </div>
+            {(!user || user.role === 'buyer') && (
+              <Link to="/cart" className="bag-button" aria-label={'Shopping bag, ' + count + ' items'}>
+                <FiShoppingBag /><span>{count}</span>
+              </Link>
+            )}
           </div>
         </div>
-
-        {/* mobile search row (<768px only) */}
-        <form
-          onSubmit={submitSearch}
-          role="search"
-          className="md:hidden"
-          style={{ padding: '0 var(--page-gutter) 12px' }}
-        >
-          {searchInput}
-        </form>
       </header>
-
-      {/* the routed storefront page */}
-      <Outlet />
+      <div id="route-content" tabIndex={-1}><Outlet /></div>
+      <footer className="store-footer">
+        <div className="footer-main">
+          <div>
+            <Link to="/" className="wordmark">
+              <span className="logo-symbol"><FiSun /></span>
+              <span>sunset.<small>ELECTRONICS</small></span>
+            </Link>
+            <p>Good tech. Better everyday.<br />Find a little more possibility.</p>
+          </div>
+          <div>
+            <strong>Explore</strong>
+            <Link to="/search">All products</Link>
+            <Link to="/search?category=audio">Audio essentials</Link>
+            <Link to="/search?category=gaming">For your downtime</Link>
+          </div>
+          <div>
+            <strong>Your Sunset</strong>
+            <Link to="/orders">Your orders</Link>
+            <Link to="/cart">Shopping bag</Link>
+            <Link to="/login">Your account</Link>
+          </div>
+          <div className="footer-statement">A brighter<br /><span>kind of tech.</span><FiArrowUpRight /></div>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Sunset Electronics</span>
+          <span>Made for your everyday. <FiSun /></span>
+        </div>
+      </footer>
     </>
   )
 }

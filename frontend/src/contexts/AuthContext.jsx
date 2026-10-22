@@ -14,7 +14,7 @@ import { postLoginHome } from '../guards.jsx'
  * (sanctioned multi-export module). Consumers import useAuth from
  * ../hooks/useAuth.js.
  */
-const SESSION_KEY = 'sunset.session'
+const SESSION_KEY = 'sunset.final-project.session'
 
 /** The auth context value (exported so hooks/useAuth.js reads the state). */
 export const AuthContext = createContext(null)
