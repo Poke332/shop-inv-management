@@ -19,8 +19,8 @@ const EMPTY = { lines: [], count: 0, subtotal: 0 }
 
 // Last-known enrichment per product id (catalog rows and single-product
 // rows are both keyed by id). An op records the product row it already
-// fetched; the catalog GET fills only the ids still missing, instead of
-// re-reading the whole catalog on every op.
+// fetched, so ops in a warm session stop re-fetching the catalog: each
+// op costs its single product GET, not a serialized enrich.
 const byId = new Map()
 // The result of the last op: current while an op has run since the last
 // getCart, so the addToCart -> refresh() chain reuses it instead of
@@ -49,7 +49,8 @@ function compute(rows) {
 }
 
 /**
- * Fetch the catalog once, and only when the rows lack an enrichment.
+ * One catalog pass over the ids still missing an enrichment; warm
+ * sessions (every line already known) make no request at all.
  * @param {Array<{productId: string}>} rows
  */
 async function loadGaps(rows) {
@@ -61,9 +62,9 @@ async function loadGaps(rows) {
 let queue = Promise.resolve()
 /**
  * Run a cart mutation on the serialized queue. The queue section is local
- * (read, the row change, write, compute): the op's single product GET
- * serves the stock clamp, and the enrich never blocks the next op, so
- * ops stop stacking RTT-for-RTT.
+ * (read, the row change, write, compute); the op's single product GET
+ * serves the stock clamp, and the gap-fill catalog pass only runs when a
+ * line still lacks an enrichment, so ops stop stacking RTT-for-RTT.
  * @param {(rows: object[]) => Promise<object|undefined>} change  mutates
  *   the rows; returning the op's product row ({productId, product}) feeds
  *   the enrich of the changed line from the row the op already fetched.
@@ -78,6 +79,7 @@ function mutate(change) {
     if (identity() !== owner) throw new Error('Account session has changed.')
     write(owner, rows)
     if (known) byId.set(known.productId, known.product)
+    await loadGaps(rows)
     result = compute(rows)
     freshFromOp = true
     return result
@@ -89,12 +91,14 @@ function mutate(change) {
 /**
  * The HTTP-backed cart ops (the http twin of api/cart.js): the rows live
  * in sessionStorage per buyer; reads re-enrich from the last catalog /
- * product fetches instead of re-reading the whole catalog per read.
+ * product fetches instead of re-reading the whole catalog per op.
  */
 export const httpCart = {
   /**
    * The enriched cart. A fresh catalog read when nothing has changed
-   * since the last read; the last op's result when an op just ran.
+   * since the last read (the page-entry re-validation — stock may have
+   * dropped since the cart was built); the last op's result when an op
+   * just ran.
    * @returns {Promise<{lines: object[], count: number, subtotal: number}>}
    */
   getCart: async () => {
@@ -102,7 +106,13 @@ export const httpCart = {
       freshFromOp = false
       return result
     }
-    await loadGaps(read(identity()))
+    const rows = read(identity())
+    if (rows.length) {
+      // the entry re-validation: one catalog pass refreshes every line's
+      // price + stock (stock may have dropped since the cart was built)
+      const catalog = await request('/products?sort=catalog')
+      for (const item of catalog.items) byId.set(item.id, item)
+    }
     result = compute(read(identity()))
     return result
   },
