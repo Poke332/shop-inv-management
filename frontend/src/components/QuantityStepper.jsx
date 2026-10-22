@@ -8,9 +8,11 @@ import { storage } from '../data/persistence.js'
  * @param {string} [labelFor]  optional product name; when set the buttons
  *   read "Decrease/increase quantity for <labelFor>" (the cart a11y spec),
  *   otherwise the generic labels.
+ * @param {boolean} [disabled]  inert both buttons (the cart's per-line
+ *   pending state, while an op is in flight).
  * @returns {object}
  */
-export function QuantityStepper({ value, min, max, onChange, labelFor }) {
+export function QuantityStepper({ value, min, max, onChange, labelFor, disabled = false }) {
   const dec = labelFor ? `Decrease quantity for ${labelFor}` : 'Decrease quantity'
   const inc = labelFor ? `Increase quantity for ${labelFor}` : 'Increase quantity'
 
@@ -24,7 +26,7 @@ export function QuantityStepper({ value, min, max, onChange, labelFor }) {
       <button
         type="button"
         aria-label={dec}
-        disabled={value <= min}
+        disabled={disabled || value <= min}
         onClick={() => {
           changeQty(value - 1);
           onChange(Math.max(min, value - 1));
@@ -38,7 +40,7 @@ export function QuantityStepper({ value, min, max, onChange, labelFor }) {
       <button
         type="button"
         aria-label={inc}
-        disabled={value >= max}
+        disabled={disabled || value >= max}
         onClick={() => {
           changeQty(value + 1); 
           onChange(Math.min(max, value + 1));

@@ -21,9 +21,11 @@ import { formatIdr, isLowStock } from '../../utils/utils.js'
  * @param {boolean} failed  the last qty / remove op for this line failed.
  * @param {() => void} onRetry
  * @param {string|null} clampedNote  "Only N available — quantity reduced".
+ * @param {boolean} [pending]  a qty op for this line is in flight (the
+ *   "Syncing…" indicator; the stepper stays inert until it settles).
  * @returns {object} the row (a list item exposing name + total).
  */
-export function CartLine({ line, onQtyChange, onRemove, removing, failed, onRetry, clampedNote }) {
+export function CartLine({ line, onQtyChange, onRemove, removing, failed, onRetry, clampedNote, pending = false }) {
   const low = isLowStock(line)
   const oos = line.stock === 0
   return (
@@ -43,6 +45,9 @@ export function CartLine({ line, onQtyChange, onRemove, removing, failed, onRetr
         ) : low ? (
           <div className="text-meta text-carrotOrange-600 mt-1">Low · {line.stock} left</div>
         ) : null}
+        {pending ? (
+          <div className="text-meta text-blueSlate-600 mt-1" role="status">Syncing…</div>
+        ) : null}
         {clampedNote ? <div className="text-meta text-strawberryRed-600 mt-1">{clampedNote}</div> : null}
 
         <div className="flex items-center gap-3 flex-wrap mt-3">
@@ -52,6 +57,7 @@ export function CartLine({ line, onQtyChange, onRemove, removing, failed, onRetr
             max={Math.max(line.stock, 1)}
             onChange={onQtyChange}
             labelFor={line.name}
+            disabled={pending}
           />
           <span className="text-price font-semibold text-atomicTangerine-600">
             {formatIdr(line.price * line.qty)}
