@@ -18,19 +18,22 @@ export function Receipt({ order, paymentLine, estimate, onEditCart }) {
   const amount = (n) => formatIdr(n)
   return (
     <section className="bg-canvas border border-blueSlate-200 rounded-xl p-card-padding" aria-label="Order receipt">
-      <div className="flex items-center gap-3 mb-2">
-        <span className="w-[26px] h-[26px] rounded-full bg-willowGreen-500 grid place-items-center shrink-0" aria-hidden="true">
+      <div className="receipt-confirmation mb-2">
+        <span className="receipt-confirmation-icon bg-willowGreen-500" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12l5 5L19 7" />
           </svg>
         </span>
-        <div className="flex-1 min-w-0 text-section text-ink font-semibold">
-          Order placed
-          <span className="text-body font-normal text-blueSlate-700">
-            {' '}· Order <span className="font-semibold text-ink">{`#${order.id}`}</span>
-          </span>
+        <div className="min-w-0">
+          <div className="receipt-confirmation-title">
+            <h2 className="text-section text-ink font-semibold">Order placed</h2>
+            <span className="chip chip-pending" role="status">{order.status}</span>
+          </div>
+          <p className="receipt-confirmation-reference text-body text-blueSlate-700">
+            <span>Order</span>
+            <span className="receipt-confirmation-id font-semibold text-ink">{`#${order.id}`}</span>
+          </p>
         </div>
-        <span className="chip chip-pending" role="status">{order.status}</span>
       </div>
 
       <div className="border border-blueSlate-200 rounded-lg overflow-hidden mt-4">
