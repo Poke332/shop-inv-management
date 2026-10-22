@@ -51,7 +51,8 @@ export function review(row) {
 
 export function reviewList(productId, includeHidden = false) {
   if (!db.prepare('SELECT id FROM products WHERE id = ?').get(productId)) fail(404, 'Product tidak ditemukan.')
-  const rows = db.prepare('SELECT * FROM reviews WHERE product_id = ? ORDER BY created_at DESC, id DESC').all(productId)
+  const scope = includeHidden ? '' : " AND state = 'public'"
+  const rows = db.prepare(`SELECT * FROM reviews WHERE product_id = ?${scope} ORDER BY created_at DESC, id DESC`).all(productId)
   const publicCount = rows.filter(item => item.state === 'public').length
   return {
     items: rows.filter(item => includeHidden || item.state === 'public').map(review),
