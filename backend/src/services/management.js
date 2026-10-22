@@ -26,8 +26,7 @@ export function saveProduct(id, body, actorId) {
   const stock = integer(form.stock, 'Stock', { max: 1000000 })
   const description = text(form.description ?? '', 'Description', { min: 0, max: 10000 })
   const image = text(form.image, 'Image', { max: 1500000 })
-  const categoryImage = db.prepare('SELECT slug FROM categories WHERE slug = ?').get(image)
-  if (!categoryImage && !/^\/(products|img)\/[\w./-]+$/.test(image)
+  if (!/^\/(products|img)\/[\w./-]+$/.test(image)
       && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image)) fail(400, 'Format image not supported.')
   if (!Array.isArray(form.specs) || form.specs.length > 50) fail(400, 'Specs not valid.')
   const specs = form.specs.map(item => ({
