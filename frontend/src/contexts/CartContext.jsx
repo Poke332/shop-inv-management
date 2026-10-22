@@ -5,6 +5,8 @@ import {
 import { useLocation } from 'react-router'
 
 import { mockApi } from '../data'
+import { HTTP_ENABLED } from '../data/runtime.js'
+import { profile, onAuthChange } from '../data/authStorage.js'
 import { CartContext, CheckoutWizardContext } from './contextObjects.js'
 import { estimatedArrival, generateOrderNumber } from '../utils/utils.js'
 
@@ -80,7 +82,20 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState(null)
   const [cartError, setCartError] = useState(false)
   const lastGood = useRef(null)
-  const booted = useRef(false)
+
+  // The storage-level session owner the cart rows belong to (the http
+  // per-buyer keys): 'guest' when signed out. The provider sits ABOVE the
+  // auth provider (the main.jsx wiring), so it tracks the owner through
+  // the auth storage listeners — not a context, which it can no longer
+  // read. Null in the mock (single-session) data source.
+  const [owner, setOwner] = useState(() => (HTTP_ENABLED ? profile()?.username || 'guest' : null))
+  useEffect(() => {
+    if (!HTTP_ENABLED) return undefined
+    return onAuthChange(() => setOwner(profile()?.username || 'guest'))
+  }, [])
+  // The last non-guest owner: a same-owner re-entry (the re-sign-in after a
+  // session expiry) keeps the wizard; a different owner starts one afresh.
+  const lastRealOwner = useRef(null)
 
   // ---- the checkout wizard state (above the routes, in-memory only) ----
   const [wizard, setWizard] = useState(() => ({
@@ -133,28 +148,37 @@ export function CartProvider({ children }) {
   // Leaving the order flow (any non-cart/checkout route) drops the wizard —
   // the next arrival rebuilds from step 1 off the cart (docs "Surviving
   // state"). "Edit cart" stays inside the flow, so it preserves the state.
+  // The one exception: the session-expired re-auth hop. Its navigation to
+  // /login carries location.state.from pointing back into the flow, so the
+  // wizard is kept for the return (the same-owner re-entry the G3 gate
+  // needs); every other departure still drops it.
   const [previousInFlow, setPreviousInFlow] = useState(inFlow)
   if (inFlow !== previousInFlow) {
     setPreviousInFlow(inFlow)
     if (!inFlow) {
-      setWizard({
-        active: false, step: 1, personal: PERSONAL_INIT, personalErrors: {},
-        shipping: SHIPPING_INIT, shippingErrors: {}, payment: PAYMENT_INIT,
-        paymentErrors: {}, receipt: RECEIPT_INIT, orderNumber: null,
-      })
+      const fromFlow = location.state?.from
+      const reauthReturn =
+        typeof fromFlow === 'string' && /^\/(cart|checkout)/.test(fromFlow)
+      if (!reauthReturn) {
+        setWizard({
+          active: false, step: 1, personal: PERSONAL_INIT, personalErrors: {},
+          shipping: SHIPPING_INIT, shippingErrors: {}, payment: PAYMENT_INIT,
+          paymentErrors: {}, receipt: RECEIPT_INIT, orderNumber: null,
+        })
+      }
     }
   }
   useLayoutEffect(() => {
     if (!inFlow) orderNumberRef.current = null
   }, [inFlow])
 
-  // refresh() never rejects: a failed read (5xx) flips the error flag so
-  // the cart page can render its load-failure panel + retry.
+  // refresh() never rejects: a failed read (5xx / unreachable store)
+  // flips the error flag so the cart page can render its load-failure
+  // panel + retry.
   const refresh = useCallback(async () => {
     try {
       const d = await mockApi.getCart()
       lastGood.current = d
-      booted.current = true
       setCart(d)
       setCartError(false)
     } catch {
@@ -162,15 +186,31 @@ export function CartProvider({ children }) {
     }
   }, [])
 
+  // The provider mounts once (it sits above the keyed region), so the
+  // hydration is owner-driven: it re-reads the rows when the session
+  // owner changes. A real (non-guest) owner gets the full trio
+  // {cart, lastGood, cartError} reset synchronously BEFORE the
+  // re-hydrate, so the predecessor's lines are never painted into the
+  // new session (and an in-flight order ships none of them). Signing
+  // out / the session expiring (owner -> 'guest') does NOT re-hydrate:
+  // the visible cart + wizard stay put for the session-expired banner,
+  // and the same-owner re-sign-in re-hydrates them without dropping the
+  // wizard. A different owner drops the wizard to step 1.
   useEffect(() => {
-    if (!booted.current) refresh()
-    // the provider is above the routes: leaving the tree (a refresh / a
-    // full reload) must re-hydrate the session cart on the next mount,
-    // so the boot latch resets on unmount.
-    return () => {
-      booted.current = false
+    if (owner !== null && owner !== 'guest') {
+      setCart(null)
+      lastGood.current = null
+      setCartError(false)
+      const sameReal = lastRealOwner.current === owner
+      lastRealOwner.current = owner
+      if (!sameReal) finishWizard()
+      refresh()
+    } else if (owner === null) {
+      // the mock (single-session) data source: the one-time mount hydrate
+      refresh()
     }
-  }, [refresh])
+    // owner === 'guest' (the http sign-out / expiry): no re-hydrate
+  }, [owner, refresh, finishWizard])
 
   /**
    * Set a line's quantity (the `mode` mirrors the cart doc: optimistic =
