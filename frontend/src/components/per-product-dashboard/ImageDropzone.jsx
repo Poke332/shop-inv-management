@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CATEGORY_TILE, compressImageForUpload } from '../../utils/utils.js'
+import { CATEGORY_TILE, compressImageForUpload, IMAGE_SRC_RE } from '../../utils/utils.js'
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 const MAX_IMAGE_BYTES = 1_000_000
@@ -17,7 +17,7 @@ const MAX_IMAGE_BYTES = 1_000_000
  */
 export function ImageDropzone({ image, category, name, onReplace }) {
   const [error, setError] = useState('')
-  const isAsset = image && (image.startsWith('/') || /^data:image\/(png|jpeg|webp);base64,/.test(image))
+  const isAsset = image && (image.startsWith('/') || IMAGE_SRC_RE.test(image))
   const pick = (event) => {
     const file = event.target.files?.[0]
     if (!file) return

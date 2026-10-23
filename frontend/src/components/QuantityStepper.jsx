@@ -42,7 +42,7 @@ export function QuantityStepper({ value, min, max, onChange, labelFor, disabled 
         aria-label={inc}
         disabled={disabled || value >= max}
         onClick={() => {
-          changeQty(value + 1); 
+          changeQty(value + 1);
           onChange(Math.min(max, value + 1));
         }}
       >

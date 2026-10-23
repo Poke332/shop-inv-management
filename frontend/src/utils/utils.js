@@ -300,6 +300,15 @@ export function roleNote(role) {
 }
 
 /**
+ * Shared image-src literal: a product's `image` field is either a server
+ * path under /products/, /img/ or /uploads/ (/uploads is the stored shape
+ * of an upload) or a data:image URL for a pending upload. Callers test a
+ * candidate against it to pick between rendering the image asset and the
+ * category tile.
+ */
+export const IMAGE_SRC_RE = /^\/(products|img|uploads)\/|^data:image\/(png|jpeg|webp);base64,/
+
+/**
  * Pre-submit compression toward the 1 MB product-image cap: decode a data
  * URL, then step down through fixed (longest-side, webp quality) pairs
  * until the re-encoded bytes fit under the cap. Returns the compressed

@@ -5,7 +5,7 @@ import { FiCheck, FiPlus } from 'react-icons/fi'
 import { mockApi } from '../data'
 import { useCart } from '../hooks/useCart.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { addToCartFailure, CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast } from '../utils/utils.js'
+import { addToCartFailure, CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast, IMAGE_SRC_RE } from '../utils/utils.js'
 import { TileGlyph } from './TileGlyph.jsx'
 
 /**
@@ -57,7 +57,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const oos = p.stock === 0
   const low = !oos && p.stock <= p.lowStockThreshold
   const tileClass = `${CATEGORY_TILE[p.category] || 'tile-fallback'}${oos ? ' tile-outstock' : ''}`
-  const hasImage = /^(\/(products|img|uploads)\/|data:image\/(png|jpeg|webp);base64,)/.test(p.image || '') && imgOk
+  const hasImage = IMAGE_SRC_RE.test(p.image || '') && imgOk
   // a new image src starts unready (the skeleton shows until it loads)
   const imgReady = loadedSrc === p.image
 

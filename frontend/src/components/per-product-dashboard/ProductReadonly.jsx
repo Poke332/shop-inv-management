@@ -1,4 +1,4 @@
-import { CATEGORY_LABEL, CATEGORY_TILE, formatIdr, stockBadgeLabel, stockStatus } from '../../utils/utils.js'
+import { CATEGORY_LABEL, CATEGORY_TILE, formatIdr, stockBadgeLabel, stockStatus, IMAGE_SRC_RE } from '../../utils/utils.js'
 import { TileGlyph } from '../TileGlyph.jsx'
 
 /**
@@ -27,7 +27,7 @@ export function ProductReadonly({ product, loading }) {
 
   const status = stockStatus(product)
   const tileClass = CATEGORY_TILE[product.category] || 'tile-fallback'
-  const hasImage = /^(\/(products|img|uploads)\/|data:image\/(png|jpeg|webp);base64,)/.test(product.image || '')
+  const hasImage = IMAGE_SRC_RE.test(product.image || '')
   const specRows = (product.specs || []).filter((s) => s.key.trim() || s.value.trim())
 
   return (
