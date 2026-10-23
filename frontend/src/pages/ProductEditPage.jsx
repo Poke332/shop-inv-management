@@ -15,14 +15,16 @@ import { mockApi } from '../data'
  */
 export function ProductEditPage() {
   const { id } = useParams()
+  return <ProductEditPageContent key={id} id={id} />
+}
+
+function ProductEditPageContent({ id }) {
   const [product, setProduct] = useState(null)
   const [notFound, setNotFound] = useState(false)
   const [retry, setRetry] = useState(0)
 
   useEffect(() => {
     let alive = true
-    setProduct(null)
-    setNotFound(false)
     mockApi
       .getProduct(id)
       .then((p) => {
@@ -48,7 +50,7 @@ export function ProductEditPage() {
       {notFound ? (
         <div className="state-error mt-5" role="alert">
           Product {id} could not be loaded.{' '}
-          <button type="button" className="underline font-semibold" onClick={() => setRetry((r) => r + 1)}>
+          <button type="button" className="underline font-semibold" onClick={() => { setProduct(null); setNotFound(false); setRetry((r) => r + 1) }}>
             Retry
           </button>
         </div>

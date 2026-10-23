@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 
-import { AuthContext } from '../contexts/AuthContext.jsx'
+import { AuthContext } from '../contexts/contextObjects.js'
 
 /**
  * The useAuth accessor (code-org rule: one custom hook per file), moved

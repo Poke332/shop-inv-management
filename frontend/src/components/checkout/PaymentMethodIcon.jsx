@@ -1,7 +1,7 @@
 /**
- * The payment-method icon row (Card / Bank transfer / QRIS) — the mockup
+ * The payment-method icon row (Card / Bank transfer) — the mockup
  * set's stroke icons in tangerine, 20px. One component per file.
- * @param {string} method  "card" | "bank_transfer" | "qris".
+ * @param {string} method  "card" | "bank_transfer".
  * @returns {object} the <svg> icon.
  */
 export function PaymentMethodIcon({ method }) {
@@ -31,12 +31,5 @@ export function PaymentMethodIcon({ method }) {
       </svg>
     )
   }
-  return (
-    <svg {...p}>
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <path d="M14 14h3v3M21 14v3M14 21h3v-3M21 21h-3" />
-    </svg>
-  )
+  return null
 }

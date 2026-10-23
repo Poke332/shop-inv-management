@@ -24,6 +24,11 @@ import { useToasts } from '../hooks/useToasts.js'
  * @returns {object} the page.
  */
 export function ReviewsPage() {
+  const [params] = useSearchParams()
+  return <ReviewsContent key={params.get('product') || 'P-231'} />
+}
+
+function ReviewsContent() {
   const [params, setParams] = useSearchParams()
   const productId = params.get('product') || 'P-231'
 
@@ -43,11 +48,6 @@ export function ReviewsPage() {
 
   useEffect(() => {
     let cancelled = false
-    setItems(null)
-    setStats(null)
-    setError(false)
-    setDrafts({})
-    setAnnounce('')
     mockApi
       .getProductReviewsAll(productId)
       .then((d) => {
@@ -202,7 +202,7 @@ export function ReviewsPage() {
       {error ? (
         <div className="state-error mt-5 flex items-center gap-3" role="alert">
           <span>Reviews could not be loaded.</span>
-          <button type="button" className="underline font-semibold" onClick={() => setRetry((n) => n + 1)}>
+          <button type="button" className="underline font-semibold" onClick={() => { setItems(null); setStats(null); setError(false); setDrafts({}); setAnnounce(''); setRetry((n) => n + 1) }}>
             Retry
           </button>
         </div>

@@ -17,6 +17,10 @@ import { useToasts } from '../hooks/useToasts.js'
  */
 export function OngoingOrderDetailPage() {
   const { id } = useParams()
+  return <OngoingOrderDetailPageContent key={id} id={id} />
+}
+
+function OngoingOrderDetailPageContent({ id }) {
   const [items, setItems] = useState(null)
   const [tabs, setTabs] = useState(null)
   const [error, setError] = useState(false)
@@ -27,7 +31,6 @@ export function OngoingOrderDetailPage() {
   const { toasts, toast, dismiss } = useToasts()
 
   useEffect(() => {
-    setError(false)
     mockApi
       .getOrders()
       .then((d) => {
@@ -104,7 +107,7 @@ export function OngoingOrderDetailPage() {
           <button
             type="button"
             className="underline font-semibold"
-            onClick={() => setRetry((r) => r + 1)}
+            onClick={() => { setError(false); setRetry((r) => r + 1) }}
           >
             Retry
           </button>

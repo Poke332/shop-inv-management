@@ -308,6 +308,17 @@ input[type=checkbox], input[type=radio] { accent-color: var(--orange); }
 @media (max-width:389px) { .hero-copy h1 { font-size: 43px; } }
 .checkout-section-number { display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-variant-numeric: tabular-nums; }
 
+/* Keep long backend order references inside the confirmation card. */
+.receipt-confirmation { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 12px; }
+.receipt-confirmation-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; }
+.receipt-confirmation-icon svg { display: block; width: 16px; height: 16px; }
+.receipt-confirmation-title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; min-height: 32px; }
+.receipt-confirmation-title h2 { margin: 0; line-height: 1.4; }
+.receipt-confirmation-title .chip { flex-shrink: 0; }
+.receipt-confirmation-reference { display: flex; align-items: baseline; gap: 6px; margin: 4px 0 0; line-height: 1.6; }
+.receipt-confirmation-id { min-width: 0; overflow-wrap: anywhere; }
+
+
 /* Category navigation opens the existing catalog filters. */
 .categories-wrap { position: relative; }
 .categories-trigger { display: flex; align-items: center; gap: 5px; min-height: 44px; padding: 0; border: 0; background: transparent; color: #6a6d64; font: inherit; font-size: 12px; cursor: pointer; position: relative; white-space: nowrap; }

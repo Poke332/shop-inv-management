@@ -1,10 +1,5 @@
-/**
- * Public re-export surface for the app: `import { mockApi } from '@/data'`
- * (the @/ alias → frontend/src, per docs/ARCHITECTURE §folder structure).
- *
- * Everything else (the seed records, the shared store, the section modules, the
- * per-section `failure` flags) is importable directly from its module — the
- * app code only ever needs the facade.
- */
+import { mockApi as localMock } from './mockApi.js'
+import { httpApi } from './httpApi.js'
+import { HTTP_ENABLED } from './runtime.js'
 
-export { mockApi } from './mockApi.js';
+export const mockApi = HTTP_ENABLED ? httpApi : localMock

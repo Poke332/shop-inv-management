@@ -15,7 +15,7 @@ export default function StorefrontLayout() {
   const count = user?.role === 'buyer' ? cartCount : 0
   const navigate = useNavigate()
   const location = useLocation()
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(() => new URLSearchParams(location.search).get('query') || '')
   const [menuOpen, setMenuOpen] = useState(false)
   const accountRef = useRef(null)
   const categoriesRef = useRef(null)
@@ -23,10 +23,16 @@ export default function StorefrontLayout() {
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const categorySelected = location.pathname === '/search' && new URLSearchParams(location.search).has('category')
 
-  useEffect(() => {
+  const route = location.pathname + location.search
+  const [previousRoute, setPreviousRoute] = useState(route)
+  if (route !== previousRoute) {
+    setPreviousRoute(route)
     setMenuOpen(false)
     setCategoriesOpen(false)
     setQuery(new URLSearchParams(location.search).get('query') || '')
+  }
+
+  useEffect(() => {
     window.scrollTo(0, 0)
   }, [location.pathname, location.search])
 
@@ -178,3 +184,4 @@ export default function StorefrontLayout() {
     </>
   )
 }
+

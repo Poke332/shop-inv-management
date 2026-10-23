@@ -29,6 +29,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 
 import { useAuth } from './hooks/useAuth.js'
+import { postLoginHome } from './utils/postLoginHome.js'
 
 /**
  * The post-login home per role (the locked homes in the module doc above):
@@ -36,11 +37,7 @@ import { useAuth } from './hooks/useAuth.js'
  * @param {string} role
  * @returns {string}
  */
-export function postLoginHome(role) {
-  if (role === 'staff') return '/ops/orders'
-  if (role === 'manager' || role === 'admin') return '/ops/inventory'
-  return '/'
-}
+// Shared redirect mapping lives in utils/postLoginHome.js.
 
 /**
  * Any signed-in user (all 4 roles); anonymous -> /login.
