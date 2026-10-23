@@ -5,7 +5,6 @@ import {
 import { useLocation } from 'react-router'
 
 import { mockApi } from '../data'
-import { HTTP_ENABLED } from '../data/runtime.js'
 import { profile, onAuthChange } from '../data/authStorage.js'
 import { CartContext, CheckoutWizardContext } from './contextObjects.js'
 import { estimatedArrival, generateOrderNumber } from '../utils/utils.js'
@@ -13,16 +12,16 @@ import { estimatedArrival, generateOrderNumber } from '../utils/utils.js'
 /**
  * CartStore (ARCHITECTURE §4.3 CartStore exception): the live cart — lines,
  * count, subtotal — feeding the StorefrontHeader badge, the cart page, and
- * the checkout wizard. The lines live in the session-based mock module
- * (api/cart.js — survives refresh via the session key), so this provider
- * hydrates on mount and mirrors every mutation.
+ * the checkout wizard. The lines live in the per-buyer session store
+ * (httpCart.js — survives refresh via the sessionStorage key), so this
+ * provider hydrates on mount and mirrors every mutation.
  *
  * Two op modes (the mode is per-call, so a page keeps its own UX):
  *  - optimistic (the add-to-cart default): the store — and therefore the
  *    subtotal + badge — updates in the same render; a failed op rolls back
  *    to the last confirmed shape.
  *  - pessimistic (the cart page's qty/remove default): the row stays
- *    visible until the mock confirms; a failed op leaves it in place with
+ *    visible until the op confirms; a failed op leaves it in place with
  *    a per-line retry, and the store is only touched on success.
  *
  * This provider ALSO carries the checkout wizard's surviving state
@@ -87,12 +86,9 @@ export function CartProvider({ children }) {
   // per-buyer keys): 'guest' when signed out. The provider sits ABOVE the
   // auth provider (the main.jsx wiring), so it tracks the owner through
   // the auth storage listeners — not a context, which it can no longer
-  // read. Null in the mock (single-session) data source.
-  const [owner, setOwner] = useState(() => (HTTP_ENABLED ? profile()?.username || 'guest' : null))
-  useEffect(() => {
-    if (!HTTP_ENABLED) return undefined
-    return onAuthChange(() => setOwner(profile()?.username || 'guest'))
-  }, [])
+  // read.
+  const [owner, setOwner] = useState(() => profile()?.username || 'guest')
+  useEffect(() => onAuthChange(() => setOwner(profile()?.username || 'guest')), [])
   // The last non-guest owner: a same-owner re-entry (the re-sign-in after a
   // session expiry) keeps the wizard; a different owner starts one afresh.
   const lastRealOwner = useRef(null)
@@ -197,16 +193,13 @@ export function CartProvider({ children }) {
   // and the same-owner re-sign-in re-hydrates them without dropping the
   // wizard. A different owner drops the wizard to step 1.
   useEffect(() => {
-    if (owner !== null && owner !== 'guest') {
+    if (owner !== 'guest') {
       setCart(null)
       lastGood.current = null
       setCartError(false)
       const sameReal = lastRealOwner.current === owner
       lastRealOwner.current = owner
       if (!sameReal) finishWizard()
-      refresh()
-    } else if (owner === null) {
-      // the mock (single-session) data source: the one-time mount hydrate
       refresh()
     }
     // owner === 'guest' (the http sign-out / expiry): no re-hydrate
@@ -215,11 +208,11 @@ export function CartProvider({ children }) {
   /**
    * Set a line's quantity (the `mode` mirrors the cart doc: optimistic =
    * same-render store update + roll back on failure; pessimistic = store
-   * updated only after the mock confirms).
+   * updated only after the op confirms).
    * @param {string} lineId
    * @param {number} qty
    * @param {'optimistic'|'pessimistic'} [mode='optimistic']
-   * @returns {Promise<boolean>} true when the mock confirmed the value.
+   * @returns {Promise<boolean>} true when the op confirmed the value.
    */
   const setQty = useCallback(
     async (lineId, qty, mode = 'optimistic') => {
@@ -243,7 +236,7 @@ export function CartProvider({ children }) {
    * Remove a line (same mode semantics as setQty).
    * @param {string} lineId
    * @param {'optimistic'|'pessimistic'} [mode='optimistic']
-   * @returns {Promise<boolean>} true when the mock confirmed the removal.
+   * @returns {Promise<boolean>} true when the op confirmed the removal.
    */
   const removeLine = useCallback(
     async (lineId, mode = 'optimistic') => {
@@ -264,7 +257,7 @@ export function CartProvider({ children }) {
   /**
    * Clear the whole cart (checkout success: "order placed = items
    * consumed").
-   * @returns {Promise<boolean>} true when the mock confirmed the clear.
+   * @returns {Promise<boolean>} true when the op confirmed the clear.
    */
   const clear = useCallback(async () => {
     if (cart) setCart(reshaped(cart, []))

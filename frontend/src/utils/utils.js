@@ -331,3 +331,12 @@ export async function compressImageForUpload(dataUrl, capBytes = 1_000_000) {
   }
   return null
 }
+
+/**
+ * Null-safe access to localStorage: the built-in object in a browser
+ * environment, null where the global is absent (node).
+ * @returns {Storage|null}
+ */
+export function storage() {
+  return typeof localStorage === 'undefined' ? null : localStorage
+}

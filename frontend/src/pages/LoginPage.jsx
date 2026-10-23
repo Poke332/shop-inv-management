@@ -16,7 +16,7 @@ import { useAuth } from '../hooks/useAuth.js'
  * an administrator". Success = redirect only (the navigation is the
  * feedback; no toast). Validation per the doc: email required + format on
  * blur; password required, min 8; submit enabled only when both hold. The
- * Dev-aid quick-fill buttons for the 5 mock credential rows are kept.
+ * Dev-aid quick-fill buttons for the 5 demo credential rows are kept.
  */
 export default function LoginPage() {
   const { user, signIn } = useAuth()
@@ -177,7 +177,7 @@ export default function LoginPage() {
         </Link>
       </p>
 
-      {/* dev aid: quick-fill the 5 mock credential rows (§4.2 table) */}
+      {/* dev aid: quick-fill the 5 demo credential rows (§4.2 table) */}
       <div className="mt-6 border-t border-blueSlate-200 pt-4">
         <p className="text-meta text-blueSlate-700 mb-2">Explore the demo · choose an account to fill the form</p>
         <div className="flex flex-wrap gap-2">

@@ -1,4 +1,4 @@
-import { storage } from '../data/persistence.js'
+import { storage } from '../utils/utils.js'
 
 /**
  * The 44px quantity stepper (product-details + cart; docs: min 1, max =

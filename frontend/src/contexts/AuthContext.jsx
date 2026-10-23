@@ -2,18 +2,12 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { postLoginHome } from '../utils/postLoginHome.js'
 import { AuthContext } from './contextObjects.js'
 import { mockApi } from '../data'
-import { HTTP_ENABLED } from '../data/runtime.js'
 import { token, profile, clearAuth, saveProfile, onAuthChange } from '../data/authStorage.js'
-
-const SESSION_KEY = 'sunset.final-project.session'
-function readMockSession() {
-  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') } catch { return null }
-}
 
 /**
  * The auth provider (session user + role for guards, header, and pages).
  *
- * HTTP mode is lazy by design: the tree is NEVER blocked on a session
+ * The session is lazy by design: the tree is NEVER blocked on a session
  * round-trip. The stored profile seeds `user` locally (no request); the
  * live session is verified by `resolveAuth` — called by the route guards
  * when a guarded route is reached — and by the sunset-auth-refresh event
@@ -35,7 +29,7 @@ function readMockSession() {
 export function AuthProvider({ children }) {
   // the stored profile is a local cache of the session (no round-trip);
   // the guards verify it lazily at the guarded routes
-  const [user, setUser] = useState(() => HTTP_ENABLED ? profile() : readMockSession())
+  const [user, setUser] = useState(() => profile())
   // 'idle' (a stored session not yet verified) -> 'checking' -> 'ready'
   // (verified: a user, or a known null); 'error' = the verify could not
   // complete (backend unreachable) — the guarded route shows its own
@@ -43,7 +37,7 @@ export function AuthProvider({ children }) {
   // A stored token starts 'idle' (the guards will verify it, lazily); with
   // no token the guest is known up front ('ready'), so public routes paint
   // with zero auth round-trips.
-  const [status, setStatus] = useState(HTTP_ENABLED ? (token() ? 'idle' : 'ready') : 'ready')
+  const [status, setStatus] = useState(() => (token() ? 'idle' : 'ready'))
   const [sessionExpired, setSessionExpired] = useState(false)
   const userRef = useRef(user)
   const statusRef = useRef(status)
@@ -54,7 +48,7 @@ export function AuthProvider({ children }) {
   useEffect(() => { statusRef.current = status }, [status])
 
   const resolveAuth = useCallback((forced = false) => {
-    if (!HTTP_ENABLED || verifying.current) return
+    if (verifying.current) return
     if (!forced && (statusRef.current === 'ready' || statusRef.current === 'checking')) return
     if (!token()) {
       // no stored session: the guest is known without any round-trip
@@ -91,7 +85,6 @@ export function AuthProvider({ children }) {
   // disappears while the UI still held one is the session-expired state
   // (unless the user signed out on purpose, which signOut flags first).
   useEffect(() => {
-    if (!HTTP_ENABLED) return undefined
     let active = true
     const unsubscribe = onAuthChange(() => {
       if (!active) return
@@ -119,7 +112,6 @@ export function AuthProvider({ children }) {
 
   const signIn = useCallback((account, role) => {
     const next = { ...account, role }
-    if (!HTTP_ENABLED) sessionStorage.setItem(SESSION_KEY, JSON.stringify(next))
     setUser(next)
     setSessionExpired(false)
     intentionalSignOut.current = false
@@ -128,15 +120,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signOut = useCallback(() => {
-    if (HTTP_ENABLED) {
-      // flag before clearAuth so the storage listener does not mistake an
-      // explicit sign-out for a session expiry
-      intentionalSignOut.current = true
-      const pending = token() ? mockApi.logout() : Promise.resolve()
-      clearAuth()
-      pending.catch(() => console.warn('Local session terminated; server session termination not yet confirmed.'))
-    }
-    sessionStorage.removeItem(SESSION_KEY)
+    // flag before clearAuth so the storage listener does not mistake an
+    // explicit sign-out for a session expiry
+    intentionalSignOut.current = true
+    const pending = token() ? mockApi.logout() : Promise.resolve()
+    clearAuth()
+    pending.catch(() => console.warn('Local session terminated; server session termination not yet confirmed.'))
     setUser(null)
     setSessionExpired(false)
     setStatus('ready')
