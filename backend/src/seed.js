@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt'
 import { createHash, randomBytes } from 'node:crypto'
 import db from './db.js'
-import { users } from '../../src/data/seed/users.js'
-import { categories } from '../../src/data/seed/categories.js'
-import { products } from '../../src/data/seed/products.js'
-import { orders } from '../../src/data/seed/orders.js'
-import { reviews } from '../../src/data/seed/reviews.js'
+import { users } from './seed-data/users.js'
+import { categories } from './seed-data/categories.js'
+import { products } from './seed-data/products.js'
+import { orders } from './seed-data/orders.js'
+import { reviews } from './seed-data/reviews.js'
 
 const SEED_NAME = 'sunset-demo-v1'
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex')
