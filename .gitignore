@@ -29,6 +29,8 @@ frontend/gutter-check.mjs
 npm-debug.log*
 .env
 .env.*
+# Documented, credential-free templates stay tracked.
+!.env.example
 # Editor / OS noise (mirrors frontend/.gitignore at the repo root).
 .vscode/
 .idea/
