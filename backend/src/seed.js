@@ -62,7 +62,7 @@ async function seed() {
   }
 
   db.transaction(() => {
-    if (completed()) return // Proses seed lain mungkin sudah selesai ketika hashing.
+    if (completed()) return // Another seed run may have completed while hashing.
     const insertUser = db.prepare('INSERT INTO users(username,email,password_hash,role,active) VALUES (?,?,?,?,?) ON CONFLICT(username) DO NOTHING')
     for (const user of preparedAccounts) insertUser.run(user.username, user.email.toLowerCase(), user.passwordHash, user.role, Number(user.active))
     const userId = username => {
