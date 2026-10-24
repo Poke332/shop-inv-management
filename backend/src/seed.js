@@ -11,7 +11,7 @@ const SEED_NAME = 'sunset-demo-v1'
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex')
 const completed = () => db.prepare('SELECT name FROM seed_runs WHERE name = ?').get(SEED_NAME)
 
-// Tanggal mock tidak selalu menyertakan tahun/jam; normalisasi eksplisit ke UTC.
+// Mock dates don't always carry a year/hour; normalize explicitly to UTC.
 function timestamp(value) {
   if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
     return new Date(value.endsWith('Z') ? value : value + 'Z').toISOString()

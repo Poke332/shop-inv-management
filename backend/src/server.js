@@ -17,7 +17,7 @@ app.use('/api/categories', categoriesRouter)
 app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/ops', opsRouter)
-// Sajikan gambar unggahan produk secara statis.
+// Serve uploaded product images statically.
 app.use('/uploads', express.static(uploadsDir))
 app.use((_req, res) => res.status(404).json({ message: 'Endpoint not found' }))
 app.use((error, _req, res, _next) => {

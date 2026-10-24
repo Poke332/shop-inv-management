@@ -5,8 +5,8 @@ import db, { uploadsDir } from '../db.js'
 import { product } from './serializer.js'
 import { fail, text, integer } from './validation.js'
 
-// Simpan URL data: sebagai file di disk lalu kembalikan path-nya, agar DB
-// tidak memuat byte gambar. Path yang sudah ada dilewatkan apa adanya.
+// Store the data URL as a file on disk and return its path, so the DB
+// holds no image bytes. Paths that are already plain paths pass through unchanged.
 function storeImage(image) {
   if (!image.startsWith('data:image/')) return image
   const match = /^data:image\/(png|jpeg|webp);base64,(.+)$/.exec(image)
@@ -50,7 +50,7 @@ export function saveProduct(id, body, actorId) {
     if (id) {
       const current = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
       if (!current) fail(404, 'Product not found.')
-      // Stok/image yang tidak ada di body memakai nilai produk yang ada.
+      // Stock/image fields omitted from the body keep the product's current values.
       const stock = form.stock === undefined ? current.stock : integer(form.stock, 'Stock', { max: 1000000 })
       const nextImage = form.image === undefined ? current.image : storeImage(image)
       if (stock !== current.stock) stockChange(id, stock, actorId)

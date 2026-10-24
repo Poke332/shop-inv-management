@@ -7,7 +7,7 @@ const backendRoot = fileURLToPath(new URL('../', import.meta.url))
 const databasePath = resolve(backendRoot, process.env.DATABASE_PATH || './data/sunset.db')
 mkdirSync(dirname(databasePath), { recursive: true })
 const db = new Database(databasePath)
-// Direktori upload gambar produk; tetap di backend/data/uploads meski DATABASE_PATH diarahkan ke tempat lain.
+// Product image upload directory; stays at backend/data/uploads even when DATABASE_PATH points elsewhere.
 export const uploadsDir = resolve(backendRoot, 'data/uploads')
 mkdirSync(uploadsDir, { recursive: true })
 
@@ -18,7 +18,7 @@ try {
     applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`)
 
-  // 001 yang sudah dijalankan tetap tercatat; file berikutnya diterapkan berurutan.
+  // An already-applied 001 migration stays recorded; later files are applied in order.
   const folder = resolve(backendRoot, 'migrations')
   const files = readdirSync(folder).filter(name => /^\d{3}-[\w-]+\.sql$/.test(name)).sort()
   for (const file of files) {
