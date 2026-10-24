@@ -19,11 +19,15 @@ import { CartSummary } from '../components/cart/CartSummary.jsx'
  * (the row keeps rendering while the store update lands — subtotal +
  * header badge move in the same render; a failed op rolls the store back
  * and the row keeps a per-line retry link; color-only when
- * prefers-reduced-motion). Quantity changes are pessimistic (the value
- * only lands when the mock confirms; the mock clamps to live stock — the
+ * prefers-reduced-motion). Quantity changes are optimistic with a
+ * per-line pending indicator: the value paints in the same render, a
+ * "Syncing…" flag keeps the line's stepper inert while the op is in
+ * flight, and the store reconciles to the server's clamped result — the
  * reduced-qty diff surfaces the "Only N available — quantity reduced"
- * note; a failed op shows the per-line retry link). Page-load 5xx = the
- * full-width error panel with retry.
+ * note; a failed op rolls the line back and keeps the per-line retry
+ * link. The checkout conflict gate (a line above its live stock
+ * disables "Proceed to checkout") and the page-load 5xx panel are
+ * unchanged.
  */
 export default function CartPage() {
   const { lines, count, subtotal, loaded, error, refresh, setQty, removeLine } = useCart()
@@ -31,9 +35,11 @@ export default function CartPage() {
   const navigate = useNavigate()
 
   // transient per-line UI: the mid-fade-out ids + their last-known lines
-  // (ghost rows), the failed-op ids, and the stock-clamp notes.
+  // (ghost rows), the failed-op ids, the in-flight op ids, and the
+  // stock-clamp notes.
   const [ghosts, setGhosts] = useState({})
   const [failed, setFailed] = useState({})
+  const [pending, setPending] = useState({})
   const [clamped, setClamped] = useState({})
   const timers = useRef({})
 
@@ -61,13 +67,19 @@ export default function CartPage() {
 
   const doQty = async (line, requested) => {
     setClamped((c) => ({ ...c, [line.lineId]: undefined }))
-    const ok = await setQty(line.lineId, requested, 'pessimistic')
+    setPending((p) => ({ ...p, [line.lineId]: true }))
+    const ok = await setQty(line.lineId, requested, 'optimistic')
+    setPending((p) => {
+      const next = { ...p }
+      delete next[line.lineId]
+      return next
+    })
     if (!ok) {
       setFailed((f) => ({ ...f, [line.lineId]: true }))
       return
     }
-    // the mock clamps to live stock: requested above stock → the reduced
-    // note (the store already holds the clamped value).
+    // the server clamps to live stock: requested above stock → the
+    // reduced note (the store already reconciled to the clamped value).
     if (requested > line.stock && line.stock > 0) {
       setClamped((c) => ({
         ...c,
@@ -209,6 +221,7 @@ export default function CartPage() {
                       failed={live ? !!failed[line.lineId] : true}
                       onRetry={() => retryLine(line.lineId)}
                       clampedNote={clamped[line.lineId] || null}
+                      pending={!!pending[line.lineId]}
                     />
                   )
                 })}

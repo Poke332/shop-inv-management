@@ -1,17 +1,17 @@
 import bcrypt from 'bcrypt'
 import { createHash, randomBytes } from 'node:crypto'
 import db from './db.js'
-import { users } from '../../src/data/seed/users.js'
-import { categories } from '../../src/data/seed/categories.js'
-import { products } from '../../src/data/seed/products.js'
-import { orders } from '../../src/data/seed/orders.js'
-import { reviews } from '../../src/data/seed/reviews.js'
+import { users } from './seed-data/users.js'
+import { categories } from './seed-data/categories.js'
+import { products } from './seed-data/products.js'
+import { orders } from './seed-data/orders.js'
+import { reviews } from './seed-data/reviews.js'
 
 const SEED_NAME = 'sunset-demo-v1'
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex')
 const completed = () => db.prepare('SELECT name FROM seed_runs WHERE name = ?').get(SEED_NAME)
 
-// Tanggal mock tidak selalu menyertakan tahun/jam; normalisasi eksplisit ke UTC.
+// Mock dates don't always carry a year/hour; normalize explicitly to UTC.
 function timestamp(value) {
   if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
     return new Date(value.endsWith('Z') ? value : value + 'Z').toISOString()
@@ -62,7 +62,7 @@ async function seed() {
   }
 
   db.transaction(() => {
-    if (completed()) return // Proses seed lain mungkin sudah selesai ketika hashing.
+    if (completed()) return // Another seed run may have completed while hashing.
     const insertUser = db.prepare('INSERT INTO users(username,email,password_hash,role,active) VALUES (?,?,?,?,?) ON CONFLICT(username) DO NOTHING')
     for (const user of preparedAccounts) insertUser.run(user.username, user.email.toLowerCase(), user.passwordHash, user.role, Number(user.active))
     const userId = username => {

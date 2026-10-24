@@ -1,7 +1,12 @@
 import { API_BASE } from './runtime.js'
 import { token, clearAuth } from './authStorage.js'
 
-export async function request(path, { method = 'GET', body, signal } = {}) {
+// Identical in-flight GETs share one fetch: one Promise per URL while the
+// request is in flight, dropped the moment it settles (no cache between
+// calls, no request abort).
+const inflight = new Map()
+
+async function fetchJson(path, { method = 'GET', body, signal } = {}) {
   const accessToken = token()
   let response
   try {
@@ -32,4 +37,28 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
     })
   }
   return data
+}
+
+/**
+ * The data layer's single fetch entry point (every GET/POST/PATCH of the
+ * HTTP data source goes through this). A GET with no body and no abort
+ * signal reuses an in-flight identical request (one shared Promise);
+ * everything else fetches directly.
+ * @param {string} path  API path, e.g. "/products".
+ * @param {{method?: string, body?: object, signal?: AbortSignal}} [options]
+ * @returns {Promise<object|null>} the parsed response body (null on 204).
+ */
+export async function request(path, { method = 'GET', body, signal } = {}) {
+  if (method === 'GET' && body === undefined && signal === undefined) {
+    const pending = inflight.get(path)
+    if (pending) return pending
+    const task = fetchJson(path)
+    inflight.set(path, task)
+    task.then(
+      () => inflight.delete(path),
+      () => inflight.delete(path),
+    )
+    return task
+  }
+  return fetchJson(path, { method, body, signal })
 }

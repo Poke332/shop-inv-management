@@ -48,7 +48,7 @@ export function checkout(buyer, payload = {}) {
     if (conflicts.length) fail(409, 'Stock conflict — update quantities & retry', { code: 'STOCK_CONFLICT', conflicts })
     const subtotal = snapshots.reduce((sum, item) => sum + item.row.price * item.qty, 0)
     integer(subtotal, 'Subtotal')
-    const shipping = 0 // Mengikuti checkout saat ini; jangan menerima ongkir/harga dari browser.
+    const shipping = 0 // Matches the current checkout behavior; do not accept shipping/price from the browser.
     const now = new Date().toISOString()
     const reference = 'WB-' + randomUUID()
     const result = db.prepare(`INSERT INTO orders

@@ -14,10 +14,14 @@ router.get('/orders', (req, res) => {
   const status = req.query.status || 'all'
   const flow = ['pending', 'processing', 'shipped', 'delivered']
   if (status !== 'all' && !flow.includes(status)) fail(400, 'Unknown status.')
-  const rows = db.prepare('SELECT * FROM orders ORDER BY created_at DESC, id DESC').all()
-  const tabs = { all: rows.length, pending: 0, processing: 0, shipped: 0, delivered: 0 }
-  for (const row of rows) tabs[row.status]++
-  res.json({ items: rows.filter(row => status === 'all' || row.status === status).map(order), tabs })
+  const tabs = { all: 0, pending: 0, processing: 0, shipped: 0, delivered: 0 }
+  for (const row of db.prepare('SELECT status, COUNT(*) AS count FROM orders GROUP BY status').all()) {
+    tabs[row.status] = row.count
+    tabs.all += row.count
+  }
+  const rows = db.prepare(`SELECT * FROM orders${status === 'all' ? '' : ' WHERE status = ?'}
+    ORDER BY created_at DESC, id DESC`).all(...(status === 'all' ? [] : [status]))
+  res.json({ items: rows.map(order), tabs })
 })
 router.patch('/orders/:id/status', (req, res) => {
   const result = db.transaction(() => {

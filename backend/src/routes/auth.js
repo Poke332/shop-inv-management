@@ -5,6 +5,10 @@ import { randomUUID } from 'node:crypto'
 import db from '../db.js'
 import { jwtOptions, jwtSecret, publicUser, requireAuth } from '../middleware/auth.js'
 
+// A fixed bcrypt hash compared against when the email is unknown, so login
+// timing does not reveal which email addresses exist.
+const DUMMY_PASSWORD_HASH = '$2b$12$u1oy8Qk3qHRUvZWqm5hWZOPDJx23fd4tqEQB0eXrvJOtLp8xI/2HG'
+
 const router = Router()
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -62,7 +66,7 @@ router.post('/login', async (req, res) => {
 
   const user = db.prepare('SELECT * FROM users WHERE email = ?')
     .get(email.trim().toLowerCase())
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+  if (!(await bcrypt.compare(password, user ? user.password_hash : DUMMY_PASSWORD_HASH))) {
     return res.status(401).json({ message: 'The email address or password is incorrect.' })
   }
   if (!user.active) {
