@@ -88,7 +88,7 @@ CREATE TABLE reviews (
   buyer_id INTEGER NOT NULL,
   rating INTEGER NOT NULL CHECK (typeof(rating) = 'integer' AND rating BETWEEN 1 AND 5),
   body TEXT NOT NULL DEFAULT '',
-  -- Mengikuti state ulasan pada frontend yang sudah ada.
+  -- Mirror the review states the frontend already tracks.
   state TEXT NOT NULL DEFAULT 'public' CHECK (state IN ('public', 'hidden')),
   seller_comment TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

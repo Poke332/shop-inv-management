@@ -16,7 +16,7 @@ import { useAuth } from '../hooks/useAuth.js'
  * an administrator". Success = redirect only (the navigation is the
  * feedback; no toast). Validation per the doc: email required + format on
  * blur; password required, min 8; submit enabled only when both hold. The
- * Dev-aid quick-fill buttons for the 5 mock credential rows are kept.
+ * Dev-aid quick-fill buttons for the 5 demo credential rows are kept.
  */
 export default function LoginPage() {
   const { user, signIn } = useAuth()
@@ -50,19 +50,21 @@ export default function LoginPage() {
     try {
       const res = await mockApi.login(email.trim(), password)
       signIn(res.user, res.role)
-      // guest CTA flow — a login arriving from a purchase CTA
-      // (location.state.pendingAdd) returns to the product that started it
-      // (postLoginHome for a buyer == '/', so '/' is the browse home; the
-      // pending return goes to the product, not the role home). The product
-      // page performs the deferred add on mount.
-      const pending = location.state?.pendingAdd
-      if (pending) {
-        navigate(location.state.from || `/products/${pending}`, {
-          state: { pendingAdd: pending, buyNow: !!location.state.buyNow },
+      // A login carrying location.state.from returns to that origin after
+      // sign-in: the guest-CTA flow (pendingAdd) lands back on the product
+      // (the page performs the deferred add on mount), and the
+      // session-expired re-auth lands back on the URL the banner came
+      // from — the wizard + cart survive above the routes, so the visit
+      // resumes where it stopped. A plain sign-in (no from) goes to the
+      // role home (success = the redirect, no toast).
+      const from = location.state?.from
+      if (from) {
+        navigate(from, {
+          state: { pendingAdd: location.state?.pendingAdd, buyNow: location.state?.buyNow },
           replace: true,
         })
       } else {
-        navigate(postLoginHome(res.role), { replace: true }) // success = redirect (no toast)
+        navigate(postLoginHome(res.role), { replace: true })
       }
     } catch (err) {
       setError(err.message || 'Sign-in failed.')
@@ -175,7 +177,7 @@ export default function LoginPage() {
         </Link>
       </p>
 
-      {/* dev aid: quick-fill the 5 mock credential rows (§4.2 table) */}
+      {/* dev aid: quick-fill the 5 demo credential rows (§4.2 table) */}
       <div className="mt-6 border-t border-blueSlate-200 pt-4">
         <p className="text-meta text-blueSlate-700 mb-2">Explore the demo · choose an account to fill the form</p>
         <div className="flex flex-wrap gap-2">

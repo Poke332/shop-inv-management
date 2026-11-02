@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
-import './db.js'
+import { uploadsDir } from './db.js'
+import { purgeExpiredSessions } from './services/sessions.js'
 import authRouter from './routes/auth.js'
 import categoriesRouter from './routes/categories.js'
 import productsRouter from './routes/products.js'
@@ -16,6 +17,8 @@ app.use('/api/categories', categoriesRouter)
 app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/ops', opsRouter)
+// Serve uploaded product images statically.
+app.use('/uploads', express.static(uploadsDir))
 app.use((_req, res) => res.status(404).json({ message: 'Endpoint not found' }))
 app.use((error, _req, res, _next) => {
   console.error(error.message)
@@ -29,6 +32,10 @@ app.use((error, _req, res, _next) => {
 
 
 if (process.env.NODE_ENV !== 'test') {
+  const SESSION_PURGE_INTERVAL_MS = 3600 * 1000 // Hourly housekeeping sweep.
+  purgeExpiredSessions()
+  const purgeTimer = setInterval(() => purgeExpiredSessions(), SESSION_PURGE_INTERVAL_MS)
+  purgeTimer.unref()
   const port = Number(process.env.PORT || 3000)
   app.listen(port, '127.0.0.1', () => console.log(`Sunset API: http://localhost:${port}/api/health`))
 }

@@ -5,14 +5,18 @@ import { FiCheck, FiPlus } from 'react-icons/fi'
 import { mockApi } from '../data'
 import { useCart } from '../hooks/useCart.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast } from '../utils/utils.js'
+import { addToCartFailure, CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast, IMAGE_SRC_RE } from '../utils/utils.js'
 import { TileGlyph } from './TileGlyph.jsx'
 
 /**
  * The product card (docs/main-store "ProductGrid + ProductCard").
  * Tile = image asset when the product carries one (`image` field starting
- * with "/products/" / "/img/"), else the category-keyed gradient tile with
- * its glyph; out of stock dims the tile and flips both CTAs to disabled.
+ * with "/products/", "/img/", "/uploads/" — a /uploads path is the stored
+ * shape of an uploaded image — or a data:image URL), else the category-
+ * keyed gradient tile with its glyph; while the image is still loading
+ * the tile shows the static skeleton block (the ProductCardSkeleton
+ * pattern, no shimmer); a failed load falls back to the tile. Out of
+ * stock dims the tile and flips both CTAs to disabled.
  * Single export (code-org rule: one component per file; helpers in utils).
  * The CTA row is a guaranteed single line — both labels whitespace-nowrap,
  * no flex-wrap, flex-1 pair; on mobile (<640px) the Add-to-cart leading
@@ -20,6 +24,12 @@ import { TileGlyph } from './TileGlyph.jsx'
  * cart" both fit one line at 390px. An anonymous (guest) session's CTA
  * click redirects to /login carrying {from, pendingAdd, buyNow} — the
  * product page performs the deferred add on mount after sign-in.
+ * CTA failures map through the S4 class table (utils.addToCartFailure):
+ * 409/stock keeps the "stock changed" copy, 401/403 toast the session-
+ * expired copy and route to the persistent banner, a network/5xx
+ * failure toasts "Store unreachable." with a retry action, and anything
+ * else the generic unknown copy — the transient toasts keep role="alert"
+ * in the layout's toast host.
  * @param {object} p  a product record (mockApi shape).
  * @param {function} [onBuy]  custom "Buy now" override (default = add qty 1 +
  *   navigate to /cart, per the CTA-target decision in the main-store doc).
@@ -34,6 +44,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const [flash, setFlash] = useState(false)
   const flashTimer = useRef(null)
   const [imgOk, setImgOk] = useState(true)
+  const [loadedSrc, setLoadedSrc] = useState(null)
 
   // cancel the ~600ms add-flash timer on unmount (avoids setState after unmount)
   useEffect(
@@ -46,7 +57,9 @@ export function ProductCard({ p, onBuy, onAdd }) {
   const oos = p.stock === 0
   const low = !oos && p.stock <= p.lowStockThreshold
   const tileClass = `${CATEGORY_TILE[p.category] || 'tile-fallback'}${oos ? ' tile-outstock' : ''}`
- const hasImage = /^(\/(products|img)\/|data:image\/(png|jpeg|webp);base64,)/.test(p.image || '') && imgOk
+  const hasImage = IMAGE_SRC_RE.test(p.image || '') && imgOk
+  // a new image src starts unready (the skeleton shows until it loads)
+  const imgReady = loadedSrc === p.image
 
 
   // guests (user === null) can browse, but the purchase CTAs are
@@ -57,54 +70,62 @@ export function ProductCard({ p, onBuy, onAdd }) {
     })
   }
 
-  const doAdd = onAdd
-    ? onAdd
-    : user
-      ? async () => {
-          setFlash(true)
-          flashTimer.current = setTimeout(() => setFlash(false), 600)
-          try {
-            await mockApi.addToCart({ productId: p.id, qty: 1 })
-            await refresh()
-          } catch {
-            fireToast({
-              tone: 'error',
-              text: "Couldn't add to cart — stock changed. Reload.",
-            })
-          }
-        }
-      : guestCta(false)
+  // The S4 failure-class map (utils.addToCartFailure) behind both CTAs:
+  // a stock conflict keeps the existing copy, 401/403 route to the
+  // session-expired banner (the 401/403 from the add already cleared the
+  // session in the data layer), and the store-unreachable class carries
+  // a retry action that re-runs the same attempt.
+  function addAndRefresh() {
+    setFlash(true)
+    flashTimer.current = setTimeout(() => setFlash(false), 600)
+    return mockApi
+      .addToCart({ productId: p.id, qty: 1 })
+      .then(() => refresh())
+      .catch((failure) => {
+        const t = addToCartFailure(failure)
+        fireToast({
+          tone: t.tone,
+          text: t.text,
+          ...(t.retry ? { actionLabel: 'Try again', onAction: addAndRefresh } : {}),
+        })
+      })
+  }
+  function buyNow() {
+    return mockApi
+      .addToCart({ productId: p.id, qty: 1 })
+      .then(() => navigate('/cart'))
+      .catch((failure) => {
+        const t = addToCartFailure(failure)
+        fireToast({
+          tone: t.tone,
+          text: t.text,
+          ...(t.retry ? { actionLabel: 'Try again', onAction: buyNow } : {}),
+        })
+      })
+  }
 
-  const doBuy = onBuy
-    ? onBuy
-    : user
-      ? async () => {
-          try {
-            await mockApi.addToCart({ productId: p.id, qty: 1 })
-          } catch {
-            fireToast({
-              tone: 'error',
-              text: "Couldn't add to cart — stock changed. Reload.",
-            })
-            return
-          }
-          navigate('/cart')
-        }
-      : guestCta(true)
+  const doAdd = onAdd ? onAdd : user ? addAndRefresh : guestCta(false)
+  const doBuy = onBuy ? onBuy : user ? buyNow : guestCta(true)
 
   return (
     <article className="card group">
       <div className={`tile ${tileClass}`}>
         <Link to={"/products/" + p.id} className="product-image-link" aria-label={"View " + p.name}>
         {hasImage ? (
-          <img
-            src={p.image}
-            alt={p.name}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover"
-            // image load failed -> fall back to the category tile
-            onError={() => setImgOk(false)}
-          />
+          <>
+            {imgReady ? null : (
+              <div className="skeleton absolute inset-0" aria-hidden="true" />
+            )}
+            <img
+              src={p.image}
+              alt={p.name}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+              onLoad={() => setLoadedSrc(p.image)}
+              // image load failed -> fall back to the category tile
+              onError={() => setImgOk(false)}
+            />
+          </>
         ) : (
           <TileGlyph category={p.category} />
         )}

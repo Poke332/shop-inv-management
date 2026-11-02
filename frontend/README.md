@@ -8,6 +8,6 @@ npm run lint
 npm run build
 ```
 
-Jika dependensi belum tersedia, jalankan `npm ci` terlebih dahulu. Konfigurasi lokal frontend berada di `.env.local`; mode data ditentukan oleh `VITE_DATA_SOURCE` (`mock` atau `http`).
+Jika dependensi belum tersedia, jalankan `npm ci` terlebih dahulu. Konfigurasi lokal frontend berada di `.env.local`; lapisan data membaca API http di `VITE_API_BASE_URL`, jadi development membutuhkan backend ter-seed (jalankan `npm run seed` di `../backend/` — tidak ada lagi fallback mock).
 
 Lihat [README proyek](../README.md), dan [desain](DESIGN.md).

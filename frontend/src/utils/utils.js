@@ -60,10 +60,41 @@ export function discountPercent(p) {
  * Toast seam: `fireToast({ tone, text, actionLabel, to })` posts a window
  * event that the StorefrontLayout host renders. Both callers (the card
  * add-to-cart and the product-details add) share that host.
- * @param {{tone:'success'|'error', text:string, actionLabel?:string, to?:string}} t
+ * @param {{tone:'success'|'error', text:string, actionLabel?:string, to?:string,
+ *   onAction?:() => void}} t
+ *   `to` is the action's navigation target; `onAction` (when present) is
+ *   called instead of navigating — the retry affordance for the
+ *   store-unreachable failure class.
  */
 export function fireToast(t) {
   window.dispatchEvent(new CustomEvent('sunset:toast', { detail: t }))
+}
+
+/**
+ * The add-to-cart failure class -> toast copy (the S4 map, the card CTA
+ * error states): a stock conflict (409 / the checkout `conflicts`
+ * payload) keeps the existing copy; 401/403 mean the session died —
+ * "Session expired. Sign in again." routes to the persistent S3 banner
+ * (no "Reload" wording, the re-auth keeps the URL + wizard); a network
+ * failure (status 0) or 5xx is the unreachable-store class, offered a
+ * retry action; anything else is the generic unknown class.
+ * @param {Error & {status?: number, code?: string, conflicts?: unknown}} err
+ *   the data-layer failure (httpClient attaches `status`; network
+ *   unreachable is status 0).
+ * @returns {{tone: 'error', text: string, retry?: boolean}}
+ */
+export function addToCartFailure(err) {
+  const status = err?.status
+  if (status === 409 || err?.conflicts) {
+    return { tone: 'error', text: "Couldn't add to cart — stock changed. Reload." }
+  }
+  if (status === 401 || status === 403) {
+    return { tone: 'error', text: 'Session expired. Sign in again.' }
+  }
+  if (status === 0 || (status >= 500 && status < 600)) {
+    return { tone: 'error', text: 'Store unreachable. Try again.', retry: true }
+  }
+  return { tone: 'error', text: 'Something went wrong.' }
 }
 
 /**
@@ -266,4 +297,55 @@ export function roleNote(role) {
     default:
       return 'They keep buyer-only access.'
   }
+}
+
+/**
+ * Shared image-src literal: a product's `image` field is either a server
+ * path under /products/, /img/ or /uploads/ (/uploads is the stored shape
+ * of an upload) or a data:image URL for a pending upload. Callers test a
+ * candidate against it to pick between rendering the image asset and the
+ * category tile.
+ */
+export const IMAGE_SRC_RE = /^\/(products|img|uploads)\/|^data:image\/(png|jpeg|webp);base64,/
+
+/**
+ * Pre-submit compression toward the 1 MB product-image cap: decode a data
+ * URL, then step down through fixed (longest-side, webp quality) pairs
+ * until the re-encoded bytes fit under the cap. Returns the compressed
+ * data URL, or null when the cap is still hit at the last step (the
+ * dropzone shows its rejection state).
+ * @param {string} dataUrl  the file's base64 data URL.
+ * @param {number} [capBytes=1000000]  the re-encoded byte cap.
+ * @returns {Promise<string|null>} the compressed data URL, or null.
+ */
+export async function compressImageForUpload(dataUrl, capBytes = 1_000_000) {
+  const image = await new Promise((resolve, reject) => {
+    const el = new Image()
+    el.onload = () => resolve(el)
+    el.onerror = () => reject(new Error('The image is unreadable.'))
+    el.src = dataUrl
+  })
+  for (const [size, quality] of [[1600, 0.8], [1200, 0.6], [900, 0.45], [640, 0.3]]) {
+    const scale = Math.min(1, size / Math.max(image.naturalWidth, image.naturalHeight))
+    const width = Math.max(1, Math.round(image.naturalWidth * scale))
+    const height = Math.max(1, Math.round(image.naturalHeight * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    canvas.getContext('2d').drawImage(image, 0, 0, width, height)
+    const out = canvas.toDataURL('image/webp', quality)
+    // the base64 payload decodes to 3/4 of its length, regardless of MIME
+    const bytes = Math.round(out.split(',')[1].length * 0.75)
+    if (bytes <= capBytes) return out
+  }
+  return null
+}
+
+/**
+ * Null-safe access to localStorage: the built-in object in a browser
+ * environment, null where the global is absent (node).
+ * @returns {Storage|null}
+ */
+export function storage() {
+  return typeof localStorage === 'undefined' ? null : localStorage
 }

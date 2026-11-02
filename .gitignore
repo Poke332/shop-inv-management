@@ -12,6 +12,9 @@ _mockup-build/probe_*.py
 # Vite frontend (frontend/ at repo root) — node_modules + build output are regenerable.
 frontend/node_modules/
 frontend/dist/
+# Vite SSR build output + dev log dir (frontend regenerables).
+**/dist-ssr/
+**/logs/
 # GitNexus code-intelligence index — regenerable via `gitnexus analyze`.
 .gitnexus/
 # GitNexus-generated AI-tool artifacts (repo-specific skills + agent docs).
@@ -29,16 +32,23 @@ frontend/gutter-check.mjs
 npm-debug.log*
 .env
 .env.*
-# Editor / OS noise (mirrors frontend/.gitignore at the repo root).
+# Documented, credential-free templates stay tracked.
+!.env.example
+# Editor / OS noise.
 .vscode/
 .idea/
 .DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Frontend-only checkpoint: add backend intentionally in a later change.
-/backend/
 **/node_modules/
 **/dist/
 *.db
 *.db-*
+# Uploaded image files for the API (written at runtime, not source).
+backend/data/uploads/
 *.sqlite
 *.sqlite3
