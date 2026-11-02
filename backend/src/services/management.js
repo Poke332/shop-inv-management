@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import db, { uploadsDir } from '../db.js'
+import sql, { uploadsDir } from '../db.js'
 import { product } from './serializer.js'
 import { fail, text, integer } from './validation.js'
 
@@ -16,17 +16,18 @@ function storeImage(image) {
   return `/uploads/${file}`
 }
 
-export function stockChange(productId, qty, actorId) {
-  return db.transaction(() => {
-    const previous = db.prepare('SELECT * FROM products WHERE id = ?').get(productId)
-    if (!previous) fail(404, 'Product not found.')
-    db.prepare('UPDATE products SET stock = ? WHERE id = ?').run(qty, productId)
-    if (qty !== previous.stock) {
-      db.prepare('INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at) VALUES (?,?,?,?,?)')
-        .run(productId, actorId, qty - previous.stock, 'manual-set', new Date().toISOString())
-    }
-    return product(db.prepare('SELECT * FROM products WHERE id = ?').get(productId))
-  }).immediate()
+// No transaction of its own: callers wrap it in sql.begin so the read, the
+// update, and the movement record commit or roll back together.
+export async function stockChange(productId, qty, actorId) {
+  const [previous] = await sql`SELECT * FROM products WHERE id = ${productId}`
+  if (!previous) fail(404, 'Product not found.')
+  await sql`UPDATE products SET stock = ${qty} WHERE id = ${productId}`
+  if (qty !== previous.stock) {
+    await sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at)
+      VALUES (${productId}, ${actorId}, ${qty - previous.stock}, 'manual-set', ${new Date().toISOString()})`
+  }
+  const [current] = await sql`SELECT * FROM products WHERE id = ${productId}`
+  return product(current)
 }
 
 export function saveProduct(id, body, actorId) {
@@ -34,7 +35,6 @@ export function saveProduct(id, body, actorId) {
   const name = text(form.name, 'Product name')
   const brand = text(form.brand, 'Brand', { max: 100 })
   const category = text(form.category, 'Category')
-  if (!db.prepare('SELECT slug FROM categories WHERE slug = ?').get(category)) fail(400, 'Category not found.')
   const price = integer(form.price, 'Price', { min: 1 })
   const description = text(form.description ?? '', 'Description', { min: 0, max: 10000 })
   const image = text(form.image ?? '', 'Image', { min: 0, max: 1500000 })
@@ -45,29 +45,33 @@ export function saveProduct(id, body, actorId) {
     key: text(item?.key, 'Spec key', { min: 0, max: 100 }),
     value: text(item?.value, 'Spec value', { min: 0, max: 500 }),
   }))
-  return db.transaction(() => {
+  return sql.begin(async () => {
+    if (!(await sql`SELECT slug FROM categories WHERE slug = ${category}`)[0]) fail(400, 'Category not found.')
     let productId = id
     if (id) {
-      const current = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+      const [current] = await sql`SELECT * FROM products WHERE id = ${id}`
       if (!current) fail(404, 'Product not found.')
       // Stock/image fields omitted from the body keep the product's current values.
       const stock = form.stock === undefined ? current.stock : integer(form.stock, 'Stock', { max: 1000000 })
       const nextImage = form.image === undefined ? current.image : storeImage(image)
-      if (stock !== current.stock) stockChange(id, stock, actorId)
-      db.prepare('UPDATE products SET name=?,brand=?,category_slug=?,price=?,description=?,image=? WHERE id=?')
-        .run(name, brand, category, price, description, nextImage, id)
-      db.prepare('DELETE FROM product_specs WHERE product_id = ?').run(id)
+      if (stock !== current.stock) await stockChange(id, stock, actorId)
+      await sql`UPDATE products SET name = ${name}, brand = ${brand}, category_slug = ${category}, price = ${price},
+        description = ${description}, image = ${nextImage} WHERE id = ${id}`
+      await sql`DELETE FROM product_specs WHERE product_id = ${id}`
     } else {
       const stock = integer(form.stock, 'Stock', { max: 1000000 })
       productId = 'P-' + randomUUID()
-      const position = db.prepare('SELECT COALESCE(MAX(catalog_position),-1)+1 AS value FROM products').get().value
-      db.prepare(`INSERT INTO products(id,name,brand,category_slug,price,stock,description,image,catalog_position,created_at)
-        VALUES (?,?,?,?,?,?,?,?,?,?)`).run(productId, name, brand, category, price, stock, description, storeImage(image), position, new Date().toISOString())
-      db.prepare('INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at) VALUES (?,?,?,?,?)')
-        .run(productId, actorId, stock, 'product-created', new Date().toISOString())
+      const [position] = await sql`SELECT COALESCE(MAX(catalog_position),-1)+1 AS value FROM products`
+      await sql`INSERT INTO products(id,name,brand,category_slug,price,stock,description,image,catalog_position,created_at)
+        VALUES (${productId}, ${name}, ${brand}, ${category}, ${price}, ${stock}, ${description}, ${storeImage(image)}, ${position.value}, ${new Date().toISOString()})`
+      await sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at)
+        VALUES (${productId}, ${actorId}, ${stock}, 'product-created', ${new Date().toISOString()})`
     }
-    const insertSpec = db.prepare('INSERT INTO product_specs(product_id,position,key,value) VALUES (?,?,?,?)')
-    specs.forEach((item, position) => insertSpec.run(productId, position, item.key, item.value))
-    return product(db.prepare('SELECT * FROM products WHERE id = ?').get(productId))
-  }).immediate()
+    for (const [specPosition, spec] of specs.entries()) {
+      await sql`INSERT INTO product_specs(product_id,position,key,value)
+        VALUES (${productId}, ${specPosition}, ${spec.key}, ${spec.value})`
+    }
+    const [current] = await sql`SELECT * FROM products WHERE id = ${productId}`
+    return product(current)
+  })
 }

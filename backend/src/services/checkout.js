@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto'
-import db from '../db.js'
+import sql from '../db.js'
 import { order } from './serializer.js'
 import { fail, text, integer } from './validation.js'
 
@@ -33,37 +33,42 @@ export function checkout(buyer, payload = {}) {
   const canonical = { buyerContact, shippingAddress, paymentMethod, lines }
   const fingerprint = createHash('sha256').update(JSON.stringify(canonical)).digest('hex')
 
-  return db.transaction(() => {
-    const existing = db.prepare('SELECT * FROM orders WHERE buyer_id = ? AND client_request_id = ?').get(buyer.id, requestId)
+  return sql.begin(async () => {
+    const [existing] = await sql`SELECT * FROM orders WHERE buyer_id = ${buyer.id} AND client_request_id = ${requestId}`
     if (existing) {
       if (existing.request_hash !== fingerprint) fail(409, 'Request ID sudah dipakai untuk isi berbeda.', { code: 'IDEMPOTENCY_CONFLICT' })
       return order(existing)
     }
     const conflicts = []
-    const snapshots = lines.map(line => {
-      const row = db.prepare('SELECT * FROM products WHERE id = ?').get(line.productId)
+    const snapshots = []
+    for (const line of lines) {
+      const [row] = await sql`SELECT * FROM products WHERE id = ${line.productId}`
       if (!row || row.stock < line.qty) conflicts.push({ productId: line.productId, available: row?.stock || 0, requested: line.qty })
-      return { ...line, row }
-    })
+      snapshots.push({ ...line, row })
+    }
     if (conflicts.length) fail(409, 'Stock conflict — update quantities & retry', { code: 'STOCK_CONFLICT', conflicts })
     const subtotal = snapshots.reduce((sum, item) => sum + item.row.price * item.qty, 0)
     integer(subtotal, 'Subtotal')
     const shipping = 0 // Matches the current checkout behavior; do not accept shipping/price from the browser.
     const now = new Date().toISOString()
     const reference = 'WB-' + randomUUID()
-    const result = db.prepare(`INSERT INTO orders
+    const [inserted] = await sql`INSERT INTO orders
       (reference,buyer_id,client_request_id,request_hash,buyer_contact,shipping_address,payment_method,subtotal,shipping,total,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(reference, buyer.id, requestId, fingerprint,
-        JSON.stringify(buyerContact), JSON.stringify(shippingAddress), paymentMethod, subtotal, shipping, subtotal + shipping, now, now)
-    const id = Number(result.lastInsertRowid)
+      VALUES (${reference}, ${buyer.id}, ${requestId}, ${fingerprint},
+        ${JSON.stringify(buyerContact)}, ${JSON.stringify(shippingAddress)}, ${paymentMethod}, ${subtotal}, ${shipping}, ${subtotal + shipping}, ${now}, ${now})
+      RETURNING id`
+    const id = inserted.id
     for (const item of snapshots) {
-      const updated = db.prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?').run(item.qty, item.productId, item.qty)
-      if (!updated.changes) fail(409, 'Stock has changed.', { code: 'STOCK_CONFLICT', conflicts: [{ productId: item.productId, available: 0, requested: item.qty }] })
-      db.prepare('INSERT INTO order_lines(order_id,product_id,product_name,unit_price,qty,amount) VALUES (?,?,?,?,?,?)')
-        .run(id, item.productId, item.row.name, item.row.price, item.qty, item.row.price * item.qty)
-      db.prepare('INSERT INTO stock_movements(product_id,actor_id,delta,reason,order_id,created_at) VALUES (?,?,?,?,?,?)')
-        .run(item.productId, buyer.id, -item.qty, 'order-decrement', id, now)
+      // The guard and the decrement stay in one statement: zero affected rows
+      // means the stock moved since the snapshot, so the whole checkout rolls back.
+      const guarded = await sql`UPDATE products SET stock = stock - ${item.qty} WHERE id = ${item.productId} AND stock >= ${item.qty}`
+      if (guarded.count === 0) fail(409, 'Stock has changed.', { code: 'STOCK_CONFLICT', conflicts: [{ productId: item.productId, available: 0, requested: item.qty }] })
+      await sql`INSERT INTO order_lines(order_id,product_id,product_name,unit_price,qty,amount)
+        VALUES (${id}, ${item.productId}, ${item.row.name}, ${item.row.price}, ${item.qty}, ${item.row.price * item.qty})`
+      await sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,order_id,created_at)
+        VALUES (${item.productId}, ${buyer.id}, ${-item.qty}, 'order-decrement', ${id}, ${now})`
     }
-    return order(db.prepare('SELECT * FROM orders WHERE id = ?').get(id))
-  }).immediate()
+    const [orderRow] = await sql`SELECT * FROM orders WHERE id = ${id}`
+    return order(orderRow)
+  })
 }

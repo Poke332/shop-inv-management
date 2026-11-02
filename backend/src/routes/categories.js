@@ -1,9 +1,10 @@
 import { Router } from 'express'
-import db from '../db.js'
+import sql from '../db.js'
 
 const router = Router()
-router.get('/', (_req, res) => {
-  res.json(db.prepare('SELECT slug,label FROM categories ORDER BY rowid').all())
+router.get('/', async (_req, res) => {
+  // Slug is the primary key and stands in for the original SQLite insertion ordering.
+  res.json(await sql`SELECT slug,label FROM categories ORDER BY slug`)
 })
 
 export default router
