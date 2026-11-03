@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { uploadsDir } from './db.js'
+import { uploadsDir, initDatabase } from './db.js'
 import { purgeExpiredSessions } from './services/sessions.js'
 import authRouter from './routes/auth.js'
 import categoriesRouter from './routes/categories.js'
@@ -32,9 +32,10 @@ app.use((error, _req, res, _next) => {
 
 
 if (process.env.NODE_ENV !== 'test') {
+  await initDatabase()
   const SESSION_PURGE_INTERVAL_MS = 3600 * 1000 // Hourly housekeeping sweep.
-  purgeExpiredSessions()
-  const purgeTimer = setInterval(() => purgeExpiredSessions(), SESSION_PURGE_INTERVAL_MS)
+  await purgeExpiredSessions()
+  const purgeTimer = setInterval(() => purgeExpiredSessions().catch(error => console.error(error.message)), SESSION_PURGE_INTERVAL_MS)
   purgeTimer.unref()
   const port = Number(process.env.PORT || 3000)
   app.listen(port, '127.0.0.1', () => console.log(`Sunset API: http://localhost:${port}/api/health`))
