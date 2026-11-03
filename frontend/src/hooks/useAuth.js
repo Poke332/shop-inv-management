@@ -5,15 +5,11 @@ import { AuthContext } from '../contexts/contextObjects.js'
 /**
  * The useAuth accessor (code-org rule: one custom hook per file), moved
  * out of contexts/AuthContext.jsx so every custom hook lives in src/hooks/.
- * Reads the auth context value (session user + role, the lazy auth state,
- * the session-expired flag, signIn, signOut).
+ * Reads the auth context value (session user + role, signIn, signOut).
  * Throws when called outside <AuthProvider>.
  * @returns {{user: ({username: string, role: string}|null), role: (string|null),
  *            signIn: (user: object, role: string) => string,
- *            signOut: () => void,
- *            sessionExpired: boolean,
- *            authState: ('idle'|'checking'|'ready'|'error'),
- *            resolveAuth: (forced?: boolean) => void}}
+ *            signOut: () => void}}
  * @throws {Error} when called outside <AuthProvider>
  */
 export function useAuth() {
