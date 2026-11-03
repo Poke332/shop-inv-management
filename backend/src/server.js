@@ -38,6 +38,6 @@ if (process.env.NODE_ENV !== 'test') {
   const purgeTimer = setInterval(() => purgeExpiredSessions().catch(error => console.error(error.message)), SESSION_PURGE_INTERVAL_MS)
   purgeTimer.unref()
   const port = Number(process.env.PORT || 3000)
-  app.listen(port, '127.0.0.1', () => console.log(`Sunset API: http://localhost:${port}/api/health`))
+  app.listen(port, '0.0.0.0', () => console.log(`Sunset API listening on 0.0.0.0:${port}`))
 }
 export default app
