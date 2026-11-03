@@ -44,7 +44,7 @@ async function announceTarget() {
   const raw = process.env.DATABASE_URL ?? ''
   const masked = raw.replace(/:[^:@/]+@/, ':***@')
   const [row] = await sql`SELECT current_database() AS db, coalesce(inet_server_addr()::text, 'unix socket') AS server, current_setting('server_version') AS version`
-  const isSupabase = /\.supabase\.co/.test(raw.replace(/^[a-z+]*:\/\//, ''))
+  const isSupabase = /supabase\.(co|com)/.test(raw.replace(/^[a-z+]*:\/\//, ''))
   console.log(`Seed target: ${row.db} @ ${row.server} (PostgreSQL ${row.version})`)
   console.log(`Connection:  ${masked}`)
   console.log(`Supabase:    ${isSupabase ? 'yes' : 'NO — this is not the Supabase project database'}`)
