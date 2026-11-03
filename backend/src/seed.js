@@ -34,7 +34,7 @@ async function prepareSeedImages() {
 // foreign-key-related table in one statement, in dependency order.
 async function refreshData() {
   console.log('Refreshing: truncating seeded data tables...')
-  await sql`TRUNCATE reviews, order_lines, orders, product_specs, stock_movements, products, categories, users, seed_runs RESTART IDENTITY`
+  await sql`TRUNCATE sessions, reviews, order_lines, orders, product_specs, stock_movements, products, categories, users, seed_runs RESTART IDENTITY`
 }
 
 // Mock dates don't always carry a year/hour; normalize explicitly to UTC.
