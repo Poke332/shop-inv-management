@@ -11,6 +11,13 @@ const SEED_NAME = 'sunset-demo-v1'
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex')
 const completed = async () => Boolean((await sql`SELECT name FROM seed_runs WHERE name = ${SEED_NAME}`)[0])
 
+// Only items with a supported image asset are seeded: the 12 named products
+// carry a /products/p-###.png reference served from the frontend's static
+// assets. The synthesized items carry a category key (a CSS gradient tile,
+// not an image) and are skipped here, so every seeded product has an image
+// that renders end to end.
+const seededProducts = products.filter(item => item.image.startsWith('/products/'))
+
 // Mock dates don't always carry a year/hour; normalize explicitly to UTC.
 function timestamp(value) {
   if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
@@ -86,7 +93,7 @@ async function seed() {
       ON CONFLICT(id) DO NOTHING RETURNING id`
     const insertMovement = (productId, actorId, delta, reason, createdAt) => sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at)
       VALUES (${productId}, ${actorId}, ${delta}, ${reason}, ${createdAt})`
-    for (const [position, product] of products.entries()) {
+    for (const [position, product] of seededProducts.entries()) {
       const inserted = await insertProduct(product, position)
       if (!inserted.length) continue // The product pre-existed; leave its specs and movements untouched.
       for (const [index, spec] of product.specs.entries()) {
@@ -132,7 +139,7 @@ async function seed() {
         order = undefined
       }
       if (!order) {
-        const product = products.find(item => item.id === review.productId)
+        const product = seededProducts.find(item => item.id === review.productId)
         if (!product) throw new Error(`Review product missing: ${review.productId}`)
         const id = await addOrder({ id: reference, buyer: review.buyer, status: 'delivered', createdAt: review.createdAt,
           subtotal: product.price, shipping: 0, total: product.price,
