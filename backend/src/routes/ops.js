@@ -52,7 +52,7 @@ router.patch('/stock/:id', manager, async (req, res) => {
 })
 router.post('/products', manager, async (req, res) => res.status(201).json(await saveProduct(null, req.body, req.user.id)))
 router.patch('/products/:id', manager, async (req, res) => res.json(await saveProduct(req.params.id, req.body, req.user.id)))
-router.get('/products/:id/reviews', manager, (req, res) => res.json(reviewList(req.params.id, true)))
+router.get('/products/:id/reviews', manager, async (req, res) => res.json(await reviewList(req.params.id, true)))
 router.patch('/reviews/:id/hidden', manager, async (req, res) => {
   const id = reviewId(req.params.id)
   const hidden = boolean(req.body?.hidden, 'Hidden')
@@ -100,13 +100,13 @@ function changeUser(username, actor, patch) {
     return { ...publicUser(updated), lastActiveAt: '—' }
   })
 }
-router.patch('/users/:username/role', admin, (req, res) => {
+router.patch('/users/:username/role', admin, async (req, res) => {
   const role = req.body?.role
   if (!['buyer','staff','manager','admin'].includes(role)) fail(400, 'Invalid role.')
-  res.json(changeUser(req.params.username, req.user, { role }))
+  res.json(await changeUser(req.params.username, req.user, { role }))
 })
-router.patch('/users/:username/active', admin, (req, res) => {
+router.patch('/users/:username/active', admin, async (req, res) => {
   const active = boolean(req.body?.active, 'Active')
-  res.json(changeUser(req.params.username, req.user, { active }))
+  res.json(await changeUser(req.params.username, req.user, { active }))
 })
 export default router

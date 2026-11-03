@@ -14,6 +14,18 @@ if (!url) throw new Error('DATABASE_URL must be set (see backend/.env.example)')
 
 // int4/int8 decode as JS numbers so money and stock arithmetic stays plain arithmetic.
 const sql = postgres(url, {
+  // The product list fans out one spec lookup per row; size the pool to absorb
+  // that concurrency and recycle connections so a half-open slot left by the
+  // pooler's idle reclaim can't wedge every subsequent DB request.
+  max: 25,
+  connection_timeout: 5, // seconds to establish a connection; fail a stuck one fast
+  idle_timeout: 2000, // close idle clients (ms) before the pooler reclaims them
+  max_lifetime: 60000, // recycle each connection after 60s (ms)
+  // The DB sits behind a pgBouncer *transaction* pooler; its connection
+  // reassignment breaks Pegasus's named prepared statements ("prepared
+  // statement ... does not exist"). Pegasus docs: set prepare:false for
+  // pgBouncer in transaction mode (falls back to the simple query protocol).
+  prepare: false,
   types: {
     int4: { from: 23, parse: Number },
     int8: { from: 20, parse: Number },

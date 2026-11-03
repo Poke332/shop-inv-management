@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
   const rows = await sql.unsafe(`SELECT * FROM products${where} ORDER BY ${sorts[sort]}`, values)
   res.json({ items: await Promise.all(rows.map(product)), total: rows.length, hasMore: false })
 })
-router.get('/:id/reviews', (req, res) => res.json(reviewList(req.params.id)))
+router.get('/:id/reviews', async (req, res) => res.json(await reviewList(req.params.id)))
 router.get('/:id', async (req, res) => {
   const [row] = await sql`SELECT * FROM products WHERE id = ${req.params.id}`
   res.json(await product(row))
