@@ -64,3 +64,18 @@ export async function uploadProductImage(productId, dataUrl) {
   const { data } = storage.getPublicUrl(path)
   return data.publicUrl
 }
+
+// Seed uploads use a deterministic object path (product id + original file
+// name) and upsert, so re-running the seed overwrites the same objects
+// instead of accumulating uuid-named orphans.
+export async function uploadSeedImage(productId, fileName, bytes) {
+  const client = activeClient()
+  await ensureBucket(client)
+  const path = `products/${productId}/${fileName}`
+  const ext = fileName.split('.').pop()
+  const storage = client.storage.from(BUCKET)
+  const { error } = await storage.upload(path, bytes, { upsert: true, contentType: MIME[ext] || 'application/octet-stream' })
+  if (error) throw new Error(`Supabase storage seed upload failed: ${error.message}`)
+  const { data } = storage.getPublicUrl(path)
+  return data.publicUrl
+}

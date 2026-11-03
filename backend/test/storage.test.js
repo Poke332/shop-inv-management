@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { BUCKET, setStorageClient, uploadProductImage } from '../src/storage.js'
+import { BUCKET, setStorageClient, uploadProductImage, uploadSeedImage } from '../src/storage.js'
 
 // The Supabase client is substituted with a fake that records uploads and
 // bucket creations and derives the public URL in the shape the Storage API
@@ -129,4 +129,16 @@ test('re-provisions when the client is swapped', async () => {
   setStorageClient(fakeClient())
   await uploadProductImage('P-def', PNG)
   assert.equal(bucketCreates.length, 2)
+})
+
+test('seed uploads use a deterministic upserted path under the product id', async () => {
+  resetFake()
+  const bytes = Buffer.from('fake-png-bytes')
+  const url = await uploadSeedImage('P-abc', 'p-abc.png', bytes)
+  const upload = uploads.at(-1)
+  assert.equal(upload.bucket, BUCKET)
+  assert.equal(upload.path, 'products/P-abc/p-abc.png')
+  assert.equal(upload.options.upsert, true)
+  assert.deepEqual([...upload.bytes], [...bytes])
+  assert.equal(url, `https://ref.supabase.co/storage/v1/object/public/${BUCKET}/products/P-abc/p-abc.png`)
 })

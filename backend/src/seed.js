@@ -1,6 +1,9 @@
 import bcrypt from 'bcrypt'
 import { createHash, randomBytes } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { basename, resolve } from 'node:path'
 import sql, { initDatabase } from './db.js'
+import { uploadSeedImage } from './storage.js'
 import { users } from './seed-data/users.js'
 import { categories } from './seed-data/categories.js'
 import { products } from './seed-data/products.js'
@@ -11,12 +14,28 @@ const SEED_NAME = 'sunset-demo-v1'
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex')
 const completed = async () => Boolean((await sql`SELECT name FROM seed_runs WHERE name = ${SEED_NAME}`)[0])
 
-// Only items with a supported image asset are seeded: the 12 named products
-// carry a /products/p-###.png reference served from the frontend's static
-// assets. The synthesized items carry a category key (a CSS gradient tile,
-// not an image) and are skipped here, so every seeded product has an image
-// that renders end to end.
-const seededProducts = products.filter(item => item.image.startsWith('/products/'))
+// Upload each product's static source image (frontend/public) to the storage
+// bucket and map the product id to the bucket's public URL, so the seeded
+// rows reference bucket images instead of the static files. Uploads happen
+// before the database transaction; object paths are deterministic and
+// upserted, so re-seeding refreshes the same objects.
+async function prepareSeedImages() {
+  const urls = new Map()
+  for (const product of products) {
+    if (!product.image.startsWith('/products/')) continue
+    const filePath = resolve(process.cwd(), '..', 'frontend', 'public', product.image)
+    urls.set(product.id, await uploadSeedImage(product.id, basename(filePath), readFileSync(filePath)))
+    console.log(`Seed image ${product.id}: ${basename(filePath)} -> bucket`)
+  }
+  return urls
+}
+
+// Wipe the seeded data (not the schema) so a re-seed rebuilds it: every
+// foreign-key-related table in one statement, in dependency order.
+async function refreshData() {
+  console.log('Refreshing: truncating seeded data tables...')
+  await sql`TRUNCATE reviews, order_lines, orders, product_specs, stock_movements, products, categories, users, seed_runs RESTART IDENTITY`
+}
 
 // Mock dates don't always carry a year/hour; normalize explicitly to UTC.
 function timestamp(value) {
@@ -53,11 +72,14 @@ async function announceTarget() {
 async function seed() {
   await initDatabase()
   await announceTarget()
+  if (process.argv.includes('--refresh')) await refreshData()
   if (await completed()) {
     console.log('Seed has already been run. The current data is retained..')
     await report()
     return
   }
+
+  const seedImages = await prepareSeedImages()
 
   const accountSeeds = new Map(users.map(user => [user.username, user]))
   function historicalAccount(username) {
@@ -100,16 +122,17 @@ async function seed() {
       VALUES (${category.slug}, ${category.label}) ON CONFLICT(slug) DO NOTHING`
     for (const category of categories) await insertCategory(category)
 
-    const insertProduct = (product, position) => sql`INSERT INTO products
+    const insertProduct = (product, position, image) => sql`INSERT INTO products
       (id,category_slug,name,brand,price,original_price,stock,featured,on_sale,catalog_position,created_at,description,image,low_stock_threshold)
       VALUES (${product.id}, ${product.category}, ${product.name}, ${product.brand}, ${product.price},
         ${product.originalPrice ?? null}, ${product.stock}, ${Number(Boolean(product.featured))}, ${Number(Boolean(product.onSale))},
-        ${position}, ${timestamp(product.createdAt)}, ${product.description}, ${product.image}, ${product.lowStockThreshold})
+        ${position}, ${timestamp(product.createdAt)}, ${product.description}, ${image}, ${product.lowStockThreshold})
       ON CONFLICT(id) DO NOTHING RETURNING id`
     const insertMovement = (productId, actorId, delta, reason, createdAt) => sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at)
       VALUES (${productId}, ${actorId}, ${delta}, ${reason}, ${createdAt})`
-    for (const [position, product] of seededProducts.entries()) {
-      const inserted = await insertProduct(product, position)
+    for (const [position, product] of products.entries()) {
+      const image = seedImages.get(product.id) ?? product.image
+      const inserted = await insertProduct(product, position, image)
       if (!inserted.length) continue // The product pre-existed; leave its specs and movements untouched.
       for (const [index, spec] of product.specs.entries()) {
         await sql`INSERT INTO product_specs(product_id,position,key,value)
@@ -154,7 +177,7 @@ async function seed() {
         order = undefined
       }
       if (!order) {
-        const product = seededProducts.find(item => item.id === review.productId)
+        const product = products.find(item => item.id === review.productId)
         if (!product) throw new Error(`Review product missing: ${review.productId}`)
         const id = await addOrder({ id: reference, buyer: review.buyer, status: 'delivered', createdAt: review.createdAt,
           subtotal: product.price, shipping: 0, total: product.price,

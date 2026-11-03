@@ -48,6 +48,18 @@ Behavior:
 - Files already uploaded to `backend/data/uploads` stay served at `/uploads`
   for back-compat; they are legacy data, not a migration target.
 
+Seeding:
+
+- `npm run seed` uploads each seeded product's source image
+  (`frontend/public/products/*.png`) to the bucket and stores the bucket's
+  public URL in `products.image` — the database always points at bucket
+  images, never at the static files. Uploads use deterministic, upserted
+  object paths, so re-running is safe.
+- `npm run seed:refresh` truncates the seeded data tables (users,
+  categories, products, specs, orders, order lines, reviews, stock
+  movements, seed runs) and re-seeds from scratch, re-uploading the images.
+  The schema is untouched.
+
 ## Current contents
 
 - [frontend/](frontend/README.md): current React application, assets and UI styles.
