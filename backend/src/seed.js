@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import { createHash, randomBytes } from 'node:crypto'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 import sql, { initDatabase } from './db.js'
@@ -85,18 +85,9 @@ async function seed() {
   const seedImages = await prepareSeedImages()
 
   const accountSeeds = new Map(users.map(user => [user.username, user]))
-  function historicalAccount(username) {
-    if (!accountSeeds.has(username)) accountSeeds.set(username, {
-      username, email: `${username}@seed.invalid`, role: 'buyer', active: false,
-      password: randomBytes(32).toString('hex'),
-    })
-    return username
-  }
-  for (const order of orders) historicalAccount(order.buyer || `seed_buyer_${order.id.replaceAll('-', '_')}`)
-  for (const review of reviews) historicalAccount(review.buyer)
 
   const preparedAccounts = []
-  console.log(`Preparing password hashes for ${accountSeeds.size} demo/historical accounts...`)
+  console.log(`Preparing password hashes for ${accountSeeds.size} seeded accounts...`)
   for (const account of accountSeeds.values()) {
     const [existing] = await sql`SELECT username, email FROM users WHERE username = ${account.username} OR email = ${account.email.toLowerCase()}`
     if (existing) {
@@ -145,7 +136,12 @@ async function seed() {
     }
 
     const addOrder = async (order) => {
-      const buyer = await userId(order.buyer)
+      const [buyerRow] = await sql`SELECT id FROM users WHERE username = ${order.buyer}`
+      if (!buyerRow) {
+        console.warn(`Seed order ${order.id} skipped: buyer '${order.buyer}' is not in the user seed`)
+        return undefined
+      }
+      const buyer = buyerRow.id
       const [existing] = await sql`SELECT id,buyer_id FROM orders WHERE reference = ${order.id}`
       if (existing) {
         if (existing.buyer_id !== buyer) throw new Error(`Order ownership conflict: ${order.id}`)
@@ -164,33 +160,27 @@ async function seed() {
       }
       return inserted.id
     }
-    for (const order of orders) await addOrder({ ...order, buyer: order.buyer || `seed_buyer_${order.id.replaceAll('-', '_')}` })
+    for (const order of orders) await addOrder(order)
 
     for (const review of reviews) {
-      const buyer = await userId(review.buyer)
-      let reference = review.orderId.replace(/^#/, '')
-      let [order] = await sql`SELECT id,buyer_id,status FROM orders WHERE reference = ${reference}`
-      let hasLine = false
-      if (order) {
-        hasLine = (await sql`SELECT 1 FROM order_lines WHERE order_id = ${order.id} AND product_id = ${review.productId}`).length > 0
+      const [buyerRow] = await sql`SELECT id FROM users WHERE username = ${review.buyer}`
+      if (!buyerRow) {
+        console.warn(`Seed review ${review.id} skipped: buyer '${review.buyer}' is not in the user seed`)
+        continue
       }
-
-      if (order && (order.buyer_id !== buyer || order.status !== 'delivered' || !hasLine)) {
-        reference = `SEED-${review.id}-${reference}`
-        order = undefined
-      }
-      if (!order) {
-        const product = products.find(item => item.id === review.productId)
-        if (!product) throw new Error(`Review product missing: ${review.productId}`)
-        const id = await addOrder({ id: reference, buyer: review.buyer, status: 'delivered', createdAt: review.createdAt,
-          subtotal: product.price, shipping: 0, total: product.price,
-          lines: [{ productId: product.id, name: product.name, unitPrice: product.price, qty: 1, amount: product.price }] })
-        order = { id }
+      const reference = review.orderId.replace(/^#/, '')
+      const [order] = await sql`SELECT id,buyer_id,status FROM orders WHERE reference = ${reference}`
+      const lineRows = order
+        ? await sql`SELECT 1 FROM order_lines WHERE order_id = ${order.id} AND product_id = ${review.productId}`
+        : []
+      if (!order || order.status !== 'delivered' || order.buyer_id !== buyerRow.id || lineRows.length === 0) {
+        console.warn(`Seed review ${review.id} skipped: no delivered '${reference}' ${review.productId} line for '${review.buyer}'`)
+        continue
       }
       const id = Number(review.id.replace(/^R-/, ''))
       await sql`INSERT INTO reviews
         (id,order_id,product_id,buyer_id,rating,body,state,seller_comment,created_at)
-        VALUES (${id}, ${order.id}, ${review.productId}, ${buyer}, ${review.rating}, ${review.body}, ${review.state},
+        VALUES (${id}, ${order.id}, ${review.productId}, ${buyerRow.id}, ${review.rating}, ${review.body}, ${review.state},
           ${review.sellerComment ? JSON.stringify(review.sellerComment) : null}, ${timestamp(review.createdAt)})`
     }
     // Seeded review ids are explicit values; advance the identity sequence past
