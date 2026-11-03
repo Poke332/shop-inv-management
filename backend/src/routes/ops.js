@@ -50,8 +50,8 @@ router.patch('/stock/:id', manager, async (req, res) => {
   // stockChange carries no transaction of its own; the route is the top-level caller.
   res.json(await sql.begin(() => stockChange(req.params.id, qty, req.user.id)))
 })
-router.post('/products', manager, (req, res) => res.status(201).json(saveProduct(null, req.body, req.user.id)))
-router.patch('/products/:id', manager, (req, res) => res.json(saveProduct(req.params.id, req.body, req.user.id)))
+router.post('/products', manager, async (req, res) => res.status(201).json(await saveProduct(null, req.body, req.user.id)))
+router.patch('/products/:id', manager, async (req, res) => res.json(await saveProduct(req.params.id, req.body, req.user.id)))
 router.get('/products/:id/reviews', manager, (req, res) => res.json(reviewList(req.params.id, true)))
 router.patch('/reviews/:id/hidden', manager, async (req, res) => {
   const id = reviewId(req.params.id)

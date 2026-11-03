@@ -1,19 +1,13 @@
 import { randomUUID } from 'node:crypto'
-import { writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import sql, { uploadsDir } from '../db.js'
+import sql from '../db.js'
+import { uploadProductImage } from '../storage.js'
 import { product } from './serializer.js'
 import { fail, text, integer } from './validation.js'
 
-// Store the data URL as a file on disk and return its path, so the DB
-// holds no image bytes. Paths that are already plain paths pass through unchanged.
-function storeImage(image) {
-  if (!image.startsWith('data:image/')) return image
-  const match = /^data:image\/(png|jpeg|webp);base64,(.+)$/.exec(image)
-  const ext = match[1] === 'jpeg' ? 'jpg' : match[1]
-  const file = `img-${randomUUID()}.${ext}`
-  writeFileSync(resolve(uploadsDir, file), Buffer.from(match[2], 'base64'))
-  return `/uploads/${file}`
+// Data URLs are uploaded to the Supabase bucket and their public URL is
+// stored; plain paths and public storage URLs pass through unchanged.
+async function storeImage(image, productId) {
+  return image.startsWith('data:image/') ? uploadProductImage(productId, image) : image
 }
 
 // No transaction of its own: callers wrap it in sql.begin so the read, the
@@ -38,8 +32,12 @@ export function saveProduct(id, body, actorId) {
   const price = integer(form.price, 'Price', { min: 1 })
   const description = text(form.description ?? '', 'Description', { min: 0, max: 10000 })
   const image = text(form.image ?? '', 'Image', { min: 0, max: 1500000 })
-  if (image && !/^\/(products|img|uploads)\/[\w./-]+$/.test(image)
-      && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image)) fail(400, 'Format image not supported.')
+  // Plain local/static paths, a public Supabase storage URL, or an inline
+  // image data URL are accepted; anything else is rejected.
+  const isPlainPath = /^\/(products|img|uploads)\/[\w./-]+$/.test(image)
+  const isPublicStorageUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/[\w./-]+$/.test(image)
+  const isDataUrl = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image)
+  if (image && !isPlainPath && !isPublicStorageUrl && !isDataUrl) fail(400, 'Format image not supported.')
   if (!Array.isArray(form.specs) || form.specs.length > 50) fail(400, 'Specs not valid.')
   const specs = form.specs.map(item => ({
     key: text(item?.key, 'Spec key', { min: 0, max: 100 }),
@@ -53,7 +51,7 @@ export function saveProduct(id, body, actorId) {
       if (!current) fail(404, 'Product not found.')
       // Stock/image fields omitted from the body keep the product's current values.
       const stock = form.stock === undefined ? current.stock : integer(form.stock, 'Stock', { max: 1000000 })
-      const nextImage = form.image === undefined ? current.image : storeImage(image)
+      const nextImage = form.image === undefined ? current.image : await storeImage(image, id)
       if (stock !== current.stock) await stockChange(id, stock, actorId)
       await sql`UPDATE products SET name = ${name}, brand = ${brand}, category_slug = ${category}, price = ${price},
         description = ${description}, image = ${nextImage} WHERE id = ${id}`
@@ -61,9 +59,10 @@ export function saveProduct(id, body, actorId) {
     } else {
       const stock = integer(form.stock, 'Stock', { max: 1000000 })
       productId = 'P-' + randomUUID()
+      const nextImage = await storeImage(image, productId)
       const [position] = await sql`SELECT COALESCE(MAX(catalog_position),-1)+1 AS value FROM products`
       await sql`INSERT INTO products(id,name,brand,category_slug,price,stock,description,image,catalog_position,created_at)
-        VALUES (${productId}, ${name}, ${brand}, ${category}, ${price}, ${stock}, ${description}, ${storeImage(image)}, ${position.value}, ${new Date().toISOString()})`
+        VALUES (${productId}, ${name}, ${brand}, ${category}, ${price}, ${stock}, ${description}, ${nextImage}, ${position.value}, ${new Date().toISOString()})`
       await sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,created_at)
         VALUES (${productId}, ${actorId}, ${stock}, 'product-created', ${new Date().toISOString()})`
     }
