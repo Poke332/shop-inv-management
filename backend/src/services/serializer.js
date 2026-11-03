@@ -24,8 +24,8 @@ export async function order(row) {
   if (!row) fail(404, 'Order not found.')
   const [buyer] = await sql`SELECT username FROM users WHERE id = ${row.buyer_id}`
   // Order lines carry no insertion-order column; product_id is the explicit ordering.
-  const lines = await sql`SELECT product_id AS productId, product_name AS name,
-    unit_price AS unitPrice, qty, amount FROM order_lines WHERE order_id = ${row.id} ORDER BY product_id`
+  const lines = await sql`SELECT product_id AS "productId", product_name AS name,
+    unit_price AS "unitPrice", qty, amount FROM order_lines WHERE order_id = ${row.id} ORDER BY product_id`
   const reviewed = (await sql`SELECT product_id FROM reviews WHERE order_id = ${row.id} AND buyer_id = ${row.buyer_id}`)
     .map(item => item.product_id)
   return {
