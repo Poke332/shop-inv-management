@@ -40,9 +40,10 @@ Setup, per Supabase project:
 Behavior:
 
 - `POST`/`PATCH /api/ops/products` accepts an inline
-  `data:image/{png,jpeg,webp};base64` payload (≤ 1.5 MB) and stores it in
-  the bucket under `products/<productId>/`; the public URL is what the API
-  returns and what `products.image` holds.
+  `data:image/{png,jpeg,webp};base64` payload (≤ 1.5 MB). The bytes are
+  converted to WebP (quality 80, via `sharp`) and stored in the bucket under
+  `products/<productId>/` as a `.webp` object; the public URL is what the
+  API returns and what `products.image` holds.
 - Existing values keep working: local `/products`, `/img` and `/uploads`
   paths, and public Supabase object URLs, pass through unchanged.
 - Files already uploaded to `backend/data/uploads` stay served at `/uploads`
@@ -51,8 +52,9 @@ Behavior:
 Seeding:
 
 - `npm run seed` uploads each seeded product's source image
-  (`frontend/public/products/*.png`) to the bucket and stores the bucket's
-  public URL in `products.image` — the database always points at bucket
+  (`frontend/public/products/*.png`) to the bucket — converted to WebP, so
+  the objects are `products/<id>/<name>.webp` — and stores the bucket's
+  public URL in `products.image`: the database always points at bucket
   images, never at the static files. Uploads use deterministic, upserted
   object paths, so re-running is safe.
 - `npm run seed:refresh` truncates the seeded data tables (users,

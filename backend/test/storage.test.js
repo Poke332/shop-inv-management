@@ -1,10 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { BUCKET, setStorageClient, uploadProductImage, uploadSeedImage } from '../src/storage.js'
+import { BUCKET, setStorageClient, setWebpConverter, uploadProductImage, uploadSeedImage } from '../src/storage.js'
 
 // The Supabase client is substituted with a fake that records uploads and
 // bucket creations and derives the public URL in the shape the Storage API
-// returns, so the suite never touches the network.
+// returns, so the suite never touches the network. The WebP converter is
+// likewise faked (identity) so recorded upload bytes stay deterministic.
 const uploads = []
 const bucketCreates = []
 let nextError = null
@@ -36,6 +37,7 @@ function resetFake() {
   bucketCreates.length = 0
   nextError = null
   bucketCreateError = null
+  setWebpConverter(async bytes => bytes)
   setStorageClient(fakeClient())
 }
 
@@ -49,18 +51,18 @@ test('uploads the decoded bytes under products/<productId> and returns the publi
   const upload = uploads.at(-1)
   assert.equal(upload.bucket, BUCKET)
   assert.equal(upload.bucket, 'product-images')
-  assert.match(upload.path, /^products\/P-abc\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$/)
+  assert.match(upload.path, /^products\/P-abc\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/)
   assert.deepEqual([...upload.bytes], [...Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')])
-  assert.equal(upload.options.contentType, 'image/png')
+  assert.equal(upload.options.contentType, 'image/webp')
   assert.equal(url, `https://ref.supabase.co/storage/v1/object/public/${BUCKET}/${upload.path}`)
 })
 
-test('a jpeg payload is stored with a .jpg extension', async () => {
+test('a jpeg payload is converted to webp with a .webp extension', async () => {
   resetFake()
   await uploadProductImage('P-1', JPEG)
   const upload = uploads.at(-1)
-  assert.match(upload.path, /^products\/P-1\/[\w-]+\.jpg$/)
-  assert.equal(upload.options.contentType, 'image/jpeg')
+  assert.match(upload.path, /^products\/P-1\/[\w-]+\.webp$/)
+  assert.equal(upload.options.contentType, 'image/webp')
 })
 
 test('a webp payload is stored with a .webp extension', async () => {
@@ -137,8 +139,9 @@ test('seed uploads use a deterministic upserted path under the product id', asyn
   const url = await uploadSeedImage('P-abc', 'p-abc.png', bytes)
   const upload = uploads.at(-1)
   assert.equal(upload.bucket, BUCKET)
-  assert.equal(upload.path, 'products/P-abc/p-abc.png')
+  assert.equal(upload.path, 'products/P-abc/p-abc.webp')
   assert.equal(upload.options.upsert, true)
+  assert.equal(upload.options.contentType, 'image/webp')
   assert.deepEqual([...upload.bytes], [...bytes])
-  assert.equal(url, `https://ref.supabase.co/storage/v1/object/public/${BUCKET}/products/P-abc/p-abc.png`)
+  assert.equal(url, `https://ref.supabase.co/storage/v1/object/public/${BUCKET}/products/P-abc/p-abc.webp`)
 })

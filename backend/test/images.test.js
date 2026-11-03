@@ -24,13 +24,17 @@ await admin.end()
 
 const { default: sql, initDatabase } = await import('../src/db.js')
 const { default: app } = await import('../src/server.js')
-const { setStorageClient } = await import('../src/storage.js')
+const { setStorageClient, setWebpConverter } = await import('../src/storage.js')
 
 // Image uploads are recorded instead of hitting the network; the public URL
-// mirrors the Supabase Storage shape.
+// mirrors the Supabase Storage shape. The WebP converter is faked to pass
+// bytes through, so these tests exercise the API plumbing, not the encoder.
 const uploads = []
 setStorageClient({
   storage: {
+    createBucket() {
+      return Promise.resolve({ data: { name: 'product-images' }, error: null })
+    },
     from(bucket) {
       return {
         async upload(path) {
@@ -44,6 +48,7 @@ setStorageClient({
     },
   },
 })
+setWebpConverter(async bytes => bytes)
 
 await initDatabase()
 const server = await new Promise(resolve => { const s = app.listen(0, () => resolve(s)) })
@@ -80,7 +85,7 @@ test('creating a product with a base64 image uploads it to the bucket and stores
   assert.equal(uploads.length, 1)
   assert.equal(uploads[0].bucket, 'product-images')
   assert.ok(res.body.image.startsWith(`${bucketBase}/products/${res.body.id}/`))
-  assert.ok(res.body.image.endsWith('.png'))
+  assert.ok(res.body.image.endsWith('.webp'))
   assert.equal(res.body.image, `https://ref.supabase.co/storage/v1/object/public/product-images/${uploads[0].path}`)
 })
 
@@ -115,7 +120,7 @@ test('updating a product with a base64 image uploads to the product folder and r
   assert.equal(res.status, 200)
   assert.equal(uploads.length, 2)
   assert.equal(uploads[1].bucket, 'product-images')
-  assert.match(uploads[1].path, new RegExp(`^products/${created.body.id}/\\w[\\w.-]*\\.jpg$`))
+  assert.match(uploads[1].path, new RegExp(`^products/${created.body.id}/\\w[\\w.-]*\\.webp$`))
   assert.equal(res.body.image, `${bucketBase}/${uploads[1].path}`)
 })
 

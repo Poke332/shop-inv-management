@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
+import sharp from 'sharp'
 
 // Product images live in the public Supabase storage bucket below. The
 // bucket is provisioned by the backend itself on first use: the storage
@@ -10,7 +11,15 @@ import { randomUUID } from 'node:crypto'
 export const BUCKET = 'product-images'
 
 const DATA_URL = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$/
-const MIME = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }
+
+// Images are stored as WebP (quality 80) to keep bucket space low: both the
+// seed uploads and the runtime API uploads convert their source bytes
+// before insert. The converter is injectable so tests can keep the recorded
+// bytes deterministic instead of running the real encoder.
+let webpConverter = buffer => sharp(buffer).webp({ quality: 80 }).toBuffer()
+export function setWebpConverter(fn) {
+  webpConverter = fn
+}
 
 // A client implementation can be substituted (the test suite injects a fake
 // so no network call is made); passing null restores the env-driven client.
@@ -48,33 +57,33 @@ function ensureBucket(client) {
   return bucketCache.promise
 }
 
-// Upload the decoded image bytes as products/<productId>/<uuid>.<ext> in the
-// bucket and return the public URL, which is the value stored in
-// products.image.
+// Upload the decoded image bytes (converted to WebP) as
+// products/<productId>/<uuid>.webp in the bucket and return the public URL,
+// which is the value stored in products.image.
 export async function uploadProductImage(productId, dataUrl) {
   const match = DATA_URL.exec(dataUrl)
   if (!match) throw new Error('Format image not supported.')
   const client = activeClient()
   await ensureBucket(client)
-  const ext = match[1] === 'jpeg' ? 'jpg' : match[1]
-  const path = `products/${productId}/${randomUUID()}.${ext}`
+  const bytes = await webpConverter(Buffer.from(match[2], 'base64'))
+  const path = `products/${productId}/${randomUUID()}.webp`
   const storage = client.storage.from(BUCKET)
-  const { error } = await storage.upload(path, Buffer.from(match[2], 'base64'), { contentType: MIME[match[1]] })
+  const { error } = await storage.upload(path, bytes, { contentType: 'image/webp' })
   if (error) throw new Error(`Supabase storage upload failed: ${error.message}`)
   const { data } = storage.getPublicUrl(path)
   return data.publicUrl
 }
 
 // Seed uploads use a deterministic object path (product id + original file
-// name) and upsert, so re-running the seed overwrites the same objects
-// instead of accumulating uuid-named orphans.
+// name, re-extended to .webp) and upsert, so re-running the seed overwrites
+// the same objects instead of accumulating uuid-named orphans.
 export async function uploadSeedImage(productId, fileName, bytes) {
   const client = activeClient()
   await ensureBucket(client)
-  const path = `products/${productId}/${fileName}`
-  const ext = fileName.split('.').pop()
+  const path = `products/${productId}/${fileName.replace(/\.[^.]+$/, '.webp')}`
+  const webp = await webpConverter(bytes)
   const storage = client.storage.from(BUCKET)
-  const { error } = await storage.upload(path, bytes, { upsert: true, contentType: MIME[ext] || 'application/octet-stream' })
+  const { error } = await storage.upload(path, webp, { upsert: true, contentType: 'image/webp' })
   if (error) throw new Error(`Supabase storage seed upload failed: ${error.message}`)
   const { data } = storage.getPublicUrl(path)
   return data.publicUrl
