@@ -23,7 +23,10 @@ async function prepareSeedImages() {
   const urls = new Map()
   for (const product of products) {
     if (!product.image.startsWith('/products/')) continue
-    const filePath = resolve(process.cwd(), '..', 'frontend', 'public', product.image)
+    // product.image is absolute-style ("/products/p-###.png"), so resolve it
+    // against the frontend public root explicitly — resolve() would otherwise
+    // treat it as absolute and drop the directory prefixes.
+    const filePath = resolve(process.cwd(), '..', 'frontend', 'public', product.image.slice(1))
     urls.set(product.id, await uploadSeedImage(product.id, basename(filePath), readFileSync(filePath)))
     console.log(`Seed image ${product.id}: ${basename(filePath)} -> bucket`)
   }
