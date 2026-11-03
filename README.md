@@ -18,6 +18,32 @@ npm run dev -- --port 5174
 
 Open the local URL printed by Vite. Build with `npm run build` from frontend. Demo account shortcuts on sign-in cover buyer, staff, manager and admin; these are fictional browser mock accounts.
 
+## Product image storage
+
+New product images are uploaded to a public Supabase Storage bucket and the
+returned public URL is stored in `products.image`.
+
+One-time setup, per Supabase project:
+
+- Create a bucket named `product-images` (Supabase dashboard → Storage → New
+  bucket, public, read access for anon). The storage API cannot create
+  buckets from a client, so this step is manual.
+- Put `SUPABASE_URL` (project URL, Settings → API) and
+  `SUPABASE_SERVICE_ROLE_KEY` (service-role key) in `backend/.env`. The
+  service-role key grants admin access to the project and must stay
+  server-side only — never load it into the browser.
+
+Behavior:
+
+- `POST`/`PATCH /api/ops/products` accepts an inline
+  `data:image/{png,jpeg,webp};base64` payload (≤ 1.5 MB) and stores it in
+  the bucket under `products/<productId>/`; the public URL is what the API
+  returns and what `products.image` holds.
+- Existing values keep working: local `/products`, `/img` and `/uploads`
+  paths, and public Supabase object URLs, pass through unchanged.
+- Files already uploaded to `backend/data/uploads` stay served at `/uploads`
+  for back-compat; they are legacy data, not a migration target.
+
 ## Current contents
 
 - [frontend/](frontend/README.md): current React application, assets and UI styles.
