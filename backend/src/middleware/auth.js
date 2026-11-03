@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import sql from '../db.js'
+import db from '../db.js'
 
 export const jwtOptions = {
   issuer: process.env.JWT_ISSUER || 'sunset-api',
@@ -21,7 +21,7 @@ export function publicUser(row) {
   }
 }
 
-export async function requireAuth(req, res, next) {
+export function requireAuth(req, res, next) {
   const header = req.get('authorization') || ''
   if (!header.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Login is required.' })
@@ -42,21 +42,16 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ message: 'The session is not valid or has expired.' })
   }
 
-  // Tokens are signed with the numeric user id as subject; convert back before the lookup.
-  const userId = Number(payload.sub)
-  if (!Number.isSafeInteger(userId) || userId < 1) {
-    return res.status(401).json({ message: 'The session is not valid or has expired.' })
-  }
-
-  const session = await sql`
+  const session = db.prepare(`
     SELECT jti FROM sessions
-    WHERE jti = ${payload.jti} AND user_id = ${userId} AND revoked = 0 AND expires_at > ${new Date().toISOString()}
-  `
-  if (!session.length) {
+    WHERE jti = ? AND user_id = ? AND revoked = 0 AND expires_at > ?
+  `).get(payload.jti, payload.sub, new Date().toISOString())
+
+  if (!session) {
     return res.status(401).json({ message: 'The session is not valid or has expired.' })
   }
 
-  const [user] = await sql`SELECT * FROM users WHERE id = ${userId}`
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(payload.sub)
   if (!user) return res.status(401).json({ message: 'The session is not valid.' })
   if (!user.active) {
     return res.status(403).json({ message: 'Account not available — contact an administrator' })

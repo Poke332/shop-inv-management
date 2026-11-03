@@ -1,4 +1,4 @@
-import sql from '../db.js'
+import db from '../db.js'
 import { fail } from './validation.js'
 
 function displayDate(value) {
@@ -8,7 +8,7 @@ function displayDate(value) {
   })
 }
 
-export async function product(row) {
+export function product(row) {
   if (!row) fail(404, 'Product not found.')
   return {
     id: row.id, name: row.name, brand: row.brand, category: row.category_slug,
@@ -16,32 +16,30 @@ export async function product(row) {
     stock: row.stock, lowStockThreshold: row.low_stock_threshold,
     featured: Boolean(row.featured), onSale: Boolean(row.on_sale),
     description: row.description, image: row.image, createdAt: row.created_at,
-    specs: await sql`SELECT key,value FROM product_specs WHERE product_id = ${row.id} ORDER BY position`,
+    specs: db.prepare('SELECT key,value FROM product_specs WHERE product_id = ? ORDER BY position').all(row.id),
   }
 }
 
-export async function order(row) {
+export function order(row) {
   if (!row) fail(404, 'Order not found.')
-  const [buyer] = await sql`SELECT username FROM users WHERE id = ${row.buyer_id}`
-  // Order lines carry no insertion-order column; product_id is the explicit ordering.
-  const lines = await sql`SELECT product_id AS "productId", product_name AS name,
-    unit_price AS "unitPrice", qty, amount FROM order_lines WHERE order_id = ${row.id} ORDER BY product_id`
-  const reviewed = (await sql`SELECT product_id FROM reviews WHERE order_id = ${row.id} AND buyer_id = ${row.buyer_id}`)
-    .map(item => item.product_id)
+  const buyer = db.prepare('SELECT username FROM users WHERE id = ?').get(row.buyer_id)
   return {
     id: row.reference, buyer: buyer.username, status: row.status,
     buyerContact: JSON.parse(row.buyer_contact),
     shippingAddress: JSON.parse(row.shipping_address),
     paymentMethod: row.payment_method, createdAt: displayDate(row.created_at),
     subtotal: row.subtotal, shipping: row.shipping, total: row.total,
-    lines, reviewed,
+    lines: db.prepare(`SELECT product_id AS productId, product_name AS name,
+      unit_price AS unitPrice, qty, amount FROM order_lines WHERE order_id = ? ORDER BY rowid`).all(row.id),
+    reviewed: db.prepare('SELECT product_id FROM reviews WHERE order_id = ? AND buyer_id = ?')
+      .all(row.id, row.buyer_id).map(item => item.product_id),
   }
 }
 
-export async function review(row) {
+export function review(row) {
   if (!row) fail(404, 'Review tidak ditemukan.')
-  const [buyer] = await sql`SELECT username FROM users WHERE id = ${row.buyer_id}`
-  const [parent] = await sql`SELECT reference FROM orders WHERE id = ${row.order_id}`
+  const buyer = db.prepare('SELECT username FROM users WHERE id = ?').get(row.buyer_id)
+  const parent = db.prepare('SELECT reference FROM orders WHERE id = ?').get(row.order_id)
   return {
     id: `R-${String(row.id).padStart(4, '0')}`, productId: row.product_id,
     buyer: buyer.username, orderId: '#' + parent.reference,
@@ -51,15 +49,13 @@ export async function review(row) {
   }
 }
 
-export async function reviewList(productId, includeHidden = false) {
-  const [present] = await sql`SELECT id FROM products WHERE id = ${productId}`
-  if (!present) fail(404, 'Product tidak ditemukan.')
-  // The scope fragment is a fixed string, not a user value; it is spliced into the text, not bound.
+export function reviewList(productId, includeHidden = false) {
+  if (!db.prepare('SELECT id FROM products WHERE id = ?').get(productId)) fail(404, 'Product tidak ditemukan.')
   const scope = includeHidden ? '' : " AND state = 'public'"
-  const rows = await sql.unsafe(`SELECT * FROM reviews WHERE product_id = $1${scope} ORDER BY created_at DESC, id DESC`, [productId])
+  const rows = db.prepare(`SELECT * FROM reviews WHERE product_id = ?${scope} ORDER BY created_at DESC, id DESC`).all(productId)
   const publicCount = rows.filter(item => item.state === 'public').length
   return {
-    items: await Promise.all(rows.filter(item => includeHidden || item.state === 'public').map(review)),
+    items: rows.filter(item => includeHidden || item.state === 'public').map(review),
     total: rows.length, publicCount, hiddenCount: rows.length - publicCount,
     average: rows.length ? Math.round(rows.reduce((sum, item) => sum + item.rating, 0) / rows.length * 10) / 10 : 0,
   }

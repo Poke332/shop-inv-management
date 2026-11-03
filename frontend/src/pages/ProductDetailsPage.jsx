@@ -324,11 +324,7 @@ export default function ProductDetailsPage() {
         <div className="mt-10">
           <h2 className="text-section text-ink tracking-[0.05em] mb-4">Reviews ({reviews.total})</h2>
           <div className="rounded-[10px] border border-blueSlate-200 bg-canvas p-4">
-            {reviews.total === 0 ? (
-              <p className="text-body text-blueSlate-700">There are no reviews yet for this product</p>
-            ) : (
-              <ReviewList reviews={reviews} productName={product.name} />
-            )}
+            <ReviewList reviews={reviews} productName={product.name} />
           </div>
         </div>
       ) : null}

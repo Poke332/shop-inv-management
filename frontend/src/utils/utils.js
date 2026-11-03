@@ -306,7 +306,7 @@ export function roleNote(role) {
  * candidate against it to pick between rendering the image asset and the
  * category tile.
  */
-export const IMAGE_SRC_RE = /^\/(products|img|uploads)\/|^data:image\/(png|jpeg|webp);base64,|^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\//
+export const IMAGE_SRC_RE = /^\/(products|img|uploads)\/|^data:image\/(png|jpeg|webp);base64,/
 
 /**
  * Pre-submit compression toward the 1 MB product-image cap: decode a data

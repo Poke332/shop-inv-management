@@ -1,4 +1,4 @@
-import sql from '../db.js'
+import db from '../db.js'
 
 /**
  * Delete session rows that are revoked or past their expiry.
@@ -8,12 +8,12 @@ import sql from '../db.js'
  * scan uses the sessions(expires_at) index.
  *
  * @param {string} [nowIso] - ISO-8601 UTC timestamp to compare against; defaults to the current time.
- * @returns {Promise<number>} - The number of session rows removed.
+ * @returns {number} - The number of session rows removed.
  */
-export async function purgeExpiredSessions(nowIso = new Date().toISOString()) {
-  const result = await sql`
+export function purgeExpiredSessions(nowIso = new Date().toISOString()) {
+  const result = db.prepare(`
     DELETE FROM sessions
-    WHERE revoked = 1 OR expires_at <= ${nowIso}
-  `
-  return result.count
+    WHERE revoked = 1 OR expires_at <= ?
+  `).run(nowIso)
+  return result.changes
 }

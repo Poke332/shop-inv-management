@@ -18,50 +18,6 @@ npm run dev -- --port 5174
 
 Open the local URL printed by Vite. Build with `npm run build` from frontend. Demo account shortcuts on sign-in cover buyer, staff, manager and admin; these are fictional browser mock accounts.
 
-## Product image storage
-
-New product images are uploaded to a public Supabase Storage bucket and the
-returned public URL is stored in `products.image`.
-
-Setup, per Supabase project:
-
-- The `product-images` bucket (public, read access for anon) is created by
-  the backend itself on the first image upload — the storage client's
-  `createBucket` call runs with the service-role key and treats "bucket
-  already exists" as success. No manual dashboard step is required; only
-  if your project blocks bucket creation from the API do you create it
-  yourself (Storage → New bucket, public, read-only for anon).
-- Put `SUPABASE_URL` (project URL, Settings → API) and
-  `SUPABASE_SERVICE_ROLE_KEY` (service-role key — an anon key cannot create
-  buckets) in `backend/.env`. The service-role key grants admin access to
-  the project and must stay server-side only — never load it into the
-  browser.
-
-Behavior:
-
-- `POST`/`PATCH /api/ops/products` accepts an inline
-  `data:image/{png,jpeg,webp};base64` payload (≤ 1.5 MB). The bytes are
-  converted to WebP (quality 80, via `sharp`) and stored in the bucket under
-  `products/<productId>/` as a `.webp` object; the public URL is what the
-  API returns and what `products.image` holds.
-- Existing values keep working: local `/products`, `/img` and `/uploads`
-  paths, and public Supabase object URLs, pass through unchanged.
-- Files already uploaded to `backend/data/uploads` stay served at `/uploads`
-  for back-compat; they are legacy data, not a migration target.
-
-Seeding:
-
-- `npm run seed` uploads each seeded product's source image
-  (`frontend/public/products/*.png`) to the bucket — converted to WebP, so
-  the objects are `products/<id>/<name>.webp` — and stores the bucket's
-  public URL in `products.image`: the database always points at bucket
-  images, never at the static files. Uploads use deterministic, upserted
-  object paths, so re-running is safe.
-- `npm run seed:refresh` truncates the seeded data tables (users,
-  categories, products, specs, orders, order lines, reviews, stock
-  movements, seed runs) and re-seeds from scratch, re-uploading the images.
-  The schema is untouched.
-
 ## Current contents
 
 - [frontend/](frontend/README.md): current React application, assets and UI styles.
