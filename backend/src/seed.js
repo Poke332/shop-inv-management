@@ -36,8 +36,23 @@ async function report() {
   console.table(Object.fromEntries(tables.map((table, index) => [table, { rows: counts[index][0].n }])))
 }
 
+// Tell the operator which database this run actually writes to: the masked
+// connection string plus the server's own self-report, with an explicit
+// Supabase marker so a local gate database is never mistaken for the real
+// project.
+async function announceTarget() {
+  const raw = process.env.DATABASE_URL ?? ''
+  const masked = raw.replace(/:[^:@/]+@/, ':***@')
+  const [row] = await sql`SELECT current_database() AS db, coalesce(inet_server_addr()::text, 'unix socket') AS server, current_setting('server_version') AS version`
+  const isSupabase = /\.supabase\.co/.test(raw.replace(/^[a-z+]*:\/\//, ''))
+  console.log(`Seed target: ${row.db} @ ${row.server} (PostgreSQL ${row.version})`)
+  console.log(`Connection:  ${masked}`)
+  console.log(`Supabase:    ${isSupabase ? 'yes' : 'NO — this is not the Supabase project database'}`)
+}
+
 async function seed() {
   await initDatabase()
+  await announceTarget()
   if (await completed()) {
     console.log('Seed has already been run. The current data is retained..')
     await report()
