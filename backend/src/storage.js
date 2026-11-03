@@ -2,9 +2,11 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 
 // Product images live in the public Supabase storage bucket below. The
-// storage client cannot create buckets, so the `product-images` bucket must
-// be created in the Supabase dashboard (public, read-only for anon) first;
-// uploads authenticate with the server-side service-role key.
+// bucket is provisioned by the backend itself on first use: the storage
+// client's createBucket call (Supabase Storage API) runs with the
+// service-role key and tolerates an "already exists" answer, so no manual
+// dashboard step is required. The README documents a manual fallback for
+// restricted projects; uploads authenticate with the service-role key.
 export const BUCKET = 'product-images'
 
 const DATA_URL = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$/
@@ -26,15 +28,37 @@ function activeClient() {
   return createClient(url, key)
 }
 
+// Memoize bucket provisioning per client instance: repeated uploads pay the
+// createBucket call once, and swapping the client (setStorageClient)
+// re-provisions for the new one.
+const bucketCache = { client: null, promise: null }
+
+function ensureBucket(client) {
+  if (bucketCache.client !== client) {
+    bucketCache.client = client
+    bucketCache.promise = client.storage.createBucket(BUCKET, { public: true }).then(({ error }) => {
+      // "Bucket already exists" (409 or that message) means it was created
+      // earlier — by this or a previous run, or by hand in the dashboard —
+      // so treat it as success. Anything else is a real failure.
+      if (error && !(error.status === 409 || error.statusCode === 409 || /already exists/i.test(error.message))) {
+        throw new Error(`Supabase storage bucket '${BUCKET}' unavailable: ${error.message}`)
+      }
+    })
+  }
+  return bucketCache.promise
+}
+
 // Upload the decoded image bytes as products/<productId>/<uuid>.<ext> in the
 // bucket and return the public URL, which is the value stored in
 // products.image.
 export async function uploadProductImage(productId, dataUrl) {
   const match = DATA_URL.exec(dataUrl)
   if (!match) throw new Error('Format image not supported.')
+  const client = activeClient()
+  await ensureBucket(client)
   const ext = match[1] === 'jpeg' ? 'jpg' : match[1]
   const path = `products/${productId}/${randomUUID()}.${ext}`
-  const storage = activeClient().storage.from(BUCKET)
+  const storage = client.storage.from(BUCKET)
   const { error } = await storage.upload(path, Buffer.from(match[2], 'base64'), { contentType: MIME[match[1]] })
   if (error) throw new Error(`Supabase storage upload failed: ${error.message}`)
   const { data } = storage.getPublicUrl(path)

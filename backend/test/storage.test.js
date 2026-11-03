@@ -3,13 +3,20 @@ import assert from 'node:assert/strict'
 import { BUCKET, setStorageClient, uploadProductImage } from '../src/storage.js'
 
 // The Supabase client is substituted with a fake that records uploads and
-// derives the public URL in the shape the Storage API returns, so the suite
-// never touches the network.
+// bucket creations and derives the public URL in the shape the Storage API
+// returns, so the suite never touches the network.
 const uploads = []
+const bucketCreates = []
 let nextError = null
+let bucketCreateError = null
 function fakeClient() {
   return {
     storage: {
+      async createBucket(name, options) {
+        bucketCreates.push({ name, options })
+        if (bucketCreateError) return { data: null, error: bucketCreateError }
+        return { data: { name }, error: null }
+      },
       from(bucket) {
         return {
           async upload(path, bytes, options) {
@@ -26,7 +33,9 @@ function fakeClient() {
 }
 function resetFake() {
   uploads.length = 0
+  bucketCreates.length = 0
   nextError = null
+  bucketCreateError = null
   setStorageClient(fakeClient())
 }
 
@@ -81,4 +90,43 @@ test('without a client override the env vars are required', async () => {
   delete process.env.SUPABASE_URL
   delete process.env.SUPABASE_SERVICE_ROLE_KEY
   await assert.rejects(uploadProductImage('P-1', PNG), /SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set/)
+})
+
+test('provisions the public bucket once per client on first upload', async () => {
+  resetFake()
+  await uploadProductImage('P-abc', PNG)
+  await uploadProductImage('P-abc', WEBP)
+  assert.equal(bucketCreates.length, 1)
+  assert.equal(bucketCreates[0].name, BUCKET)
+  assert.deepEqual(bucketCreates[0].options, { public: true })
+})
+
+test('tolerates an "already exists" bucket answer', async () => {
+  resetFake()
+  bucketCreateError = { message: 'Bucket already exists' }
+  const url = await uploadProductImage('P-abc', PNG)
+  assert.match(url, /^https:\/\/ref\.supabase\.co\/storage\/v1\/object\/public\/product-images\/products\/P-abc\//)
+  assert.equal(uploads.length, 1)
+})
+
+test('tolerates a 409 conflict answer (bucket pre-created)', async () => {
+  resetFake()
+  bucketCreateError = { message: 'Bucket already exists', status: 409, statusCode: 409 }
+  const url = await uploadProductImage('P-abc', PNG)
+  assert.match(url, /^https:\/\/ref\.supabase\.co\/storage\/v1\/object\/public\/product-images\/products\/P-abc\//)
+})
+
+test('propagates a real bucket-creation failure before uploading', async () => {
+  resetFake()
+  bucketCreateError = { message: 'Unauthorized' }
+  await assert.rejects(uploadProductImage('P-abc', PNG), /bucket 'product-images' unavailable: Unauthorized/)
+  assert.equal(uploads.length, 0)
+})
+
+test('re-provisions when the client is swapped', async () => {
+  resetFake()
+  await uploadProductImage('P-abc', PNG)
+  setStorageClient(fakeClient())
+  await uploadProductImage('P-def', PNG)
+  assert.equal(bucketCreates.length, 2)
 })

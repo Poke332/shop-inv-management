@@ -23,15 +23,19 @@ Open the local URL printed by Vite. Build with `npm run build` from frontend. De
 New product images are uploaded to a public Supabase Storage bucket and the
 returned public URL is stored in `products.image`.
 
-One-time setup, per Supabase project:
+Setup, per Supabase project:
 
-- Create a bucket named `product-images` (Supabase dashboard → Storage → New
-  bucket, public, read access for anon). The storage API cannot create
-  buckets from a client, so this step is manual.
+- The `product-images` bucket (public, read access for anon) is created by
+  the backend itself on the first image upload — the storage client's
+  `createBucket` call runs with the service-role key and treats "bucket
+  already exists" as success. No manual dashboard step is required; only
+  if your project blocks bucket creation from the API do you create it
+  yourself (Storage → New bucket, public, read-only for anon).
 - Put `SUPABASE_URL` (project URL, Settings → API) and
-  `SUPABASE_SERVICE_ROLE_KEY` (service-role key) in `backend/.env`. The
-  service-role key grants admin access to the project and must stay
-  server-side only — never load it into the browser.
+  `SUPABASE_SERVICE_ROLE_KEY` (service-role key — an anon key cannot create
+  buckets) in `backend/.env`. The service-role key grants admin access to
+  the project and must stay server-side only — never load it into the
+  browser.
 
 Behavior:
 
