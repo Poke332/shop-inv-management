@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi'
 import { useAuth } from '../hooks/useAuth.js'
 import { useCart } from '../hooks/useCart.js'
+import ChatWidget from '../chatbot/ChatWidget.jsx'
 
 const categories = [['audio', 'Audio'], ['wearables', 'Wearables'], ['laptops', 'Laptops & PC'], ['gaming', 'Gaming'], ['smart-home', 'Smart home'], ['accessories', 'Accessories']]
 
@@ -251,6 +252,7 @@ export default function StorefrontLayout() {
           ))}
         </div>
       ) : null}
+      <ChatWidget />
     </>
   )
 }
