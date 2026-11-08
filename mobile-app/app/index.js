@@ -25,19 +25,27 @@ export default function ProductListScreen() {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // null | { kind: "transient" | "not_found", message }
   const [refreshing, setRefreshing] = useState(false); // true while pull-to-refresh is active
+  const [retrying, setRetrying] = useState(false); // true while "Try Again" is re-fetching
+  const [btnFocused, setBtnFocused] = useState(false); // keyboard focus on the error action button
 
-  // Reusable function — called on first mount AND on pull-to-refresh.
+  // Reusable fetch — called on first mount, on pull-to-refresh, and on "Try Again".
+  // A 404 means the API is not reachable at the configured base URL; any other
+  // failure (network error, 5xx, unexpected status) is treated as transient.
   async function loadProducts() {
     try {
-      const response = await fetch(`${API_URL}/api/products`);
+      const response = await fetch(`${API_URL}/products`);
+      if (response.status === 404) {
+        setError({ kind: "not_found", message: "" });
+        return;
+      }
       if (!response.ok) throw new Error("Server responded with " + response.status);
       const data = await response.json(); // { items, total, hasMore }
       setProducts(data.items);
       setError(null); // clear any previous error on success
     } catch (err) {
-      setError(err.message);
+      setError({ kind: "transient", message: err.message });
     }
   }
 
@@ -59,6 +67,18 @@ export default function ProductListScreen() {
     setRefreshing(false);          // hide the refresh spinner
   }
 
+  // Re-fetches the list after a transient failure (the "Try Again" button).
+  async function handleRetry() {
+    setRetrying(true);
+    await loadProducts();
+    setRetrying(false);
+  }
+
+  // Navigates back to the product list (the "Back to Products" button).
+  function handleBackToProducts() {
+    router.replace("/");
+  }
+
   // --- loading state ---
   if (loading) {
     return (
@@ -69,11 +89,38 @@ export default function ProductListScreen() {
     );
   }
 
-  // --- error state ---
+  // --- error state (transient → "Try Again", 404 → "Back to Products") ---
   if (error) {
+    const isNotFound = error.kind === "not_found";
+    const heading = isNotFound ? "Products not found." : "Couldn't load products.";
+    const detail = isNotFound ? null : "Please check your connection and try again.";
+    const label = isNotFound ? "Back to Products" : retrying ? "Refreshing…" : "Try Again";
+
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>⚠️ {error}</Text>
+      <View
+        style={styles.center}
+        role="alert"
+        aria-live="assertive"
+        accessibilityRole="alert"
+        accessibilityLiveRegion="assertive"
+      >
+        <Text style={styles.errorIcon}>⚠️</Text>
+        <Text style={styles.errorText}>{heading}</Text>
+        {detail ? <Text style={styles.errorDetail}>{detail}</Text> : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={isNotFound ? "Back to products" : "Try again"}
+          onAccessibilityStateChange={({ focused }) => setBtnFocused(focused)}
+          disabled={retrying}
+          onPress={isNotFound ? handleBackToProducts : handleRetry}
+          style={({ pressed }) => [
+            styles.actionButton,
+            btnFocused && styles.actionButtonFocused,
+            pressed && styles.actionButtonPressed,
+          ]}
+        >
+          <Text style={styles.actionButtonLabel}>{label}</Text>
+        </Pressable>
       </View>
     );
   }
@@ -128,6 +175,10 @@ export default function ProductListScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
+        // Pull-to-refresh: the spinner shows while `refreshing` is true, and
+        // releasing the pull calls handleRefresh, which re-fetches the list.
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
     </>
   );
@@ -147,10 +198,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
+  errorIcon: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
   errorText: {
     fontSize: 16,
-    color: "#dc2626",
+    fontWeight: "600",
+    color: "#B42318",
     textAlign: "center",
+  },
+  errorDetail: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#666",
+    textAlign: "center",
+  },
+  actionButton: {
+    minHeight: 44,
+    minWidth: 140,
+    marginTop: 20,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4f46e5",
+    borderRadius: 10,
+  },
+  actionButtonPressed: {
+    backgroundColor: "#4338ca",
+  },
+  actionButtonFocused: {
+    borderWidth: 2,
+    borderColor: "#4f46e5",
+  },
+  actionButtonLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
   },
   list: {
     padding: 12,
