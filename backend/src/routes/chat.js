@@ -6,18 +6,31 @@ import { runChat } from '../services/chat/agent.js'
 import { normalizeMessages } from '../services/chat/messages.js'
 import { buildSystemPrompt } from '../services/chat/systemPrompt.js'
 import { toolDefinitions, executeTool } from '../services/chat/tools.js'
+import { createOpenAICompatibleClient } from '../services/chat/openaiCompatible.js'
 
 const router = Router()
 
-// Haiku is fast and cheap enough for catalog Q&A; set CHAT_MODEL to switch to a larger model.
-const model = () => process.env.CHAT_MODEL || 'claude-haiku-5-5'
+// CHAT_PROVIDER picks the LLM backend: "anthropic" (default) or "openrouter" (free models available).
+const provider = () => (process.env.CHAT_PROVIDER || 'anthropic').toLowerCase()
+const defaultModels = { anthropic: 'claude-haiku-5-5', openrouter: 'openrouter/free' }
+const model = () => process.env.CHAT_MODEL || defaultModels[provider()]
 
-let client
+const clients = new Map()
 function getClient() {
-  if (!process.env.ANTHROPIC_API_KEY) return null
-  // The SDK reads ANTHROPIC_API_KEY (and ANTHROPIC_BASE_URL) from the environment.
-  client ??= new Anthropic({ timeout: 30_000 })
-  return client
+  const name = provider()
+  if (clients.has(name)) return clients.get(name)
+  let created = null
+  if (name === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
+    // The SDK reads ANTHROPIC_API_KEY (and ANTHROPIC_BASE_URL) from the environment.
+    created = new Anthropic({ timeout: 30_000 })
+  } else if (name === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+    created = createOpenAICompatibleClient({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
+    })
+  }
+  if (created) clients.set(name, created)
+  return created
 }
 
 const limiter = rateLimit({ limit: Number(process.env.CHAT_RATE_LIMIT_PER_MIN) || 20, windowMs: 60_000 })

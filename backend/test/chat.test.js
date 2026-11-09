@@ -23,6 +23,7 @@ await admin.end()
 
 const { default: sql, initDatabase } = await import('../src/db.js')
 const { default: app } = await import('../src/server.js')
+const { createOpenAICompatibleClient } = await import('../src/services/chat/openaiCompatible.js')
 const { runChat } = await import('../src/services/chat/agent.js')
 const { normalizeMessages } = await import('../src/services/chat/messages.js')
 const { rateLimit } = await import('../src/services/rateLimit.js')
@@ -310,4 +311,82 @@ test('POST /api/chat answers a clean 503 (not a crash, no leaked details) when t
   const body = await res.json()
   assert.equal(body.code, 'CHAT_UNAVAILABLE')
   assert.doesNotMatch(JSON.stringify(body), /x-api-key|authentication/i)
+})
+
+// ---- OpenAI-compatible provider (OpenRouter) ---------------------------------
+
+const seenOpenAI = []
+const fakeOpenAI = http.createServer((req, res) => {
+  let raw = ''
+  req.on('data', chunk => { raw += chunk })
+  req.on('end', () => {
+    const body = JSON.parse(raw)
+    seenOpenAI.push({ url: req.url, auth: req.headers.authorization, body })
+    const reply = message => { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ choices: [{ message }] })) }
+    const toolMessage = body.messages.findLast(m => m.role === 'tool')
+    if (toolMessage) {
+      const data = JSON.parse(toolMessage.content)
+      return reply({ role: 'assistant', content: `Stock for ${data.products[0].name}: ${data.products[0].stock} units.` })
+    }
+    reply({ role: 'assistant', content: null, tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'check_stock', arguments: '{"product_id":"P-T1"}' } }] })
+  })
+})
+await new Promise(resolve => fakeOpenAI.listen(0, '127.0.0.1', resolve))
+test.after(() => new Promise(resolve => fakeOpenAI.close(resolve)))
+
+test('OpenAI-compatible adapter translates tools, tool calls and tool results both ways', async () => {
+  seenOpenAI.length = 0
+  const client = createOpenAICompatibleClient({ apiKey: 'sk-test', baseURL: `http://127.0.0.1:${fakeOpenAI.address().port}/v1/` })
+  const first = await client.messages.create({
+    model: 'free-model', max_tokens: 50, system: 'SYS', tools: toolDefinitions,
+    messages: [{ role: 'user', content: 'stock?' }],
+  })
+  assert.equal(first.stop_reason, 'tool_use')
+  assert.deepEqual(first.content, [{ type: 'tool_use', id: 'call_1', name: 'check_stock', input: { product_id: 'P-T1' } }])
+  const sent = seenOpenAI[0]
+  assert.equal(sent.auth, 'Bearer sk-test')
+  assert.equal(sent.body.messages[0].role, 'system')
+  assert.equal(sent.body.tools[0].type, 'function')
+  assert.deepEqual(sent.body.tools.map(t => t.function.name), toolDefinitions.map(t => t.name))
+  assert.equal(sent.body.tools[0].function.parameters.type, 'object')
+
+  const second = await client.messages.create({
+    model: 'free-model', max_tokens: 50, system: 'SYS', tools: toolDefinitions,
+    messages: [
+      { role: 'user', content: 'stock?' },
+      { role: 'assistant', content: first.content },
+      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'call_1', content: '{"products":[{"name":"X","stock":4}]}' }] },
+    ],
+  })
+  assert.equal(second.stop_reason, 'end_turn')
+  const roles = seenOpenAI[1].body.messages.map(m => m.role)
+  assert.deepEqual(roles, ['system', 'user', 'assistant', 'tool'])
+  assert.equal(seenOpenAI[1].body.messages[2].tool_calls[0].function.arguments, '{"product_id":"P-T1"}')
+  assert.equal(seenOpenAI[1].body.messages[3].tool_call_id, 'call_1')
+})
+
+test('OpenAI-compatible adapter surfaces provider errors with their status', async () => {
+  const failing = http.createServer((_req, res) => { res.statusCode = 429; res.end('{"error":{"message":"rate limited","code":429}}') })
+  await new Promise(resolve => failing.listen(0, '127.0.0.1', resolve))
+  const client = createOpenAICompatibleClient({ apiKey: 'k', baseURL: `http://127.0.0.1:${failing.address().port}` })
+  await assert.rejects(client.messages.create({ model: 'm', max_tokens: 5, system: 's', tools: [], messages: [{ role: 'user', content: 'x' }] }), error => error.status === 429)
+  await new Promise(resolve => failing.close(resolve))
+})
+
+test('POST /api/chat works end to end with CHAT_PROVIDER=openrouter', async () => {
+  process.env.CHAT_PROVIDER = 'openrouter'
+  delete process.env.CHAT_MODEL
+  delete process.env.OPENROUTER_API_KEY
+  assert.equal((await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })).status, 503, 'no OpenRouter key yet')
+
+  process.env.OPENROUTER_API_KEY = 'or-key'
+  process.env.OPENROUTER_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/api/v1`
+  seenOpenAI.length = 0
+  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is Test Earbuds in stock?' }] })
+  assert.equal(res.status, 200)
+  assert.deepEqual(await res.json(), { reply: 'Stock for Test Earbuds: 7 units.', toolsUsed: ['check_stock'] })
+  assert.equal(seenOpenAI[0].url, '/api/v1/chat/completions')
+  assert.equal(seenOpenAI[0].body.model, 'openrouter/free')
+  assert.equal(seenOpenAI[0].auth, 'Bearer or-key')
+  delete process.env.CHAT_PROVIDER
 })
