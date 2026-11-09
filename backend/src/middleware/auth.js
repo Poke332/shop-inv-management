@@ -67,6 +67,12 @@ export async function requireAuth(req, res, next) {
   next()
 }
 
+// Like requireAuth, but a request with no Authorization header continues as a guest.
+export function optionalAuth(req, res, next) {
+  if (!req.get('authorization')) return next()
+  return requireAuth(req, res, next)
+}
+
 export function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ message: 'Login is required.' })
