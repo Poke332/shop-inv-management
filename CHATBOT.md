@@ -5,17 +5,21 @@ Arsitektur: UI chat -> `POST /api/chat` -> LLM (tool calling) -> tools -> query 
 ## Setup
 1. `cd backend && npm install` (menambah `@anthropic-ai/sdk`).
 2. Pilih penyedia LLM di `backend/.env` (lihat `.env.example`). Key hanya di backend, jangan di frontend/mobile.
-   - Berbayar: `CHAT_PROVIDER=anthropic` + `ANTHROPIC_API_KEY=...` (default; `ANTHROPIC_BASE_URL` opsional).
-   - Endpoint gaya OpenAI: `CHAT_PROVIDER=openai` + `OPENAI_API_KEY=...` + `OPENAI_BASE_URL=...`
-     (endpoint apa pun yang menjawab `/chat/completions`):
+   - Utama/default (yang dipakai saat `CHAT_PROVIDER` tidak di-set): `CHAT_PROVIDER=openai`
+     + `OPENAI_API_KEY=...` + `OPENAI_BASE_URL=...` (endpoint apa pun yang menjawab `/chat/completions`):
      - OpenAI: `https://api.openai.com/v1` (default — boleh tidak di-set).
      - OpenRouter: `https://openrouter.ai/api/v1` (model gratis tidak perlu kartu kredit).
      - Self-hosted `/v1` (vLLM, Ollama, dst.).
      Model gratis punya kuota ketat dan sering berganti; kalau error "No endpoints found that support tool use",
      set `CHAT_MODEL` ke model lain yang mendukung tool calling.
-   Model default per penyedia: `claude-haiku-5-5` (anthropic) / `gpt-4o-mini` (openai).
+   - Opsional/dukungan tambahan (berbayar): `CHAT_PROVIDER=anthropic` + `ANTHROPIC_API_KEY=...`
+     (`ANTHROPIC_BASE_URL` opsional).
+   Model default per penyedia: `gpt-4o-mini` (openai) / `claude-haiku-5-5` (anthropic).
    Tidak ada fallback antar-penyedia: tanpa key yang cocok untuk `CHAT_PROVIDER` yang dipilih, endpoint
    menjawab 503 `CHAT_UNAVAILABLE` (error upstream 429/529 dipetakan ke varian "busy" dari 503 yang sama).
+   Catatan upgrade: sebelum perubahan ini `CHAT_PROVIDER` yang tidak di-set menjawab dengan Anthropic;
+   deployment yang bergantung pada itu sekarang harus set `CHAT_PROVIDER=anthropic` eksplisit atau
+   sediakan `OPENAI_API_KEY`.
 3. `npm run dev` di backend, lalu jalankan frontend / mobile-app seperti biasa.
 4. Tes: `DATABASE_URL=postgres://... npm test` (tes chatbot memakai server Anthropic + OpenAI palsu, tidak butuh API key).
 

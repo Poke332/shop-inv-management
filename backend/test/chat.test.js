@@ -272,6 +272,8 @@ test('get_product_details returns specs and public reviews only', async () => {
 // ---- HTTP endpoint (real SDK -> fake Anthropic server -> real database) -----
 
 test('POST /api/chat answers 503 when no API key is configured', async () => {
+  // CHAT_PROVIDER is unset (the code default is openai) and every provider key
+  // is deleted at the top of this file, so the default path has no key.
   const res = await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })
   assert.equal(res.status, 503)
   assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
@@ -297,6 +299,7 @@ test('POST /api/chat rejects invalid payloads with 400', async () => {
 })
 
 test('POST /api/chat runs the full tool loop and returns an answer built from database data', async () => {
+  process.env.CHAT_PROVIDER = 'anthropic'
   process.env.ANTHROPIC_API_KEY = 'test-key'
   process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${fakeAnthropic.address().port}`
   seen.length = 0
@@ -311,23 +314,46 @@ test('POST /api/chat runs the full tool loop and returns an answer built from da
   assert.deepEqual(seen[0].tools.map(t => t.name), toolDefinitions.map(t => t.name))
   assert.match(seen[0].system, /not signed in \(guest\)/)
   assert.match(seen[0].system, /Sunset Electronics/)
+  delete process.env.CHAT_PROVIDER
 })
 
 test('POST /api/chat tailors the system prompt to the signed-in role', async () => {
+  process.env.CHAT_PROVIDER = 'anthropic'
   const login = await post('/api/auth/login', { email: 'ops1@test.local', password: 'correct-password' })
   const { token } = await login.json()
   seen.length = 0
   const res = await post('/api/chat', { messages: [{ role: 'user', content: 'How do I advance an order?' }] }, { authorization: `Bearer ${token}` })
   assert.equal(res.status, 200)
   assert.match(seen[0].system, /"staff" role/)
+  delete process.env.CHAT_PROVIDER
 })
 
 test('POST /api/chat answers a clean 503 (not a crash, no leaked details) when the model API fails', async () => {
+  process.env.CHAT_PROVIDER = 'anthropic'
   const res = await post('/api/chat', { messages: [{ role: 'user', content: 'trigger-upstream-error' }] })
   assert.equal(res.status, 503)
   const body = await res.json()
   assert.equal(body.code, 'CHAT_UNAVAILABLE')
   assert.doesNotMatch(JSON.stringify(body), /x-api-key|authentication/i)
+  delete process.env.CHAT_PROVIDER
+})
+
+test('POST /api/chat honors an explicit CHAT_PROVIDER=anthropic even when the openai key is present', async () => {
+  process.env.CHAT_PROVIDER = 'anthropic'
+  process.env.ANTHROPIC_API_KEY = 'test-key'
+  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${fakeAnthropic.address().port}`
+  process.env.OPENAI_API_KEY = 'openai-key'
+  seen.length = 0
+  seenOpenAI.length = 0
+  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is the Test Earbuds in stock?' }] })
+  assert.equal(res.status, 200)
+  assert.equal((await res.json()).reply, 'Stock for Test Earbuds: 7 units.')
+  assert.equal(seen[0].model, 'claude-haiku-5-5', 'the explicit anthropic choice wins over the default provider')
+  assert.equal(seenOpenAI.length, 0, 'the anthropic choice must not reach the openai path')
+  delete process.env.CHAT_PROVIDER
+  delete process.env.ANTHROPIC_API_KEY
+  delete process.env.ANTHROPIC_BASE_URL
+  delete process.env.OPENAI_API_KEY
 })
 
 // ---- OpenAI-compatible provider (openai) --------------------------------------
@@ -420,6 +446,22 @@ test('CHAT_PROVIDER=openrouter is no longer a provider: answers 503 CHAT_UNAVAIL
   assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
   assert.equal(seenOpenAI.length, 0, 'the unrecognized provider must not reach the openai path')
   delete process.env.CHAT_PROVIDER
+  delete process.env.OPENAI_API_KEY
+  delete process.env.OPENAI_BASE_URL
+})
+
+test('POST /api/chat uses the openai client when CHAT_PROVIDER is unset', async () => {
+  delete process.env.CHAT_PROVIDER
+  delete process.env.ANTHROPIC_API_KEY
+  process.env.OPENAI_API_KEY = 'openai-key'
+  process.env.OPENAI_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/v1`
+  delete process.env.CHAT_MODEL
+  seenOpenAI.length = 0
+  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is Test Earbuds in stock?' }] })
+  assert.equal(res.status, 200)
+  assert.deepEqual(await res.json(), { reply: 'Stock for Test Earbuds: 7 units.', toolsUsed: ['check_stock'] })
+  assert.equal(seenOpenAI[0].url, '/v1/chat/completions')
+  assert.equal(seenOpenAI[0].body.model, 'gpt-4o-mini', 'the default path uses the openai default model')
   delete process.env.OPENAI_API_KEY
   delete process.env.OPENAI_BASE_URL
 })

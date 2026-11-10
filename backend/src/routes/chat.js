@@ -10,12 +10,13 @@ import { createOpenAICompatibleClient } from '../services/chat/openaiCompatible.
 
 const router = Router()
 
-// CHAT_PROVIDER picks the LLM backend: "anthropic" (default) or "openai" (any
-// OpenAI-compatible /v1 host: OpenAI, OpenRouter, self-hosted). OpenRouter is
-// reached through the "openai" provider by pointing OPENAI_BASE_URL at
+// CHAT_PROVIDER picks the LLM backend: "openai" (default — the main provider,
+// any OpenAI-compatible /v1 host: OpenAI, OpenRouter, self-hosted) or
+// "anthropic" (optional, extra support). OpenRouter is reached through the
+// "openai" provider by pointing OPENAI_BASE_URL at
 // https://openrouter.ai/api/v1. Any other value is unrecognized and answers
 // 503 CHAT_UNAVAILABLE (see .env.example / CHATBOT.md).
-const provider = () => (process.env.CHAT_PROVIDER || 'anthropic').toLowerCase()
+const provider = () => (process.env.CHAT_PROVIDER || 'openai').toLowerCase()
 const defaultModels = { anthropic: 'claude-haiku-5-5', openai: 'gpt-4o-mini' }
 const model = () => process.env.CHAT_MODEL || defaultModels[provider()]
 
