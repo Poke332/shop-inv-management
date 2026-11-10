@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi'
 import { useAuth } from '../hooks/useAuth.js'
 import { useCart } from '../hooks/useCart.js'
+import ChatWidget from '../components/chat/ChatWidget.jsx'
 
 const categories = [['audio', 'Audio'], ['wearables', 'Wearables'], ['laptops', 'Laptops & PC'], ['gaming', 'Gaming'], ['smart-home', 'Smart home'], ['accessories', 'Accessories']]
 
@@ -225,8 +226,9 @@ export default function StorefrontLayout() {
           <span>Made for your everyday. <FiSun /></span>
         </div>
       </footer>
+      <ChatWidget />
       {toasts.length > 0 ? (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-[360px]">
+        <div className="fixed bottom-24 right-4 z-50 flex flex-col gap-2 max-w-[360px]">
           {toasts.map((t) => (
             <div
               key={t.id}
