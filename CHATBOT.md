@@ -2,6 +2,11 @@
 
 Arsitektur: UI chat -> `POST /api/chat` -> LLM (tool calling) -> tools -> query Postgres -> jawaban.
 
+Format message/tool kanonik aplikasi ini gaya OpenAI (function-tool, `tool_calls`,
+`role: 'tool'`, `finish_reason`). Adapter `openaiCompatible.js` meneruskannya apa
+adanya; `anthropicAdapter.js` satu-satunya tempat yang menerjemahkan bentuk itu ke
+wire Anthropic (`tool_use`/`tool_result`/`input_schema`) dan kebalikannya.
+
 ## Setup
 1. `cd backend && npm install` (menambah `@anthropic-ai/sdk`).
 2. Pilih penyedia LLM di `backend/.env` (lihat `.env.example`). Key hanya di backend, jangan di frontend/mobile.
@@ -25,8 +30,9 @@ Arsitektur: UI chat -> `POST /api/chat` -> LLM (tool calling) -> tools -> query 
 
 ## Peta file
 - `backend/src/routes/chat.js` — endpoint, rate limit, error 503 yang rapi, pilihan provider.
-- `backend/src/services/chat/agent.js` — loop tool calling ke LLM.
-- `backend/src/services/chat/openaiCompatible.js` — adapter endpoint gaya OpenAI (provider `openai`).
+- `backend/src/services/chat/agent.js` — loop tool calling ke LLM (memakai format OpenAI sebagai kanonik).
+- `backend/src/services/chat/openaiCompatible.js` — adapter endpoint gaya OpenAI (provider `openai`), pass-through.
+- `backend/src/services/chat/anthropicAdapter.js` — adapter `@anthropic-ai/sdk` (provider `anthropic`); menerjemahkan format OpenAI <-> wire Anthropic.
 - `backend/src/services/chat/tools.js` — tool + query database (stok, rekomendasi, detail, kategori).
 - `backend/src/services/chat/systemPrompt.js` — aturan bot + panduan pakai aplikasi (update bila UI berubah).
 - `frontend/src/components/chat/ChatWidget.jsx` — widget web (permukaan chat hanya di web).

@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import Anthropic from '@anthropic-ai/sdk'
 import { optionalAuth } from '../middleware/auth.js'
 import { rateLimit } from '../services/rateLimit.js'
 import { runChat } from '../services/chat/agent.js'
@@ -7,6 +6,7 @@ import { normalizeMessages } from '../services/chat/messages.js'
 import { buildSystemPrompt } from '../services/chat/systemPrompt.js'
 import { toolDefinitions, executeTool } from '../services/chat/tools.js'
 import { createOpenAICompatibleClient } from '../services/chat/openaiCompatible.js'
+import { createAnthropicClient } from '../services/chat/anthropicAdapter.js'
 
 const router = Router()
 
@@ -26,7 +26,7 @@ function getClient() {
   const name = provider()
   if (name === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
     // The SDK reads ANTHROPIC_API_KEY (and ANTHROPIC_BASE_URL) from the environment.
-    return new Anthropic({ timeout: 30_000 })
+    return createAnthropicClient()
   }
   if (name === 'openai') {
     // OPENAI_* vars drive the endpoint; OPENAI_BASE_URL points at any

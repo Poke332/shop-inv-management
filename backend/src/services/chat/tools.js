@@ -12,76 +12,91 @@ import sql from '../../db.js'
 const MAX_TEXT = 200
 const idr = value => 'Rp ' + Number(value).toLocaleString('id-ID')
 
-// ---- tool definitions (Anthropic tool-use format) --------------------------
+// ---- tool definitions (OpenAI function-tool format — the app's canonical shape) ----
 
 export const toolDefinitions = [
   {
-    name: 'search_products',
-    description:
-      'Search the store catalog. Use this to find products by name, brand, category, feature or price range, '
-      + 'and to answer questions like "do you have X?" or "what laptops are under Rp 15.000.000?". '
-      + 'Each returned item includes live stock, price, rating and a product page URL. '
-      + 'Keep `query` to 1-3 key words (e.g. "earbuds", "sony", "keyboard"); put category and price limits in their own fields.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string', description: 'Free-text keywords matched against name, brand, description, category and specs.' },
-        category: { type: 'string', description: 'Category slug or name (e.g. "audio", "laptops", "smart-home"). Call list_categories if unsure.' },
-        min_price: { type: 'integer', description: 'Minimum price in IDR.' },
-        max_price: { type: 'integer', description: 'Maximum price in IDR.' },
-        in_stock_only: { type: 'boolean', description: 'Only return products that are currently in stock.' },
-        sort: { type: 'string', enum: ['featured', 'price_asc', 'price_desc', 'rating'], description: 'Result order. Default: featured.' },
-        limit: { type: 'integer', description: 'Max results, 1-10. Default 6.' },
+    type: 'function',
+    function: {
+      name: 'search_products',
+      description:
+        'Search the store catalog. Use this to find products by name, brand, category, feature or price range, '
+        + 'and to answer questions like "do you have X?" or "what laptops are under Rp 15.000.000?". '
+        + 'Each returned item includes live stock, price, rating and a product page URL. '
+        + 'Keep `query` to 1-3 key words (e.g. "earbuds", "sony", "keyboard"); put category and price limits in their own fields.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Free-text keywords matched against name, brand, description, category and specs.' },
+          category: { type: 'string', description: 'Category slug or name (e.g. "audio", "laptops", "smart-home"). Call list_categories if unsure.' },
+          min_price: { type: 'integer', description: 'Minimum price in IDR.' },
+          max_price: { type: 'integer', description: 'Maximum price in IDR.' },
+          in_stock_only: { type: 'boolean', description: 'Only return products that are currently in stock.' },
+          sort: { type: 'string', enum: ['featured', 'price_asc', 'price_desc', 'rating'], description: 'Result order. Default: featured.' },
+          limit: { type: 'integer', description: 'Max results, 1-10. Default 6.' },
+        },
       },
     },
   },
   {
-    name: 'check_stock',
-    description:
-      'Get the exact current stock for a product. Pass `product_id` (e.g. "P-231") when known, otherwise `query` '
-      + 'with the product name. Returns stock units and status (in_stock, low_stock, out_of_stock). '
-      + 'Always use this for stock questions — never guess availability.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        product_id: { type: 'string', description: 'Exact product id, e.g. "P-231".' },
-        query: { type: 'string', description: 'Product name or keywords, used when the id is unknown.' },
+    type: 'function',
+    function: {
+      name: 'check_stock',
+      description:
+        'Get the exact current stock for a product. Pass `product_id` (e.g. "P-231") when known, otherwise `query` '
+        + 'with the product name. Returns stock units and status (in_stock, low_stock, out_of_stock). '
+        + 'Always use this for stock questions — never guess availability.',
+      parameters: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string', description: 'Exact product id, e.g. "P-231".' },
+          query: { type: 'string', description: 'Product name or keywords, used when the id is unknown.' },
+        },
       },
     },
   },
   {
-    name: 'get_product_details',
-    description:
-      'Full details for one product: description, every spec (key/value), price, discount, stock, '
-      + 'average rating and a few recent customer reviews. Use it for spec questions and to compare products '
-      + '(call it once per product).',
-    input_schema: {
-      type: 'object',
-      properties: { product_id: { type: 'string', description: 'Exact product id, e.g. "P-231".' } },
-      required: ['product_id'],
-    },
-  },
-  {
-    name: 'recommend_products',
-    description:
-      'Get ranked recommendations from products that are IN STOCK, best candidates first. Ranking uses customer ratings, '
-      + 'featured status and discounts. Each result lists the data-backed `reasons` it was picked. '
-      + 'Use it for "what should I buy?", "best X under Y", "gift ideas". Narrow with category, budget and keywords.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        category: { type: 'string', description: 'Category slug or name.' },
-        min_price: { type: 'integer', description: 'Minimum budget in IDR.' },
-        max_price: { type: 'integer', description: 'Maximum budget in IDR.' },
-        keywords: { type: 'string', description: 'Use-case or feature keywords, e.g. "noise cancelling" or "wireless".' },
-        limit: { type: 'integer', description: 'Max results, 1-6. Default 4.' },
+    type: 'function',
+    function: {
+      name: 'get_product_details',
+      description:
+        'Full details for one product: description, every spec (key/value), price, discount, stock, '
+        + 'average rating and a few recent customer reviews. Use it for spec questions and to compare products '
+        + '(call it once per product).',
+      parameters: {
+        type: 'object',
+        properties: { product_id: { type: 'string', description: 'Exact product id, e.g. "P-231".' } },
+        required: ['product_id'],
       },
     },
   },
   {
-    name: 'list_categories',
-    description: 'List all product categories with how many products each has and how many are in stock.',
-    input_schema: { type: 'object', properties: {} },
+    type: 'function',
+    function: {
+      name: 'recommend_products',
+      description:
+        'Get ranked recommendations from products that are IN STOCK, best candidates first. Ranking uses customer ratings, '
+        + 'featured status and discounts. Each result lists the data-backed `reasons` it was picked. '
+        + 'Use it for "what should I buy?", "best X under Y", "gift ideas". Narrow with category, budget and keywords.',
+      parameters: {
+        type: 'object',
+        properties: {
+          category: { type: 'string', description: 'Category slug or name.' },
+          min_price: { type: 'integer', description: 'Minimum budget in IDR.' },
+          max_price: { type: 'integer', description: 'Maximum budget in IDR.' },
+          keywords: { type: 'string', description: 'Use-case or feature keywords, e.g. "noise cancelling" or "wireless".' },
+          limit: { type: 'integer', description: 'Max results, 1-6. Default 4.' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_categories',
+      description: 'List all product categories with how many products each has and how many are in stock.',
+      parameters: { type: 'object', properties: {} },
+    },
   },
 ]
 

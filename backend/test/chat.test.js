@@ -28,6 +28,7 @@ await admin.end()
 const { default: sql, initDatabase } = await import('../src/db.js')
 const { default: app } = await import('../src/server.js')
 const { createOpenAICompatibleClient } = await import('../src/services/chat/openaiCompatible.js')
+const { createAnthropicClient } = await import('../src/services/chat/anthropicAdapter.js')
 const { runChat } = await import('../src/services/chat/agent.js')
 const { normalizeMessages } = await import('../src/services/chat/messages.js')
 const { rateLimit } = await import('../src/services/rateLimit.js')
@@ -130,7 +131,7 @@ test('normalizeMessages keeps only the most recent turns', () => {
   assert.equal(result.at(-1).content, 'last')
 })
 
-// ---- agent loop (fake client) ----------------------------------------------
+// ---- agent loop (fake client, OpenAI shapes) ---------------------------------
 
 const scripted = responses => {
   const calls = []
@@ -138,16 +139,16 @@ const scripted = responses => {
 }
 
 test('runChat returns plain text when the model does not use tools', async () => {
-  const client = scripted([{ stop_reason: 'end_turn', content: [{ type: 'text', text: 'Hello!' }] }])
+  const client = scripted([{ message: { role: 'assistant', content: 'Hello!' }, finish_reason: 'stop' }])
   const result = await runChat({ client, model: 'm', system: 's', tools: [], executeTool: async () => ({}), messages: [{ role: 'user', content: 'hi' }] })
   assert.deepEqual(result, { reply: 'Hello!', toolsUsed: [] })
 })
 
 test('runChat runs requested tools and sends the results back to the model', async () => {
-  const toolUse = { type: 'tool_use', id: 'tu_1', name: 'check_stock', input: { product_id: 'P-1' } }
+  const call = { id: 'tu_1', type: 'function', function: { name: 'check_stock', arguments: '{"product_id":"P-1"}' } }
   const client = scripted([
-    { stop_reason: 'tool_use', content: [{ type: 'text', text: 'Checking…' }, toolUse] },
-    { stop_reason: 'end_turn', content: [{ type: 'text', text: '12 units.' }] },
+    { message: { role: 'assistant', content: 'Checking…', tool_calls: [call] }, finish_reason: 'tool_calls' },
+    { message: { role: 'assistant', content: '12 units.' }, finish_reason: 'stop' },
   ])
   const executed = []
   const result = await runChat({
@@ -160,13 +161,14 @@ test('runChat runs requested tools and sends the results back to the model', asy
   assert.deepEqual(result.toolsUsed, ['check_stock'])
   const second = client.calls[1].messages
   assert.equal(second.at(-2).role, 'assistant')
-  assert.deepEqual(second.at(-1), { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tu_1', content: '{"stock":12}' }] })
+  assert.deepEqual(second.at(-2).tool_calls, [call])
+  assert.deepEqual(second.at(-1), { role: 'tool', tool_call_id: 'tu_1', content: '{"stock":12}' })
 })
 
 test('runChat reports a failing tool to the model as an error result instead of crashing', async () => {
   const client = scripted([
-    { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'tu_1', name: 'search_products', input: {} }] },
-    { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Sorry, I could not look that up.' }] },
+    { message: { role: 'assistant', content: null, tool_calls: [{ id: 'tu_1', type: 'function', function: { name: 'search_products', arguments: '' } }] }, finish_reason: 'tool_calls' },
+    { message: { role: 'assistant', content: 'Sorry, I could not look that up.' }, finish_reason: 'stop' },
   ])
   const result = await runChat({
     client, model: 'm', system: 's', tools: [],
@@ -174,11 +176,16 @@ test('runChat reports a failing tool to the model as an error result instead of 
     messages: [{ role: 'user', content: 'x' }],
   })
   assert.equal(result.reply, 'Sorry, I could not look that up.')
-  assert.equal(client.calls[1].messages.at(-1).content[0].is_error, true)
+  const toolMessage = client.calls[1].messages.at(-1)
+  assert.equal(toolMessage.role, 'tool')
+  assert.match(toolMessage.content, /could not retrieve that information/i)
 })
 
 test('runChat stops after maxSteps when the model keeps calling tools', async () => {
-  const loop = () => ({ stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'tu', name: 'list_categories', input: {} }] })
+  const loop = () => ({
+    message: { role: 'assistant', content: null, tool_calls: [{ id: 'tu', type: 'function', function: { name: 'list_categories', arguments: '{}' } }] },
+    finish_reason: 'tool_calls',
+  })
   const client = scripted([loop(), loop(), loop()])
   const result = await runChat({ client, model: 'm', system: 's', tools: [], executeTool: async () => ({}), messages: [{ role: 'user', content: 'x' }], maxSteps: 3 })
   assert.equal(client.calls.length, 3)
@@ -206,10 +213,13 @@ test('rateLimit blocks requests over the limit and reports Retry-After', () => {
 
 // ---- tools against the real schema ------------------------------------------
 
-test('every tool definition has a handler and a valid input schema', async () => {
-  assert.deepEqual(toolDefinitions.map(t => t.name).sort(),
+test('every tool definition has a handler and a valid parameter schema', async () => {
+  assert.deepEqual(toolDefinitions.map(t => t.function.name).sort(),
     ['check_stock', 'get_product_details', 'list_categories', 'recommend_products', 'search_products'])
-  for (const tool of toolDefinitions) assert.equal(tool.input_schema.type, 'object')
+  for (const tool of toolDefinitions) {
+    assert.equal(tool.type, 'function')
+    assert.equal(tool.function.parameters.type, 'object')
+  }
 })
 
 test('check_stock reads live stock and is case-insensitive on the id', async () => {
@@ -311,9 +321,10 @@ test('POST /api/chat runs the full tool loop and returns an answer built from da
 
   assert.equal(seen.length, 2, 'one request for the tool call, one for the final answer')
   assert.equal(seen[0].model, 'claude-haiku-5-5')
-  assert.deepEqual(seen[0].tools.map(t => t.name), toolDefinitions.map(t => t.name))
+  assert.deepEqual(seen[0].tools.map(t => t.name), toolDefinitions.map(t => t.function.name))
   assert.match(seen[0].system, /not signed in \(guest\)/)
   assert.match(seen[0].system, /Sunset Electronics/)
+  assert.equal(seen[1].messages.at(-1).content[0].type, 'tool_result', 'the tool result is sent back in Anthropic wire shape')
   delete process.env.CHAT_PROVIDER
 })
 
@@ -336,6 +347,43 @@ test('POST /api/chat answers a clean 503 (not a crash, no leaked details) when t
   assert.equal(body.code, 'CHAT_UNAVAILABLE')
   assert.doesNotMatch(JSON.stringify(body), /x-api-key|authentication/i)
   delete process.env.CHAT_PROVIDER
+})
+
+test('Anthropic adapter translates the canonical OpenAI shape to the Anthropic wire in both directions', async () => {
+  process.env.ANTHROPIC_API_KEY = 'test-key'
+  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${fakeAnthropic.address().port}`
+  seen.length = 0
+  const client = createAnthropicClient()
+  const call = { id: 'toolu_1', type: 'function', function: { name: 'check_stock', arguments: '{"product_id":"p-t1"}' } }
+  const first = await client.messages.create({
+    model: 'claude-haiku-5-5', max_tokens: 100, system: 'SYS', tools: toolDefinitions,
+    messages: [{ role: 'user', content: 'stock?' }],
+  })
+  assert.equal(first.finish_reason, 'tool_calls')
+  assert.deepEqual(first.message.tool_calls, [call])
+  const wireOut = seen[0]
+  assert.equal(wireOut.system, 'SYS')
+  assert.deepEqual(wireOut.tools.map(t => t.name), toolDefinitions.map(t => t.function.name))
+  assert.equal(wireOut.tools[0].input_schema.type, 'object')
+  assert.deepEqual(wireOut.messages, [{ role: 'user', content: 'stock?' }])
+
+  const second = await client.messages.create({
+    model: 'claude-haiku-5-5', max_tokens: 100, system: 'SYS', tools: toolDefinitions,
+    messages: [
+      { role: 'user', content: 'stock?' },
+      { role: 'assistant', content: null, tool_calls: [call] },
+      { role: 'tool', tool_call_id: 'toolu_1', content: '{"products":[{"name":"Test Earbuds","stock":7}]}' },
+    ],
+  })
+  assert.equal(second.finish_reason, 'stop')
+  assert.equal(second.message.content, 'Stock for Test Earbuds: 7 units.')
+  const wireIn = seen[1]
+  assert.deepEqual(wireIn.messages.map(m => m.role), ['user', 'assistant', 'user'])
+  assert.equal(wireIn.messages[1].content[0].type, 'tool_use')
+  assert.deepEqual(wireIn.messages[1].content[0].input, { product_id: 'p-t1' })
+  assert.deepEqual(wireIn.messages[2].content, [{ type: 'tool_result', tool_use_id: 'toolu_1', content: '{"products":[{"name":"Test Earbuds","stock":7}]}' }])
+  delete process.env.ANTHROPIC_API_KEY
+  delete process.env.ANTHROPIC_BASE_URL
 })
 
 test('POST /api/chat honors an explicit CHAT_PROVIDER=anthropic even when the openai key is present', async () => {
@@ -365,43 +413,46 @@ const fakeOpenAI = http.createServer((req, res) => {
   req.on('end', () => {
     const body = JSON.parse(raw)
     seenOpenAI.push({ url: req.url, auth: req.headers.authorization, body })
-    const reply = message => { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ choices: [{ message }] })) }
+    const reply = (message, finishReason) => { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ choices: [{ message, finish_reason: finishReason }] })) }
     const toolMessage = body.messages.findLast(m => m.role === 'tool')
     if (toolMessage) {
       const data = JSON.parse(toolMessage.content)
-      return reply({ role: 'assistant', content: `Stock for ${data.products[0].name}: ${data.products[0].stock} units.` })
+      return reply({ role: 'assistant', content: `Stock for ${data.products[0].name}: ${data.products[0].stock} units.` }, 'stop')
     }
-    reply({ role: 'assistant', content: null, tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'check_stock', arguments: '{"product_id":"P-T1"}' } }] })
+    reply({ role: 'assistant', content: null, tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'check_stock', arguments: '{"product_id":"P-T1"}' } }] }, 'tool_calls')
   })
 })
 await new Promise(resolve => fakeOpenAI.listen(0, '127.0.0.1', resolve))
 test.after(() => new Promise(resolve => fakeOpenAI.close(resolve)))
 
-test('OpenAI-compatible adapter translates tools, tool calls and tool results both ways', async () => {
+test('OpenAI-compatible adapter passes the canonical shape through untranslated', async () => {
   seenOpenAI.length = 0
   const client = createOpenAICompatibleClient({ apiKey: 'sk-test', baseURL: `http://127.0.0.1:${fakeOpenAI.address().port}/v1/` })
+  const call = { id: 'call_1', type: 'function', function: { name: 'check_stock', arguments: '{"product_id":"P-T1"}' } }
   const first = await client.messages.create({
     model: 'free-model', max_tokens: 50, system: 'SYS', tools: toolDefinitions,
     messages: [{ role: 'user', content: 'stock?' }],
   })
-  assert.equal(first.stop_reason, 'tool_use')
-  assert.deepEqual(first.content, [{ type: 'tool_use', id: 'call_1', name: 'check_stock', input: { product_id: 'P-T1' } }])
+  assert.equal(first.finish_reason, 'tool_calls')
+  assert.deepEqual(first.message.tool_calls, [call])
   const sent = seenOpenAI[0]
   assert.equal(sent.auth, 'Bearer sk-test')
   assert.equal(sent.body.messages[0].role, 'system')
+  assert.equal(sent.body.messages[0].content, 'SYS')
   assert.equal(sent.body.tools[0].type, 'function')
-  assert.deepEqual(sent.body.tools.map(t => t.function.name), toolDefinitions.map(t => t.name))
+  assert.deepEqual(sent.body.tools.map(t => t.function.name), toolDefinitions.map(t => t.function.name))
   assert.equal(sent.body.tools[0].function.parameters.type, 'object')
 
   const second = await client.messages.create({
     model: 'free-model', max_tokens: 50, system: 'SYS', tools: toolDefinitions,
     messages: [
       { role: 'user', content: 'stock?' },
-      { role: 'assistant', content: first.content },
-      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'call_1', content: '{"products":[{"name":"X","stock":4}]}' }] },
+      { role: 'assistant', content: null, tool_calls: [call] },
+      { role: 'tool', tool_call_id: 'call_1', content: '{"products":[{"name":"X","stock":4}]}' },
     ],
   })
-  assert.equal(second.stop_reason, 'end_turn')
+  assert.equal(second.finish_reason, 'stop')
+  assert.equal(second.message.content, 'Stock for X: 4 units.')
   const roles = seenOpenAI[1].body.messages.map(m => m.role)
   assert.deepEqual(roles, ['system', 'user', 'assistant', 'tool'])
   assert.equal(seenOpenAI[1].body.messages[2].tool_calls[0].function.arguments, '{"product_id":"P-T1"}')
