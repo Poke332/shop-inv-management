@@ -77,7 +77,7 @@ Guests can chat; the catalog answers are public. The LLM backend is chosen entir
 
 | variable | value |
 |---|---|
-| `CHAT_PROVIDER` | `anthropic` (default), or `openai` for any OpenAI-compatible `/chat/completions` host (OpenAI, OpenRouter, self-hosted vLLM/Ollama…). `openrouter` remains accepted as a legacy alias of `openai`: when the `OPENAI_*` vars are unset it falls back to the legacy `OPENROUTER_API_KEY` / `OPENROUTER_BASE_URL` vars (default base `https://openrouter.ai/api/v1`, default model `openrouter/free`), so existing deployments keep working. |
+| `CHAT_PROVIDER` | `anthropic` (default), or `openai` for any OpenAI-compatible `/chat/completions` host (OpenAI, OpenRouter, self-hosted vLLM/Ollama…). OpenRouter is reached through `openai` by setting `OPENAI_BASE_URL=https://openrouter.ai/api/v1` with your OpenRouter key as `OPENAI_API_KEY`; any other `CHAT_PROVIDER` value is unrecognized and answers 503 `CHAT_UNAVAILABLE`. |
 | `ANTHROPIC_API_KEY` | Anthropic key (`ANTHROPIC_BASE_URL` optional). Default model: `claude-haiku-5-5`. |
 | `OPENAI_API_KEY` | OpenAI-compatible key; `OPENAI_BASE_URL` optional (default `https://api.openai.com/v1`). Default model: `gpt-4o-mini`. |
 | `CHAT_MODEL` | optional override to any model that supports tool calling. |

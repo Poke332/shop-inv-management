@@ -3,9 +3,8 @@
  * /chat/completions endpoint (OpenAI, OpenRouter, and self-hosted /v1 hosts)
  * while the rest of the code keeps using the Anthropic message shape.
  *
- * This backs the `openai` provider (and the `openrouter` alias) in
- * routes/chat.js; `OPENAI_BASE_URL` / the legacy `OPENROUTER_BASE_URL` point
- * it at the host.
+ * This backs the `openai` provider in routes/chat.js; `OPENAI_BASE_URL` points
+ * it at the host (OpenRouter: https://openrouter.ai/api/v1).
  *
  * It exposes the same `client.messages.create(...)` call the agent uses and
  * translates in both directions:

@@ -11,29 +11,27 @@ import { createOpenAICompatibleClient } from '../services/chat/openaiCompatible.
 const router = Router()
 
 // CHAT_PROVIDER picks the LLM backend: "anthropic" (default) or "openai" (any
-// OpenAI-compatible /v1 host: OpenAI, OpenRouter, self-hosted). "openrouter" is
-// kept as a backwards-compat alias that behaves as "openai": the legacy
-// OPENROUTER_API_KEY / OPENROUTER_BASE_URL vars fill in when the OPENAI_* vars
-// are unset, so existing deployments keep working (see .env.example / CHATBOT.md).
+// OpenAI-compatible /v1 host: OpenAI, OpenRouter, self-hosted). OpenRouter is
+// reached through the "openai" provider by pointing OPENAI_BASE_URL at
+// https://openrouter.ai/api/v1. Any other value is unrecognized and answers
+// 503 CHAT_UNAVAILABLE (see .env.example / CHATBOT.md).
 const provider = () => (process.env.CHAT_PROVIDER || 'anthropic').toLowerCase()
-const defaultModels = { anthropic: 'claude-haiku-5-5', openai: 'gpt-4o-mini', openrouter: 'openrouter/free' }
+const defaultModels = { anthropic: 'claude-haiku-5-5', openai: 'gpt-4o-mini' }
 const model = () => process.env.CHAT_MODEL || defaultModels[provider()]
 
 // The client is rebuilt per request so the env config is always what this
 // process was given; the rate limiter caps how often that happens.
 function getClient() {
-  const name = provider() === 'openrouter' ? 'openai' : provider()
+  const name = provider()
   if (name === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
     // The SDK reads ANTHROPIC_API_KEY (and ANTHROPIC_BASE_URL) from the environment.
     return new Anthropic({ timeout: 30_000 })
   }
   if (name === 'openai') {
-    // OPENAI_* vars drive the endpoint; under the "openrouter" alias the legacy
-    // OPENROUTER_* vars fill in so old deployments keep working unchanged.
-    const legacy = provider() === 'openrouter'
-    const apiKey = process.env.OPENAI_API_KEY || (legacy ? process.env.OPENROUTER_API_KEY : undefined)
-    const baseURL = process.env.OPENAI_BASE_URL
-      || (legacy ? process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1')
+    // OPENAI_* vars drive the endpoint; OPENAI_BASE_URL points at any
+    // OpenAI-compatible /v1 host (OpenRouter: https://openrouter.ai/api/v1).
+    const apiKey = process.env.OPENAI_API_KEY
+    const baseURL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
     if (apiKey) return createOpenAICompatibleClient({ apiKey, baseURL })
   }
   return null

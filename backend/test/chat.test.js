@@ -16,9 +16,7 @@ process.env.JWT_SECRET = 'test-secret-key-0123456789-abcdef-32ch'
 process.env.NODE_ENV = 'test'
 delete process.env.ANTHROPIC_API_KEY // the "not configured" test runs first
 delete process.env.OPENAI_API_KEY
-delete process.env.OPENROUTER_API_KEY
 delete process.env.OPENAI_BASE_URL
-delete process.env.OPENROUTER_BASE_URL
 delete process.env.CHAT_MODEL
 delete process.env.CHAT_PROVIDER
 
@@ -332,7 +330,7 @@ test('POST /api/chat answers a clean 503 (not a crash, no leaked details) when t
   assert.doesNotMatch(JSON.stringify(body), /x-api-key|authentication/i)
 })
 
-// ---- OpenAI-compatible provider (openai + openrouter alias) ------------------
+// ---- OpenAI-compatible provider (openai) --------------------------------------
 
 const seenOpenAI = []
 const fakeOpenAI = http.createServer((req, res) => {
@@ -392,10 +390,11 @@ test('OpenAI-compatible adapter surfaces provider errors with their status', asy
   await new Promise(resolve => failing.close(resolve))
 })
 
-test('POST /api/chat works end to end with CHAT_PROVIDER=openai and a custom OPENAI_BASE_URL', async () => {
+test('POST /api/chat reaches OpenRouter through CHAT_PROVIDER=openai + OPENAI_BASE_URL', async () => {
+  // The local fake stands in for an OpenRouter-compatible /v1 host; in
+  // production this is OPENAI_BASE_URL=https://openrouter.ai/api/v1.
   process.env.CHAT_PROVIDER = 'openai'
   delete process.env.CHAT_MODEL
-  delete process.env.OPENROUTER_API_KEY
   process.env.OPENAI_API_KEY = 'openai-key'
   process.env.OPENAI_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/v1`
   seenOpenAI.length = 0
@@ -408,40 +407,19 @@ test('POST /api/chat works end to end with CHAT_PROVIDER=openai and a custom OPE
   delete process.env.CHAT_PROVIDER
 })
 
-test('CHAT_PROVIDER=openrouter stays a working alias: legacy OPENROUTER_* vars drive the OpenAI-compatible path', async () => {
-  process.env.CHAT_PROVIDER = 'openrouter'
-  delete process.env.OPENAI_API_KEY
-  delete process.env.OPENAI_BASE_URL
-  delete process.env.CHAT_MODEL
-  process.env.OPENROUTER_API_KEY = 'or-key'
-  process.env.OPENROUTER_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/api/v1`
-  seenOpenAI.length = 0
-  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is Test Earbuds in stock?' }] })
-  assert.equal(res.status, 200)
-  assert.deepEqual(await res.json(), { reply: 'Stock for Test Earbuds: 7 units.', toolsUsed: ['check_stock'] })
-  assert.equal(seenOpenAI[0].url, '/api/v1/chat/completions')
-  assert.equal(seenOpenAI[0].body.model, 'openrouter/free', 'legacy default model unchanged')
-  assert.equal(seenOpenAI[0].auth, 'Bearer or-key')
-  delete process.env.CHAT_PROVIDER
-})
-
-test('the openrouter alias prefers the OPENAI_* vars when both are set', async () => {
+test('CHAT_PROVIDER=openrouter is no longer a provider: answers 503 CHAT_UNAVAILABLE', async () => {
+  // "openrouter" was the old name for an OpenAI-compatible host. It is now an
+  // unrecognized provider, so even with a usable openai key the endpoint
+  // answers 503 and never reaches the OpenAI-compatible path.
   process.env.CHAT_PROVIDER = 'openrouter'
   process.env.OPENAI_API_KEY = 'openai-key'
   process.env.OPENAI_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/v1`
-  process.env.OPENROUTER_API_KEY = 'or-key'
-  process.env.OPENROUTER_BASE_URL = 'http://127.0.0.1:1/legacy'
-  process.env.CHAT_MODEL = 'free-model'
   seenOpenAI.length = 0
-  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is Test Earbuds in stock?' }] })
-  assert.equal(res.status, 200)
-  assert.equal(seenOpenAI[0].url, '/v1/chat/completions', 'OPENAI_BASE_URL wins over the legacy var')
-  assert.equal(seenOpenAI[0].auth, 'Bearer openai-key', 'OPENAI_API_KEY wins over the legacy var')
-  assert.equal(seenOpenAI[0].body.model, 'free-model', 'CHAT_MODEL is honoured')
+  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(res.status, 503)
+  assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
+  assert.equal(seenOpenAI.length, 0, 'the unrecognized provider must not reach the openai path')
   delete process.env.CHAT_PROVIDER
-  delete process.env.CHAT_MODEL
   delete process.env.OPENAI_API_KEY
   delete process.env.OPENAI_BASE_URL
-  delete process.env.OPENROUTER_API_KEY
-  delete process.env.OPENROUTER_BASE_URL
 })

@@ -13,10 +13,7 @@ Arsitektur: UI chat -> `POST /api/chat` -> LLM (tool calling) -> tools -> query 
      - Self-hosted `/v1` (vLLM, Ollama, dst.).
      Model gratis punya kuota ketat dan sering berganti; kalau error "No endpoints found that support tool use",
      set `CHAT_MODEL` ke model lain yang mendukung tool calling.
-   - `CHAT_PROVIDER=openrouter` — alias lama untuk `openai` (masih diterima): memakai
-     `OPENROUTER_API_KEY`/`OPENROUTER_BASE_URL` bila var `OPENAI_*` belum di-set, supaya deployment
-     lama tetap jalan. Model default-nya tetap `openrouter/free`.
-   Model default per penyedia: `claude-haiku-5-5` (anthropic) / `gpt-4o-mini` (openai) / `openrouter/free` (alias).
+   Model default per penyedia: `claude-haiku-5-5` (anthropic) / `gpt-4o-mini` (openai).
    Tidak ada fallback antar-penyedia: tanpa key yang cocok untuk `CHAT_PROVIDER` yang dipilih, endpoint
    menjawab 503 `CHAT_UNAVAILABLE` (error upstream 429/529 dipetakan ke varian "busy" dari 503 yang sama).
 3. `npm run dev` di backend, lalu jalankan frontend / mobile-app seperti biasa.
@@ -25,7 +22,7 @@ Arsitektur: UI chat -> `POST /api/chat` -> LLM (tool calling) -> tools -> query 
 ## Peta file
 - `backend/src/routes/chat.js` — endpoint, rate limit, error 503 yang rapi, pilihan provider.
 - `backend/src/services/chat/agent.js` — loop tool calling ke LLM.
-- `backend/src/services/chat/openaiCompatible.js` — adapter endpoint gaya OpenAI (provider `openai` + alias `openrouter`).
+- `backend/src/services/chat/openaiCompatible.js` — adapter endpoint gaya OpenAI (provider `openai`).
 - `backend/src/services/chat/tools.js` — tool + query database (stok, rekomendasi, detail, kategori).
 - `backend/src/services/chat/systemPrompt.js` — aturan bot + panduan pakai aplikasi (update bila UI berubah).
 - `frontend/src/components/chat/ChatWidget.jsx` — widget web (permukaan chat hanya di web).
