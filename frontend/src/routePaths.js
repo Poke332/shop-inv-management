@@ -16,6 +16,7 @@
  * RBAC guards.
  */
 export const OPS_NAV_ITEMS = [
+  { label: 'Warehouse 3D', to: '/ops/warehouse', roles: ['staff', 'manager', 'admin'], badge: null, readOnlyFor: ['staff'] },
   { label: 'Ongoing Orders', to: '/ops/orders', roles: ['staff', 'manager', 'admin'], badge: 'orders' },
   { label: 'Inventory', to: '/ops/inventory', roles: ['staff', 'manager', 'admin'], badge: 'stock', readOnlyFor: ['staff'] },
   { label: 'Products', to: '/ops/products', roles: ['staff', 'manager', 'admin'], badge: null, readOnlyFor: ['staff'] },

@@ -7,6 +7,11 @@ const post = (path, body) => request(path, { method: 'POST', body })
 const patch = (path, body) => request(path, { method: 'PATCH', body })
 
 export const httpApi = {
+  getWarehouseOverview: () => request('/warehouse'),
+  getWarehouseMovements: (filter = {}) => request('/warehouse/movements?' + new URLSearchParams(filter)),
+  moveWarehouseStock: payload => post('/warehouse/move', payload),
+  createWarehouseLocation: payload => post('/warehouse/locations', payload),
+  updateWarehouseLocation: (locationId, payload) => patch('/warehouse/locations/' + id(locationId), payload),
   ...httpCart,
   async login(email, password) {
     const result = await post('/auth/login', { email, password })

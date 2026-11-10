@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
   if (!Object.hasOwn(sorts, sort)) fail(400, 'Unrecognized sort.')
   const where = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
   const rows = await sql.unsafe(`SELECT * FROM products${where} ORDER BY ${sorts[sort]}`, values)
-  res.json({ items: await Promise.all(rows.map(product)), total: rows.length, hasMore: false })
+  res.json({ items: await Promise.all(rows.map(row => product(row))), total: rows.length, hasMore: false })
 })
 router.get('/:id/reviews', async (req, res) => res.json(await reviewList(req.params.id)))
 router.get('/:id', async (req, res) => {
