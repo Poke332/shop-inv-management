@@ -15,6 +15,12 @@ process.env.DATABASE_URL = testUrl
 process.env.JWT_SECRET = 'test-secret-key-0123456789-abcdef-32ch'
 process.env.NODE_ENV = 'test'
 delete process.env.ANTHROPIC_API_KEY // the "not configured" test runs first
+delete process.env.OPENAI_API_KEY
+delete process.env.OPENROUTER_API_KEY
+delete process.env.OPENAI_BASE_URL
+delete process.env.OPENROUTER_BASE_URL
+delete process.env.CHAT_MODEL
+delete process.env.CHAT_PROVIDER
 
 const admin = postgres(maintenanceUrl, { max: 1, onnotice: () => {} })
 await admin.unsafe(`DROP DATABASE IF EXISTS "${database}"`)
@@ -273,6 +279,19 @@ test('POST /api/chat answers 503 when no API key is configured', async () => {
   assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
 })
 
+test('POST /api/chat answers 503 for an unknown provider or a missing provider key', async () => {
+  process.env.CHAT_PROVIDER = 'gpt'
+  let res = await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(res.status, 503, 'unknown provider name')
+  assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
+
+  process.env.CHAT_PROVIDER = 'openai'
+  res = await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(res.status, 503, 'openai provider without OPENAI_API_KEY')
+  assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
+  delete process.env.CHAT_PROVIDER
+})
+
 test('POST /api/chat rejects invalid payloads with 400', async () => {
   for (const body of [{}, { messages: [] }, { messages: [{ role: 'user', content: '' }] }]) {
     assert.equal((await post('/api/chat', body)).status, 400)
@@ -313,7 +332,7 @@ test('POST /api/chat answers a clean 503 (not a crash, no leaked details) when t
   assert.doesNotMatch(JSON.stringify(body), /x-api-key|authentication/i)
 })
 
-// ---- OpenAI-compatible provider (OpenRouter) ---------------------------------
+// ---- OpenAI-compatible provider (openai + openrouter alias) ------------------
 
 const seenOpenAI = []
 const fakeOpenAI = http.createServer((req, res) => {
@@ -373,12 +392,27 @@ test('OpenAI-compatible adapter surfaces provider errors with their status', asy
   await new Promise(resolve => failing.close(resolve))
 })
 
-test('POST /api/chat works end to end with CHAT_PROVIDER=openrouter', async () => {
-  process.env.CHAT_PROVIDER = 'openrouter'
+test('POST /api/chat works end to end with CHAT_PROVIDER=openai and a custom OPENAI_BASE_URL', async () => {
+  process.env.CHAT_PROVIDER = 'openai'
   delete process.env.CHAT_MODEL
   delete process.env.OPENROUTER_API_KEY
-  assert.equal((await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })).status, 503, 'no OpenRouter key yet')
+  process.env.OPENAI_API_KEY = 'openai-key'
+  process.env.OPENAI_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/v1`
+  seenOpenAI.length = 0
+  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is Test Earbuds in stock?' }] })
+  assert.equal(res.status, 200)
+  assert.deepEqual(await res.json(), { reply: 'Stock for Test Earbuds: 7 units.', toolsUsed: ['check_stock'] })
+  assert.equal(seenOpenAI[0].url, '/v1/chat/completions')
+  assert.equal(seenOpenAI[0].body.model, 'gpt-4o-mini', 'openai default model')
+  assert.equal(seenOpenAI[0].auth, 'Bearer openai-key')
+  delete process.env.CHAT_PROVIDER
+})
 
+test('CHAT_PROVIDER=openrouter stays a working alias: legacy OPENROUTER_* vars drive the OpenAI-compatible path', async () => {
+  process.env.CHAT_PROVIDER = 'openrouter'
+  delete process.env.OPENAI_API_KEY
+  delete process.env.OPENAI_BASE_URL
+  delete process.env.CHAT_MODEL
   process.env.OPENROUTER_API_KEY = 'or-key'
   process.env.OPENROUTER_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/api/v1`
   seenOpenAI.length = 0
@@ -386,7 +420,28 @@ test('POST /api/chat works end to end with CHAT_PROVIDER=openrouter', async () =
   assert.equal(res.status, 200)
   assert.deepEqual(await res.json(), { reply: 'Stock for Test Earbuds: 7 units.', toolsUsed: ['check_stock'] })
   assert.equal(seenOpenAI[0].url, '/api/v1/chat/completions')
-  assert.equal(seenOpenAI[0].body.model, 'openrouter/free')
+  assert.equal(seenOpenAI[0].body.model, 'openrouter/free', 'legacy default model unchanged')
   assert.equal(seenOpenAI[0].auth, 'Bearer or-key')
   delete process.env.CHAT_PROVIDER
+})
+
+test('the openrouter alias prefers the OPENAI_* vars when both are set', async () => {
+  process.env.CHAT_PROVIDER = 'openrouter'
+  process.env.OPENAI_API_KEY = 'openai-key'
+  process.env.OPENAI_BASE_URL = `http://127.0.0.1:${fakeOpenAI.address().port}/v1`
+  process.env.OPENROUTER_API_KEY = 'or-key'
+  process.env.OPENROUTER_BASE_URL = 'http://127.0.0.1:1/legacy'
+  process.env.CHAT_MODEL = 'free-model'
+  seenOpenAI.length = 0
+  const res = await post('/api/chat', { messages: [{ role: 'user', content: 'Is Test Earbuds in stock?' }] })
+  assert.equal(res.status, 200)
+  assert.equal(seenOpenAI[0].url, '/v1/chat/completions', 'OPENAI_BASE_URL wins over the legacy var')
+  assert.equal(seenOpenAI[0].auth, 'Bearer openai-key', 'OPENAI_API_KEY wins over the legacy var')
+  assert.equal(seenOpenAI[0].body.model, 'free-model', 'CHAT_MODEL is honoured')
+  delete process.env.CHAT_PROVIDER
+  delete process.env.CHAT_MODEL
+  delete process.env.OPENAI_API_KEY
+  delete process.env.OPENAI_BASE_URL
+  delete process.env.OPENROUTER_API_KEY
+  delete process.env.OPENROUTER_BASE_URL
 })

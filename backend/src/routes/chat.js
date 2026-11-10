@@ -10,27 +10,33 @@ import { createOpenAICompatibleClient } from '../services/chat/openaiCompatible.
 
 const router = Router()
 
-// CHAT_PROVIDER picks the LLM backend: "anthropic" (default) or "openrouter" (free models available).
+// CHAT_PROVIDER picks the LLM backend: "anthropic" (default) or "openai" (any
+// OpenAI-compatible /v1 host: OpenAI, OpenRouter, self-hosted). "openrouter" is
+// kept as a backwards-compat alias that behaves as "openai": the legacy
+// OPENROUTER_API_KEY / OPENROUTER_BASE_URL vars fill in when the OPENAI_* vars
+// are unset, so existing deployments keep working (see .env.example / CHATBOT.md).
 const provider = () => (process.env.CHAT_PROVIDER || 'anthropic').toLowerCase()
-const defaultModels = { anthropic: 'claude-haiku-5-5', openrouter: 'openrouter/free' }
+const defaultModels = { anthropic: 'claude-haiku-5-5', openai: 'gpt-4o-mini', openrouter: 'openrouter/free' }
 const model = () => process.env.CHAT_MODEL || defaultModels[provider()]
 
-const clients = new Map()
+// The client is rebuilt per request so the env config is always what this
+// process was given; the rate limiter caps how often that happens.
 function getClient() {
-  const name = provider()
-  if (clients.has(name)) return clients.get(name)
-  let created = null
+  const name = provider() === 'openrouter' ? 'openai' : provider()
   if (name === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
     // The SDK reads ANTHROPIC_API_KEY (and ANTHROPIC_BASE_URL) from the environment.
-    created = new Anthropic({ timeout: 30_000 })
-  } else if (name === 'openrouter' && process.env.OPENROUTER_API_KEY) {
-    created = createOpenAICompatibleClient({
-      apiKey: process.env.OPENROUTER_API_KEY,
-      baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
-    })
+    return new Anthropic({ timeout: 30_000 })
   }
-  if (created) clients.set(name, created)
-  return created
+  if (name === 'openai') {
+    // OPENAI_* vars drive the endpoint; under the "openrouter" alias the legacy
+    // OPENROUTER_* vars fill in so old deployments keep working unchanged.
+    const legacy = provider() === 'openrouter'
+    const apiKey = process.env.OPENAI_API_KEY || (legacy ? process.env.OPENROUTER_API_KEY : undefined)
+    const baseURL = process.env.OPENAI_BASE_URL
+      || (legacy ? process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1')
+    if (apiKey) return createOpenAICompatibleClient({ apiKey, baseURL })
+  }
+  return null
 }
 
 const limiter = rateLimit({ limit: Number(process.env.CHAT_RATE_LIMIT_PER_MIN) || 20, windowMs: 60_000 })
@@ -38,13 +44,13 @@ const limiter = rateLimit({ limit: Number(process.env.CHAT_RATE_LIMIT_PER_MIN) |
 // Open to guests (the catalog is public); a valid token only tailors the app-help answers to the user's role.
 router.post('/', limiter, optionalAuth, async (req, res) => {
   const messages = normalizeMessages(req.body?.messages)
-  const anthropic = getClient()
-  if (!anthropic) {
+  const client = getClient()
+  if (!client) {
     return res.status(503).json({ message: 'The assistant is not configured yet.', code: 'CHAT_UNAVAILABLE' })
   }
   try {
     const result = await runChat({
-      client: anthropic,
+      client,
       model: model(),
       system: buildSystemPrompt(req.user || null),
       tools: toolDefinitions,
