@@ -516,3 +516,30 @@ test('POST /api/chat uses the openai client when CHAT_PROVIDER is unset', async 
   delete process.env.OPENAI_API_KEY
   delete process.env.OPENAI_BASE_URL
 })
+
+test('POST /api/chat answers 503 CHAT_UNAVAILABLE when OPENAI_BASE_URL is unset or empty', async () => {
+  // The key is present but the endpoint host is not: the openai provider is
+  // not configured, so the endpoint stays on the 503 "not configured" path
+  // and names both required vars.
+  process.env.CHAT_PROVIDER = 'openai'
+  process.env.OPENAI_API_KEY = 'openai-key'
+  seenOpenAI.length = 0
+
+  delete process.env.OPENAI_BASE_URL
+  let res = await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(res.status, 503)
+  let body = await res.json()
+  assert.equal(body.code, 'CHAT_UNAVAILABLE')
+  assert.match(body.message, /OPENAI_BASE_URL/)
+  assert.match(body.message, /OPENAI_API_KEY/)
+
+  process.env.OPENAI_BASE_URL = ''
+  res = await post('/api/chat', { messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(res.status, 503, 'an empty OPENAI_BASE_URL counts as unset')
+  assert.equal((await res.json()).code, 'CHAT_UNAVAILABLE')
+
+  assert.equal(seenOpenAI.length, 0, 'the unconfigured provider must not reach the LLM endpoint')
+  delete process.env.CHAT_PROVIDER
+  delete process.env.OPENAI_API_KEY
+  delete process.env.OPENAI_BASE_URL
+})

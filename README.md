@@ -79,7 +79,7 @@ Guests can chat; the catalog answers are public. The LLM backend is chosen entir
 |---|---|
 | `CHAT_PROVIDER` | `openai` (default — the main provider: any OpenAI-compatible `/chat/completions` host (OpenAI, OpenRouter, self-hosted vLLM/Ollama…). OpenRouter is reached through it by setting `OPENAI_BASE_URL=https://openrouter.ai/api/v1` with your OpenRouter key as `OPENAI_API_KEY`), or `anthropic` (optional, extra support — requires an explicit `CHAT_PROVIDER=anthropic`). Any other value is unrecognized and answers 503 `CHAT_UNAVAILABLE`. Note: before this change an unset `CHAT_PROVIDER` answered with Anthropic; deployments that relied on that must now either set `CHAT_PROVIDER=anthropic` explicitly or provide `OPENAI_API_KEY`. |
 | `ANTHROPIC_API_KEY` | Anthropic key (`ANTHROPIC_BASE_URL` optional). Default model: `claude-haiku-5-5`. |
-| `OPENAI_API_KEY` | OpenAI-compatible key; `OPENAI_BASE_URL` optional (default `https://api.openai.com/v1`). Default model: `gpt-4o-mini`. |
+| `OPENAI_API_KEY` | OpenAI-compatible key. Required, together with `OPENAI_BASE_URL` (e.g. `https://api.openai.com/v1` — set it in the deployment env, e.g. Render), for the openai provider. Default model: `gpt-4o-mini`. |
 | `CHAT_MODEL` | optional override to any model that supports tool calling. |
 | `CHAT_RATE_LIMIT_PER_MIN` | per-IP limit, default 20; over → 429 `RATE_LIMITED` (with `Retry-After`). |
 

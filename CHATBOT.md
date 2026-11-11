@@ -12,7 +12,7 @@ wire Anthropic (`tool_use`/`tool_result`/`input_schema`) dan kebalikannya.
 2. Pilih penyedia LLM di `backend/.env` (lihat `.env.example`). Key hanya di backend, jangan di frontend/mobile.
    - Utama/default (yang dipakai saat `CHAT_PROVIDER` tidak di-set): `CHAT_PROVIDER=openai`
      + `OPENAI_API_KEY=...` + `OPENAI_BASE_URL=...` (endpoint apa pun yang menjawab `/chat/completions`):
-     - OpenAI: `https://api.openai.com/v1` (default — boleh tidak di-set).
+     - OpenAI: `https://api.openai.com/v1` (wajib — set di environment/Render; tidak ada default di kode).
      - OpenRouter: `https://openrouter.ai/api/v1` (model gratis tidak perlu kartu kredit).
      - Self-hosted `/v1` (vLLM, Ollama, dst.).
      Model gratis punya kuota ketat dan sering berganti; kalau error "No endpoints found that support tool use",

@@ -29,11 +29,12 @@ function getClient() {
     return createAnthropicClient()
   }
   if (name === 'openai') {
-    // OPENAI_* vars drive the endpoint; OPENAI_BASE_URL points at any
-    // OpenAI-compatible /v1 host (OpenRouter: https://openrouter.ai/api/v1).
+    // OPENAI_* vars drive the endpoint; both are required — OPENAI_BASE_URL
+    // points at any OpenAI-compatible /v1 host (OpenAI main endpoint, OpenRouter,
+    // self-hosted vLLM/Ollama).
     const apiKey = process.env.OPENAI_API_KEY
-    const baseURL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
-    if (apiKey) return createOpenAICompatibleClient({ apiKey, baseURL })
+    const baseURL = process.env.OPENAI_BASE_URL
+    if (apiKey && baseURL) return createOpenAICompatibleClient({ apiKey, baseURL })
   }
   return null
 }
@@ -45,7 +46,14 @@ router.post('/', limiter, optionalAuth, async (req, res) => {
   const messages = normalizeMessages(req.body?.messages)
   const client = getClient()
   if (!client) {
-    return res.status(503).json({ message: 'The assistant is not configured yet.', code: 'CHAT_UNAVAILABLE' })
+    // The openai provider without a base URL names both required vars; every
+    // other not-configured state (missing key, unknown provider) keeps the
+    // generic message.
+    const baseUnset = provider() === 'openai' && process.env.OPENAI_API_KEY && !process.env.OPENAI_BASE_URL
+    return res.status(503).json({
+      message: baseUnset ? 'The assistant is not configured yet. Set OPENAI_BASE_URL and OPENAI_API_KEY in the environment.' : 'The assistant is not configured yet.',
+      code: 'CHAT_UNAVAILABLE',
+    })
   }
   try {
     const result = await runChat({
