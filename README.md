@@ -82,6 +82,7 @@ Guests can chat; the catalog answers are public. The LLM backend is chosen entir
 | `OPENAI_API_KEY` | OpenAI-compatible key. Required, together with `OPENAI_BASE_URL` (e.g. `https://api.openai.com/v1` — set it in the deployment env, e.g. Render), for the openai provider. Default model: `gpt-4o-mini`. |
 | `CHAT_MODEL` | optional override to any model that supports tool calling. |
 | `CHAT_RATE_LIMIT_PER_MIN` | per-IP limit, default 20; over → 429 `RATE_LIMITED` (with `Retry-After`). |
+| `CHAT_MAX_TOOL_CALLS` | cap on the tool calls the assistant may make per chat turn; default 6 — when the model still wants to call tools at the cap, the chat ends with the fallback reply ("…Please try rephrasing your question."). Unset, empty or invalid values fall back to 6. |
 
 There is no fallback between providers: with no usable key for the chosen provider the endpoint answers **503 `CHAT_UNAVAILABLE`** (upstream 429/529 map to a "busy" variant of the same 503). Keys stay server-side only — never in the frontend or mobile env files. Architecture and file map: [CHATBOT.md](CHATBOT.md).
 

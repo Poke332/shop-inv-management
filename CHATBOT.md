@@ -24,6 +24,9 @@ dalam pesan pengguna dianggap teks biasa.
    - Opsional/dukungan tambahan (berbayar): `CHAT_PROVIDER=anthropic` + `ANTHROPIC_API_KEY=...`
      (`ANTHROPIC_BASE_URL` opsional).
    Model default per penyedia: `gpt-4o-mini` (openai) / `claude-haiku-5-5` (anthropic).
+   `CHAT_MAX_TOOL_CALLS` membatasi jumlah panggilan tool per giliran chat (default 6); saat batas tercapai dan model masih ingin memanggil
+   tool, chat diakhiri dengan kalimat fallback ("…silakan parafrasekan pertanyaan Anda"). Nilai tidak di-set / kosong / tidak valid kembali
+   ke default 6; naikkan nilai ini untuk pertanyaan perbandingan multi-produk (mis. 14-20).
    Tidak ada fallback antar-penyedia: tanpa key yang cocok untuk `CHAT_PROVIDER` yang dipilih, endpoint
    menjawab 503 `CHAT_UNAVAILABLE` (error upstream 429/529 dipetakan ke varian "busy" dari 503 yang sama).
    Catatan upgrade: sebelum perubahan ini `CHAT_PROVIDER` yang tidak di-set menjawab dengan Anthropic;

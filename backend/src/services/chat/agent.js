@@ -15,6 +15,16 @@
 
 const MAX_TOOL_RESULT_CHARS = 12000
 
+const DEFAULT_MAX_TOOL_CALLS = 6
+
+// CHAT_MAX_TOOL_CALLS overrides the tool-use cap; anything that is not a
+// finite integer > 0 (unset, empty, non-numeric, decimal, negative) keeps
+// the default.
+function maxToolCalls() {
+  const value = Number(process.env.CHAT_MAX_TOOL_CALLS)
+  return Number.isInteger(value) && value > 0 ? value : DEFAULT_MAX_TOOL_CALLS
+}
+
 const FALLBACK_REPLY = 'Sorry, I could not finish that request. Please try rephrasing your question.'
 
 function serialise(result) {
@@ -35,11 +45,12 @@ function parseArguments(raw) {
  * @param {object[]} options.tools  tool definitions (OpenAI function-tool shape).
  * @param {(name: string, input: object) => Promise<object>} options.executeTool  runs one tool call.
  * @param {{role: 'user'|'assistant', content: string}[]} options.messages  the conversation so far (ends with a user turn).
- * @param {number} [options.maxSteps]  cap on model round-trips, so a misbehaving loop cannot run forever.
+ * @param {number} [options.maxSteps]  cap on model calls per turn, so a misbehaving loop cannot run forever.
+ *   When omitted, CHAT_MAX_TOOL_CALLS applies (a finite integer > 0; unset or invalid values keep the default of 6).
  * @param {number} [options.maxTokens]  output cap per model call.
  * @returns {Promise<{reply: string, toolsUsed: string[]}>}
  */
-export async function runChat({ client, model, system, tools, executeTool, messages, maxSteps = 6, maxTokens = 1024 }) {
+export async function runChat({ client, model, system, tools, executeTool, messages, maxSteps = maxToolCalls(), maxTokens = 1024 }) {
   const conversation = messages.map(({ role, content }) => ({ role, content }))
   const toolsUsed = []
 

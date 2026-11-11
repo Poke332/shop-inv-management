@@ -19,6 +19,7 @@ delete process.env.OPENAI_API_KEY
 delete process.env.OPENAI_BASE_URL
 delete process.env.CHAT_MODEL
 delete process.env.CHAT_PROVIDER
+delete process.env.CHAT_MAX_TOOL_CALLS
 
 const admin = postgres(maintenanceUrl, { max: 1, onnotice: () => {} })
 await admin.unsafe(`DROP DATABASE IF EXISTS "${database}"`)
@@ -190,6 +191,40 @@ test('runChat stops after maxSteps when the model keeps calling tools', async ()
   const result = await runChat({ client, model: 'm', system: 's', tools: [], executeTool: async () => ({}), messages: [{ role: 'user', content: 'x' }], maxSteps: 3 })
   assert.equal(client.calls.length, 3)
   assert.match(result.reply, /could not finish/i)
+})
+
+const endlessToolCalls = () => {
+  const client = {
+    calls: 0,
+    messages: { create: async () => {
+      client.calls += 1
+      return { message: { role: 'assistant', content: null, tool_calls: [{ id: 'tu', type: 'function', function: { name: 'list_categories', arguments: '{}' } }] }, finish_reason: 'tool_calls' }
+    } },
+  }
+  return client
+}
+
+test('runChat respects CHAT_MAX_TOOL_CALLS when it is set', async () => {
+  const client = endlessToolCalls()
+  process.env.CHAT_MAX_TOOL_CALLS = '2'
+  try {
+    const result = await runChat({ client, model: 'm', system: 's', tools: [], executeTool: async () => ({}), messages: [{ role: 'user', content: 'x' }] })
+    assert.equal(client.calls, 2, 'the cap stops the loop after 2 model calls')
+    assert.match(result.reply, /could not finish/i)
+  } finally {
+    delete process.env.CHAT_MAX_TOOL_CALLS
+  }
+})
+
+test('runChat falls back to the default cap when CHAT_MAX_TOOL_CALLS is unset or invalid', async () => {
+  const client = endlessToolCalls()
+  delete process.env.CHAT_MAX_TOOL_CALLS
+  let result = await runChat({ client, model: 'm', system: 's', tools: [], executeTool: async () => ({}), messages: [{ role: 'user', content: 'x' }] })
+  assert.equal(client.calls, 6, 'the default cap of 6 applies when the variable is unset')
+  assert.match(result.reply, /could not finish/i)
+  process.env.CHAT_MAX_TOOL_CALLS = 'abc'
+  result = await runChat({ client, model: 'm', system: 's', tools: [], executeTool: async () => ({}), messages: [{ role: 'user', content: 'x' }] })
+  assert.equal(client.calls, 12, 'an invalid value also keeps the default cap')
 })
 
 // ---- rate limiter -----------------------------------------------------------
