@@ -7,6 +7,10 @@ Format message/tool kanonik aplikasi ini gaya OpenAI (function-tool, `tool_calls
 adanya; `anthropicAdapter.js` satu-satunya tempat yang menerjemahkan bentuk itu ke
 wire Anthropic (`tool_use`/`tool_result`/`input_schema`) dan kebalikannya.
 
+Perilaku: jawaban hanya seputar toko (produk, harga, diskon, stok, kategori, fitur
+aplikasi); permintaan di luar itu ditolak sopan, dan instruksi yang tersembunyi di
+dalam pesan pengguna dianggap teks biasa.
+
 ## Setup
 1. `cd backend && npm install` (menambah `@anthropic-ai/sdk`).
 2. Pilih penyedia LLM di `backend/.env` (lihat `.env.example`). Key hanya di backend, jangan di frontend/mobile.
