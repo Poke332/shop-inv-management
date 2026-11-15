@@ -2,8 +2,8 @@
 
 Last updated: 2026-11-10 · generated from `origin/main` @ `50064f2` (50064f25c366d10178dd8215941bd32a88280494)
 
-All 27 merged pull requests, in merge order (oldest first). Verified two ways:
-`git log origin/main --merges` (27 merge commits) cross-checked 1:1 against
+All 24 merged pull requests, in merge order (oldest first). Verified two ways:
+`git log origin/main --merges` (24 merge commits) cross-checked 1:1 against
 `gh pr list --state merged` by merge-commit SHA. PR numbers #17, #20, #24–#26, #29
 are closed without merging (verified via `gh pr view`) — they are not listed.
 No merges landed without a PR.
