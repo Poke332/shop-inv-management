@@ -1,0 +1,180 @@
+export const FALLBACK_PRODUCTS = [
+  {
+    id: "P-231",
+    name: "Sony WF-C710N Wireless Earbuds",
+    brand: "Sony",
+    category: "audio",
+    price: 1290000,
+    originalPrice: 1518000,
+    stock: 34,
+    lowStockThreshold: 5,
+    featured: true,
+    onSale: true,
+    description:
+      "Active noise cancellation with ambient sound mode, Bluetooth 5.3 multipoint and up to 13 hours of battery with the charging case. IPX4 water resistance for everyday use.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-231/2b7c9cfd-e08b-4105-86b4-c24a2c234157.webp",
+    createdAt: "2026-08-02T09:00:00.000Z",
+    specs: [
+      { key: "Model", value: "WF-C710N" },
+      { key: "Bluetooth", value: "5.3, multipoint" },
+      { key: "Battery", value: "13 h w/ case" },
+      { key: "ANC", value: "yes" },
+      { key: "IP rating", value: "IPX4" },
+      { key: "Weight", value: "5.4 g per bud" },
+    ],
+  },
+  {
+    id: "P-087",
+    name: "Razer BlackWidow V3",
+    brand: "Razer",
+    category: "gaming",
+    price: 240000,
+    originalPrice: null,
+    stock: 2,
+    lowStockThreshold: 5,
+    featured: true,
+    onSale: false,
+    description:
+      "Mechanical gaming keyboard with Razer Green switches, Chroma RGB and six dedicated macro keys.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-087/p-087.webp",
+    createdAt: "2026-06-18T10:00:00.000Z",
+    specs: [
+      { key: "Switches", value: "Razer Green" },
+      { key: "Layout", value: "full-size + 6 macro" },
+      { key: "Lighting", value: "Chroma per-key" },
+    ],
+  },
+  {
+    id: "P-198",
+    name: "Anker 735 Power Bank 20 000 mAh",
+    brand: "Anker",
+    category: "accessories",
+    price: 380000,
+    originalPrice: null,
+    stock: 5,
+    lowStockThreshold: 5,
+    featured: true,
+    onSale: false,
+    description:
+      "USB-C PD 140 W fast charging for laptop, tablet and phone. 20 000 mAh with dual USB-C + USB-A and live power display.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-198/p-198.webp",
+    createdAt: "2026-07-21T10:00:00.000Z",
+    specs: [
+      { key: "Capacity", value: "20 000 mAh" },
+      { key: "Output", value: "140 W USB-C PD" },
+      { key: "Ports", value: "2× USB-C, 1× USB-A" },
+    ],
+  },
+  {
+    id: "P-140",
+    name: "Logitech MX Keys S",
+    brand: "Logitech",
+    category: "accessories",
+    price: 415000,
+    originalPrice: null,
+    stock: 3,
+    lowStockThreshold: 5,
+    featured: true,
+    onSale: false,
+    description:
+      "Backlit low-profile keyboard with Smart Illumination, multi-device Magic Key and adjustable tilt.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-140/p-140.webp",
+    createdAt: "2026-07-05T10:00:00.000Z",
+    specs: [
+      { key: "Layout", value: "ANSI, 61 keys" },
+      { key: "Battery", value: "up to 10 days" },
+    ],
+  },
+  {
+    id: "P-052",
+    name: "Apple MacBook Air M3 13″",
+    brand: "Apple",
+    category: "laptops",
+    price: 17499000,
+    originalPrice: null,
+    stock: 7,
+    lowStockThreshold: 5,
+    featured: false,
+    onSale: false,
+    description:
+      "M3 chip, 16 GB unified memory, 512 GB SSD, 13.6″ Liquid Retina display and up to 18 h battery.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-052/p-052.webp",
+    createdAt: "2026-05-30T10:00:00.000Z",
+    specs: [
+      { key: "Chip", value: "Apple M3" },
+      { key: "Memory", value: "16 GB" },
+      { key: "Storage", value: "512 GB SSD" },
+    ],
+  },
+  {
+    id: "P-022",
+    name: "Sony WH-1000XM5 Headphones",
+    brand: "Sony",
+    category: "audio",
+    price: 4999000,
+    originalPrice: 5499000,
+    stock: 12,
+    lowStockThreshold: 5,
+    featured: true,
+    onSale: true,
+    description:
+      "Industry-leading noise canceling with two processors and 8 microphones. Up to 30 hours battery.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-231/2b7c9cfd-e08b-4105-86b4-c24a2c234157.webp",
+    createdAt: "2026-06-10T10:00:00.000Z",
+    specs: [
+      { key: "Type", value: "Over-ear wireless" },
+      { key: "ANC", value: "HD Noise Canceling QN1" },
+      { key: "Battery", value: "30 hours" },
+    ],
+  },
+  {
+    id: "P-119",
+    name: "Samsung Galaxy Watch 6",
+    brand: "Samsung",
+    category: "wearables",
+    price: 3499000,
+    originalPrice: null,
+    stock: 8,
+    lowStockThreshold: 5,
+    featured: false,
+    onSale: false,
+    description:
+      "Advanced sleep coaching, ECG monitoring, personalized HR zones, and super AMOLED sapphire display.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-198/p-198.webp",
+    createdAt: "2026-06-25T10:00:00.000Z",
+    specs: [
+      { key: "Display", value: "1.5″ AMOLED" },
+      { key: "Sensors", value: "bioActive, ECG" },
+      { key: "Battery", value: "up to 3 days" },
+    ],
+  },
+  {
+    id: "P-165",
+    name: "Philips Hue Starter Kit",
+    brand: "Philips",
+    category: "smart-home",
+    price: 1899000,
+    originalPrice: null,
+    stock: 6,
+    lowStockThreshold: 5,
+    featured: false,
+    onSale: false,
+    description:
+      "3 Smart LED bulbs with Hue Bridge. 16 million colors, automated schedules, and smart home sync.",
+    image:
+      "https://stxpqgrrdqsxdggiijjf.supabase.co/storage/v1/object/public/product-images/products/P-140/p-140.webp",
+    createdAt: "2026-07-15T10:00:00.000Z",
+    specs: [
+      { key: "Brightness", value: "1100 lumens" },
+      { key: "Protocol", value: "Zigbee & Bluetooth" },
+    ],
+  },
+];
+
