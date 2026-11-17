@@ -40,6 +40,7 @@ export const httpApi = {
   updateProduct: (productId, payload) => patch('/ops/products/' + id(productId), payload),
   setReviewHidden: (reviewId, hidden) => patch('/ops/reviews/' + id(reviewId) + '/hidden', { hidden }),
   setSellerComment: (reviewId, text) => patch('/ops/reviews/' + id(reviewId) + '/comment', { text }),
+  sendChat: (messages, signal) => request('/chat', { method: 'POST', body: { messages }, signal }),
   getUsers: () => request('/ops/users'),
   setUserRole: (username, role) => patch('/ops/users/' + id(username) + '/role', { role }),
   setUserActive: (username, active) => patch('/ops/users/' + id(username) + '/active', { active }),

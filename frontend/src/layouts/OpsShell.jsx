@@ -6,6 +6,7 @@ import { FiChevronDown, FiLogOut, FiMenu, FiX, FiSun, FiGrid } from 'react-icons
 import { mockApi } from '../data'
 import { useAuth } from '../hooks/useAuth.js'
 import { OPS_NAV_ITEMS } from '../routePaths.js'
+import ChatWidget from '../components/chat/ChatWidget.jsx'
 
 /**
  * One sidebar nav row: label + optional role annotation + nbadge count.
@@ -195,6 +196,7 @@ export default function OpsShell() {
         <div className="ops-workspace-top"><span>Workspace / {visibleItems.find(i => location.pathname.startsWith(i.to))?.label || "Overview"}</span><div className="workspace-account"><span className="workspace-avatar">{user?.username?.slice(0, 1)}</span><span>{user?.username}<small>{role}</small></span></div></div>
         <Outlet />
       </main>
+      <ChatWidget />
     </div>
   )
 }
