@@ -14,12 +14,14 @@ import {
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { API_URL } from "../config";
 import { BOTTOM_NAV_HEIGHT } from "../components/BottomNav";
 import { TOP_BAR_HEIGHT } from "../components/TopBar";
+import { useFormKeyboard } from "../hooks/useFormKeyboard";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
@@ -30,6 +32,7 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const { user, token, isAuthenticated } = useAuth();
   const { cart, subtotal, total, clearCart } = useCart();
+  const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
   // Contact Form States
   const [buyerName, setBuyerName] = useState(user?.username || "");
@@ -196,7 +199,7 @@ export default function CheckoutScreen() {
     return (
       <View style={styles.centerContainer}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
-        <Text style={styles.emptyIcon}>🛒</Text>
+        <Feather name="shopping-bag" size={48} color="#888C7F" style={styles.emptyIcon} />
         <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
         <Text style={styles.emptySubtitle}>
           Add items to your cart before proceeding to checkout.
@@ -218,6 +221,7 @@ export default function CheckoutScreen() {
     >
       <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={[
           styles.scrollContent,
           // Clear the pinned top bar, and keep the form clear of the
@@ -304,6 +308,7 @@ export default function CheckoutScreen() {
             <TextInput
               style={styles.input}
               placeholder="Full name"
+              onFocus={revealFocusedInput}
               value={buyerName}
               onChangeText={setBuyerName}
               editable={!submitting}
@@ -316,6 +321,7 @@ export default function CheckoutScreen() {
               style={styles.input}
               placeholder="e.g. 08123456789 (min. 8 digits)"
               keyboardType="phone-pad"
+              onFocus={revealFocusedInput}
               value={buyerPhone}
               onChangeText={setBuyerPhone}
               editable={!submitting}
@@ -329,6 +335,7 @@ export default function CheckoutScreen() {
               placeholder="you@example.com"
               keyboardType="email-address"
               autoCapitalize="none"
+              onFocus={revealFocusedInput}
               value={buyerEmail}
               onChangeText={setBuyerEmail}
               editable={!submitting}
@@ -342,6 +349,7 @@ export default function CheckoutScreen() {
               placeholder="Street name, house/building number, RT/RW (min. 20 characters)"
               multiline
               numberOfLines={3}
+              onFocus={revealFocusedInput}
               value={address}
               onChangeText={setAddress}
               editable={!submitting}
@@ -357,6 +365,7 @@ export default function CheckoutScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="e.g. Kebayoran Baru"
+                onFocus={revealFocusedInput}
                 value={district}
                 onChangeText={setDistrict}
                 editable={!submitting}
@@ -367,6 +376,7 @@ export default function CheckoutScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="e.g. Jakarta Selatan"
+                onFocus={revealFocusedInput}
                 value={city}
                 onChangeText={setCity}
                 editable={!submitting}
@@ -380,6 +390,7 @@ export default function CheckoutScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="e.g. DKI Jakarta"
+                onFocus={revealFocusedInput}
                 value={province}
                 onChangeText={setProvince}
                 editable={!submitting}
@@ -391,6 +402,7 @@ export default function CheckoutScreen() {
                 style={styles.input}
                 placeholder="e.g. 12140"
                 keyboardType="numeric"
+                onFocus={revealFocusedInput}
                 value={postalCode}
                 onChangeText={setPostalCode}
                 editable={!submitting}
@@ -403,6 +415,7 @@ export default function CheckoutScreen() {
             <TextInput
               style={styles.input}
               placeholder="Special delivery instructions"
+              onFocus={revealFocusedInput}
               value={buyerNote}
               onChangeText={setBuyerNote}
               editable={!submitting}
@@ -494,7 +507,6 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyIcon: {
-    fontSize: 56,
     marginBottom: 16,
   },
   emptyTitle: {

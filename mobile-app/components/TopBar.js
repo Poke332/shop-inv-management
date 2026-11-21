@@ -9,12 +9,11 @@ import { useSearch } from "../context/SearchContext";
 // safe-area top inset). Content screens pad their scroll containers by
 // TOP_BAR_HEIGHT + the safe-area top inset so the pinned bar never
 // covers page content.
-export const TOP_BAR_HEIGHT = 44;
+export const TOP_BAR_HEIGHT = 48;
 
-// Pinned top bar shared by every standard screen: the "Sunset
-// Electronics" title on the left and a search field spanning all
-// remaining width. Rendered once from the root layout, so every page
-// shows the same bar.
+// Pinned top bar shared by every standard screen: the "Sunset" title on
+// the left and a search field spanning all remaining width. Rendered
+// once from the root layout, so every page shows the same bar.
 export default function TopBar() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -35,8 +34,8 @@ export default function TopBar() {
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <View style={styles.row}>
-        <Text style={styles.title} accessibilityLabel="Sunset Electronics">
-          Sunset Electronics
+        <Text style={styles.title} accessibilityLabel="Sunset">
+          Sunset
         </Text>
 
         <View style={styles.searchBar}>
@@ -97,7 +96,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    height: "100%",
+    // Shorter than the bar, so centering leaves an inset between the box
+    // border and the bar's top/bottom edges.
+    height: 32,
     backgroundColor: "#F2F2EB",
     borderRadius: 8,
     borderWidth: 1,

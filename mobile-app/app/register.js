@@ -10,9 +10,10 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { useFormKeyboard } from "../hooks/useFormKeyboard";
 
 // Same email format rule the web register page validates against.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,6 +21,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
   // Form states
   const [name, setName] = useState("");
@@ -65,21 +68,17 @@ export default function RegisterScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.bottom : 0}
       >
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Brand / Header */}
           <View style={styles.brandContainer}>
-            <View style={styles.logoBadge}>
-              <Text style={styles.logoBadgeText}>SE</Text>
-            </View>
+            <Text style={styles.brandWordmark}>Sunset Electronics</Text>
             <Text style={styles.brandTitle}>Create account</Text>
-            <Text style={styles.brandSubtitle}>
-              Buyer accounts only — staff accounts are provisioned by an
-              admin.
-            </Text>
           </View>
 
           {/* Card Form */}
@@ -90,6 +89,7 @@ export default function RegisterScreen() {
               <TextInput
                 style={styles.input}
                 accessibilityLabel="Name"
+                onFocus={revealFocusedInput}
                 placeholder="Jordan Wijaya"
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
@@ -107,6 +107,7 @@ export default function RegisterScreen() {
               <TextInput
                 style={[styles.input, emailErr ? styles.inputInvalid : null]}
                 accessibilityLabel="Email"
+                onFocus={revealFocusedInput}
                 placeholder="you@example.com"
                 placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
@@ -141,6 +142,7 @@ export default function RegisterScreen() {
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
                   accessibilityLabel="Password"
+                  onFocus={revealFocusedInput}
                   placeholder="At least 8 characters"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!showPassword}
@@ -177,6 +179,7 @@ export default function RegisterScreen() {
                     confirmErr ? styles.inputInvalid : null,
                   ]}
                   accessibilityLabel="Confirm password"
+                  onFocus={revealFocusedInput}
                   secureTextEntry={!showConfirm}
                   textContentType="newPassword"
                   value={confirm}
@@ -271,36 +274,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: "#E05326",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    shadowColor: "#E05326",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 22,
+  brandWordmark: {
+    fontSize: 20,
     fontWeight: "800",
-    letterSpacing: 1,
+    color: "#E05326",
+    letterSpacing: -0.3,
+    marginBottom: 12,
   },
   brandTitle: {
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
-  },
-  brandSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 4,
-    textAlign: "center",
   },
   card: {
     backgroundColor: "#FFFFFF",

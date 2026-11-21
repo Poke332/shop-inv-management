@@ -10,9 +10,10 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { useFormKeyboard } from "../hooks/useFormKeyboard";
 
 // Same email format rule the web login page validates against.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,6 +31,8 @@ const DEMO_ACCOUNTS = [
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -79,16 +82,16 @@ export default function LoginScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.bottom : 0}
       >
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Brand / Header */}
           <View style={styles.brandContainer}>
-            <View style={styles.logoBadge}>
-              <Text style={styles.logoBadgeText}>SE</Text>
-            </View>
+            <Text style={styles.brandWordmark}>Sunset Electronics</Text>
             <Text style={styles.brandTitle}>Welcome back.</Text>
             <Text style={styles.brandSubtitle}>
               Sign in to pick up where you left off.
@@ -109,6 +112,7 @@ export default function LoginScreen() {
               <TextInput
                 style={[styles.input, emailErr ? styles.inputInvalid : null]}
                 accessibilityLabel="Email"
+                onFocus={revealFocusedInput}
                 placeholder="you@example.com"
                 placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
@@ -146,6 +150,7 @@ export default function LoginScreen() {
                     pwErr ? styles.inputInvalid : null,
                   ]}
                   accessibilityLabel="Password"
+                  onFocus={revealFocusedInput}
                   placeholder="••••••••"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!showPassword}
@@ -265,24 +270,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 28,
   },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: "#E05326",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    shadowColor: "#E05326",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 22,
+  brandWordmark: {
+    fontSize: 20,
     fontWeight: "800",
+    color: "#E05326",
+    letterSpacing: -0.3,
+    marginBottom: 12,
   },
   brandTitle: {
     fontSize: 24,

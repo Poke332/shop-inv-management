@@ -7,18 +7,18 @@ import {
   StyleSheet,
 } from "react-native";
 import { usePathname, useRouter } from "expo-router";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
-// Fixed bar content height. Content screens pad their scroll containers by
-// BOTTOM_NAV_HEIGHT + safe-area bottom inset so the pinned bar never covers
-// page content.
-export const BOTTOM_NAV_HEIGHT = 56;
+// Fixed button-row height, plus a fixed pad below the row so the bar
+// never hugs the physical screen bottom. Content screens pad their
+// scroll containers by BOTTOM_NAV_HEIGHT + safe-area bottom inset so
+// the pinned bar never covers page content.
+const NAV_ROW_HEIGHT = 56;
+export const BOTTOM_NAV_BOTTOM_PAD = 12;
+export const BOTTOM_NAV_HEIGHT = NAV_ROW_HEIGHT + BOTTOM_NAV_BOTTOM_PAD;
 
 // 2/2 button split with the account button in the center slot:
 // [Home, Browse] [Account] [Cart, Orders]
@@ -156,7 +156,12 @@ export default function BottomNav() {
           </View>
         </>
       )}
-      <SafeAreaView edges={["bottom"]} style={styles.barContainer}>
+      <View
+        style={[
+          styles.barContainer,
+          { paddingBottom: insets.bottom + BOTTOM_NAV_BOTTOM_PAD },
+        ]}
+      >
         <View style={styles.row}>
           {NAV_BUTTONS.filter((b) => b.side === "left").map(renderNavButton)}
           {/* Center account slot */}
@@ -176,7 +181,7 @@ export default function BottomNav() {
           </TouchableOpacity>
           {NAV_BUTTONS.filter((b) => b.side === "right").map(renderNavButton)}
         </View>
-      </SafeAreaView>
+      </View>
     </>
   );
 }
@@ -192,7 +197,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#EAE7DF",
   },
   row: {
-    height: BOTTOM_NAV_HEIGHT,
+    height: NAV_ROW_HEIGHT,
     flexDirection: "row",
     alignItems: "stretch",
   },

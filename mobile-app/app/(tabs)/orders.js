@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config";
@@ -103,7 +104,7 @@ export default function MyOrdersScreen() {
     return (
       <View style={styles.centerContainer}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
-        <Text style={styles.emptyIcon}>🔒</Text>
+        <Feather name="lock" size={48} color="#888C7F" style={styles.emptyIcon} />
         <Text style={styles.emptyTitle}>Sign In to View Orders</Text>
         <Text style={styles.emptySubtitle}>
           Please sign in to track and view your order history.
@@ -134,7 +135,7 @@ export default function MyOrdersScreen() {
     return (
       <View style={styles.centerContainer}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
-        <Text style={styles.emptyIcon}>⚠️</Text>
+        <Feather name="alert-circle" size={48} color="#DC2626" style={styles.emptyIcon} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.primaryButton} onPress={fetchOrders}>
           <Text style={styles.primaryButtonText}>Retry</Text>
@@ -148,7 +149,7 @@ export default function MyOrdersScreen() {
     return (
       <View style={styles.centerContainer}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
-        <Text style={styles.emptyIcon}>📦</Text>
+        <Feather name="box" size={48} color="#888C7F" style={styles.emptyIcon} />
         <Text style={styles.emptyTitle}>No Orders Placed Yet</Text>
         <Text style={styles.emptySubtitle}>
           Explore our store and place your first order today!
@@ -256,7 +257,6 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyIcon: {
-    fontSize: 52,
     marginBottom: 16,
   },
   emptyTitle: {
