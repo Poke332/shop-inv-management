@@ -12,9 +12,11 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { API_URL } from "../../config";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
+import PleaseLoginModal from "../../components/PleaseLoginModal";
 
 // Format a number like 1290000 into "Rp 1.290.000"
 function formatPrice(value) {
@@ -25,12 +27,15 @@ export default function ProductDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
-
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedQty, setSelectedQty] = useState(1);
+  // Signed-out users tapping a purchase CTA get the "Please login"
+  // popup (the CTAs render in their disabled state for them).
+  const [loginPrompt, setLoginPrompt] = useState(false);
 
   // Fetch product detail on mount, when the ID changes, and on Retry.
   // Any failure surfaces the screen's error state; no default data is
@@ -66,6 +71,10 @@ export default function ProductDetailScreen() {
       Alert.alert("Out of Stock", "Sorry, this item is currently unavailable.");
       return;
     }
+    if (!isAuthenticated) {
+      setLoginPrompt(true);
+      return;
+    }
 
     addToCart(product, selectedQty);
 
@@ -84,6 +93,10 @@ export default function ProductDetailScreen() {
     if (!product) return;
     if (product.stock <= 0) {
       Alert.alert("Out of Stock", "Sorry, this item is currently unavailable.");
+      return;
+    }
+    if (!isAuthenticated) {
+      setLoginPrompt(true);
       return;
     }
 
@@ -263,9 +276,11 @@ export default function ProductDetailScreen() {
         <TouchableOpacity
           style={[
             styles.addToCartButton,
-            isOutOfStock && styles.buttonDisabled,
+            (isOutOfStock || !isAuthenticated) && styles.buttonDisabled,
           ]}
           onPress={handleAddToCart}
+          // Out of stock: truly inert. Signed out: looks disabled, the
+          // tap opens the "Please login" popup.
           disabled={isOutOfStock}
           activeOpacity={0.8}
         >
@@ -273,7 +288,10 @@ export default function ProductDetailScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.buyNowButton, isOutOfStock && styles.buttonDisabled]}
+          style={[
+            styles.buyNowButton,
+            (isOutOfStock || !isAuthenticated) && styles.buttonDisabled,
+          ]}
           onPress={handleBuyNow}
           disabled={isOutOfStock}
           activeOpacity={0.85}
@@ -283,6 +301,11 @@ export default function ProductDetailScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <PleaseLoginModal
+        visible={loginPrompt}
+        onDismiss={() => setLoginPrompt(false)}
+      />
     </View>
   );
 }

@@ -16,6 +16,7 @@ function isStandardScreen(pathname) {
     pathname === "/browse" ||
     pathname === "/orders" ||
     pathname === "/checkout" ||
+    pathname === "/checkout-wizard" ||
     pathname.startsWith("/product")
   );
 }

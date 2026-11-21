@@ -9,24 +9,33 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
 }
 
-export default function ProductCard({ item }) {
+export default function ProductCard({ item, onPurchaseBlocked }) {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const [imageError, setImageError] = useState(false);
 
   const isLowStock =
     item.stock > 0 && item.stock <= (item.lowStockThreshold || 5);
   const isOutOfStock = item.stock <= 0;
+  // Anonymous users cannot add to the cart: both CTAs render in the
+  // disabled style and tap into the page-level "Please login" popup.
+  const anonymous = !isAuthenticated;
 
   function handleAddToCart() {
     if (isOutOfStock) {
       Alert.alert("Out of Stock", "Sorry, this product is currently unavailable.");
+      return;
+    }
+    if (anonymous) {
+      onPurchaseBlocked?.();
       return;
     }
     addToCart(item, 1);
@@ -39,6 +48,10 @@ export default function ProductCard({ item }) {
   function handleBuyNow() {
     if (isOutOfStock) {
       Alert.alert("Out of Stock", "Sorry, this product is currently unavailable.");
+      return;
+    }
+    if (anonymous) {
+      onPurchaseBlocked?.();
       return;
     }
     addToCart(item, 1);
@@ -116,8 +129,13 @@ export default function ProductCard({ item }) {
       {/* Stacked Action Buttons */}
       <View style={styles.actionStack}>
         <TouchableOpacity
-          style={[styles.buyNowBtn, isOutOfStock && styles.btnDisabled]}
+          style={[
+            styles.buyNowBtn,
+            (isOutOfStock || anonymous) && styles.btnDisabled,
+          ]}
           onPress={handleBuyNow}
+          // Out of stock: truly inert. Anonymous: looks disabled but the
+          // tap opens the "Please login" popup.
           disabled={isOutOfStock}
           activeOpacity={0.85}
         >
@@ -127,12 +145,20 @@ export default function ProductCard({ item }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.addToCartBtn, isOutOfStock && styles.btnDisabled]}
+          style={[
+            styles.addToCartBtn,
+            (isOutOfStock || anonymous) && styles.btnDisabled,
+          ]}
           onPress={handleAddToCart}
           disabled={isOutOfStock}
           activeOpacity={0.7}
         >
-          <Feather name="plus" size={12} color="#181A15" style={{ marginRight: 3 }} />
+          <Feather
+            name="plus"
+            size={12}
+            color={anonymous ? "#9A9E91" : "#181A15"}
+            style={{ marginRight: 3 }}
+          />
           <Text style={styles.addToCartText}>Add to cart</Text>
         </TouchableOpacity>
       </View>

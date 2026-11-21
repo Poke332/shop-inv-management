@@ -14,11 +14,17 @@ export const TOP_BAR_HEIGHT = 48;
 // Pinned top bar shared by every standard screen: the "Sunset" title on
 // the left and a search field spanning all remaining width. Rendered
 // once from the root layout, so every page shows the same bar.
+//
+// Browse variant: on the browse screen the bar shows the title only —
+// search moved onto the browse page itself (a full-span input in the
+// page content), so the search box is hidden there. The bar chrome
+// (height, background, border, title) stays identical.
 export default function TopBar() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
   const { query, setQuery, homeScrollRef } = useSearch();
+  const titleOnly = pathname === "/browse";
 
   // Home is the search-results surface: on home the submit scrolls the
   // product grid into view; from any other screen it navigates to home
@@ -38,31 +44,33 @@ export default function TopBar() {
           Sunset
         </Text>
 
-        <View style={styles.searchBar}>
-          <Feather
-            name="search"
-            size={15}
-            color="#767B6C"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            accessibilityLabel="Search products"
-            placeholder="Find your next favorite"
-            placeholderTextColor="#7C8071"
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-          />
-          <TouchableOpacity
-            style={styles.searchSubmitBtn}
-            onPress={handleSearchSubmit}
-            hitSlop={8}
-            accessibilityLabel="Submit search"
-          >
-            <Feather name="arrow-up-right" size={16} color="#1A1A1A" />
-          </TouchableOpacity>
-        </View>
+        {titleOnly ? null : (
+          <View style={styles.searchBar}>
+            <Feather
+              name="search"
+              size={15}
+              color="#767B6C"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              accessibilityLabel="Search products"
+              placeholder="Find your next favorite"
+              placeholderTextColor="#7C8071"
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+            />
+            <TouchableOpacity
+              style={styles.searchSubmitBtn}
+              onPress={handleSearchSubmit}
+              hitSlop={8}
+              accessibilityLabel="Submit search"
+            >
+              <Feather name="arrow-up-right" size={16} color="#1A1A1A" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );

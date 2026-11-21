@@ -22,6 +22,7 @@ import HeroSection from "../../components/HeroSection";
 import BrandTicker from "../../components/BrandTicker";
 import CategoryGrid from "../../components/CategoryGrid";
 import ProductCard from "../../components/ProductCard";
+import PleaseLoginModal from "../../components/PleaseLoginModal";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -40,6 +41,7 @@ export default function HomeScreen() {
   // context so the pinned top bar (rendered from the root layout) can
   // drive it on every screen; home applies it to the product grid.
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [loginPrompt, setLoginPrompt] = useState(false);
   const searchQuery = query;
 
   const categoriesFilter = [
@@ -279,12 +281,21 @@ export default function HomeScreen() {
           ) : products ? (
             <View style={styles.gridContainer}>
               {filteredProducts.map((item) => (
-                <ProductCard key={String(item.id)} item={item} />
+                <ProductCard
+                  key={String(item.id)}
+                  item={item}
+                  onPurchaseBlocked={() => setLoginPrompt(true)}
+                />
               ))}
             </View>
           ) : null}
         </View>
       </ScrollView>
+
+      <PleaseLoginModal
+        visible={loginPrompt}
+        onDismiss={() => setLoginPrompt(false)}
+      />
     </View>
   );
 }
