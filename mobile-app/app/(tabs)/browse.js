@@ -15,7 +15,7 @@ import ProductCard from "../../components/ProductCard";
 import PleaseLoginModal from "../../components/PleaseLoginModal";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 import { TOP_BAR_HEIGHT } from "../../components/TopBar";
-import { SkeletonProductGrid } from "../../components/Skeleton";
+import { SkeletonBlock, SkeletonProductGrid } from "../../components/Skeleton";
 
 // Category slugs + labels mirror the web filter set (frontend
 // CATEGORY_LABEL): the panel's single-select chips apply the same
@@ -207,159 +207,27 @@ export default function BrowseScreen() {
         </View>
 
         {/* Filters disclosure: a single row that toggles the panel.
-            The panel opens as an overlay on top of the product cards
-            (absolute, own scroll) instead of pushing the grid down.
-            Chevron mirrors state: down = collapsed, up = open. */}
-        <View style={styles.filterWrapper}>
-          <TouchableOpacity
-            style={styles.filtersButton}
-            onPress={() => setFiltersOpen((open) => !open)}
-            activeOpacity={0.8}
-            accessibilityLabel="Filters"
-            accessibilityState={{ expanded: filtersOpen }}
-            accessibilityExpanded={filtersOpen}
-          >
-            <Feather name="sliders" size={16} color="#4A4D43" />
-            <Text style={styles.filtersButtonText}>Filters</Text>
-            <Feather
-              name={filtersOpen ? "chevron-up" : "chevron-down"}
-              size={16}
-              color="#4A4D43"
-              style={styles.filtersChevron}
-            />
-          </TouchableOpacity>
-
-          {filtersOpen ? (
-            <ScrollView
-              style={styles.filterPanelOverlay}
-              contentContainerStyle={styles.filterPanel}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Category — checklist matching Brand: two columns of
-                  44px checkbox rows, multi-select */}
-              <Text style={styles.filterSectionTitle}>Category</Text>
-              <View style={styles.brandGrid}>
-                {CATEGORIES.map((cat) => {
-                  const checked = selectedCategories.includes(cat.slug);
-                  return (
-                    <TouchableOpacity
-                      key={cat.slug}
-                      style={styles.brandRow}
-                      onPress={() => toggleCategory(cat.slug)}
-                      accessibilityState={{ selected: checked }}
-                    >
-                      <View
-                        style={[
-                          styles.checkbox,
-                          checked && styles.checkboxChecked,
-                        ]}
-                      >
-                        {checked ? (
-                          <Feather name="check" size={10} color="#FFFFFF" />
-                        ) : null}
-                      </View>
-                      <Text style={styles.brandText} numberOfLines={1}>
-                        {cat.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Brand — multi-select, two columns of 44px tap rows */}
-              <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
-                Brand
-              </Text>
-              <View style={styles.brandGrid}>
-                {catalogBrands.map((brand) => {
-                  const checked = selectedBrands.includes(brand);
-                  return (
-                    <TouchableOpacity
-                      key={brand}
-                      style={styles.brandRow}
-                      onPress={() => toggleBrand(brand)}
-                      accessibilityState={{ selected: checked }}
-                    >
-                      <View
-                        style={[
-                          styles.checkbox,
-                          checked && styles.checkboxChecked,
-                        ]}
-                      >
-                        {checked ? (
-                          <Feather name="check" size={10} color="#FFFFFF" />
-                        ) : null}
-                      </View>
-                      <Text style={styles.brandText} numberOfLines={1}>
-                        {brand}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Sort — radio rows with the web select's labels */}
-              <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
-                Sort
-              </Text>
-              <View style={styles.sortList}>
-                {SORT_OPTIONS.map((option) => {
-                  const selected = sort === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={styles.sortRow}
-                      onPress={() => setSort(option.value)}
-                      accessibilityState={{ selected }}
-                    >
-                      <View
-                        style={[
-                          styles.radio,
-                          selected && styles.radioSelected,
-                        ]}
-                      >
-                        {selected ? <View style={styles.radioDot} /> : null}
-                      </View>
-                      <Text
-                        style={[
-                          styles.sortText,
-                          selected && styles.sortTextSelected,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Panel actions: apply is live (taps filter immediately),
-                  so the row offers clear-all + close */}
-              <View style={styles.filterActions}>
-                <TouchableOpacity
-                  style={styles.clearAllBtn}
-                  onPress={clearAll}
-                  disabled={!hasActiveFilters}
-                >
-                  <Text
-                    style={[
-                      styles.clearAllText,
-                      !hasActiveFilters && styles.clearAllTextDisabled,
-                    ]}
-                  >
-                    Clear all
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.doneBtn}
-                  onPress={() => setFiltersOpen(false)}
-                >
-                  <Text style={styles.doneText}>Done</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          ) : null}
-        </View>
+            The panel opens as a bottom-anchored sheet overlay on top of
+            the product cards (screen-level absolute, own scroll) instead
+            of pushing the grid down. Chevron mirrors state: down =
+            collapsed, up = open. */}
+        <TouchableOpacity
+          style={styles.filtersButton}
+          onPress={() => setFiltersOpen((open) => !open)}
+          activeOpacity={0.8}
+          accessibilityLabel="Filters"
+          accessibilityState={{ expanded: filtersOpen }}
+          accessibilityExpanded={filtersOpen}
+        >
+          <Feather name="sliders" size={16} color="#4A4D43" />
+          <Text style={styles.filtersButtonText}>Filters</Text>
+          <Feather
+            name={filtersOpen ? "chevron-up" : "chevron-down"}
+            size={16}
+            color="#4A4D43"
+            style={styles.filtersChevron}
+          />
+        </TouchableOpacity>
 
         {/* Product grid content */}
         {error && !products ? (
@@ -403,6 +271,169 @@ export default function BrowseScreen() {
           </View>
         ) : null}
       </ScrollView>
+
+      {/* Filters panel: a bottom-anchored sheet that overlays the product
+          cards instead of pushing them down. Rendered at the screen level
+          (a sibling of the main scroll container) rather than inside it:
+          an in-scroll absolute ScrollView broke on the RN-web runtime
+          (the panel never painted over the cards, and content past the
+          maxHeight was unreachable). Frame = a plain View (rounded,
+          shadowed, capped at a viewport-safe maxHeight above the bottom
+          nav); body = a real ScrollView so every control stays reachable;
+          the clear-all / done row is pinned at the sheet's bottom edge,
+          visible while the body scrolls. Category + Sort are static, so
+          the panel is fully openable before the catalog lands; the brand
+          list is genuinely async and shows skeleton rows until the
+          catalog fetch resolves (no fake data). */}
+      {filtersOpen ? (
+        <View
+          style={[
+            styles.filterSheet,
+            { bottom: BOTTOM_NAV_HEIGHT + insets.bottom + 8 },
+          ]}
+        >
+          <ScrollView
+            style={styles.filterSheetBody}
+            contentContainerStyle={styles.filterPanel}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Category — checklist matching Brand: two columns of
+                44px checkbox rows, multi-select */}
+            <Text style={styles.filterSectionTitle}>Category</Text>
+            <View style={styles.brandGrid}>
+              {CATEGORIES.map((cat) => {
+                const checked = selectedCategories.includes(cat.slug);
+                return (
+                  <TouchableOpacity
+                    key={cat.slug}
+                    style={styles.brandRow}
+                    onPress={() => toggleCategory(cat.slug)}
+                    accessibilityState={{ selected: checked }}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        checked && styles.checkboxChecked,
+                      ]}
+                    >
+                      {checked ? (
+                        <Feather name="check" size={10} color="#FFFFFF" />
+                      ) : null}
+                    </View>
+                    <Text style={styles.brandText} numberOfLines={1}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Brand — multi-select, two columns of 44px tap rows; the
+                options come from the fetched catalog, so while the fetch
+                is in flight the grid shows skeleton rows instead */}
+            <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
+              Brand
+            </Text>
+            <View style={styles.brandGrid}>
+              {loading && !products ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <View key={i} style={styles.brandRow}>
+                    <SkeletonBlock height={14} width="70%" />
+                  </View>
+                ))
+              ) : (
+                catalogBrands.map((brand) => {
+                  const checked = selectedBrands.includes(brand);
+                  return (
+                    <TouchableOpacity
+                      key={brand}
+                      style={styles.brandRow}
+                      onPress={() => toggleBrand(brand)}
+                      accessibilityState={{ selected: checked }}
+                    >
+                      <View
+                        style={[
+                          styles.checkbox,
+                          checked && styles.checkboxChecked,
+                        ]}
+                      >
+                        {checked ? (
+                          <Feather name="check" size={10} color="#FFFFFF" />
+                        ) : null}
+                      </View>
+                      <Text style={styles.brandText} numberOfLines={1}>
+                        {brand}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </View>
+
+            {/* Sort — radio rows with the web select's labels */}
+            <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
+              Sort
+            </Text>
+            <View style={styles.sortList}>
+              {SORT_OPTIONS.map((option) => {
+                const selected = sort === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.sortRow}
+                    onPress={() => setSort(option.value)}
+                    accessibilityState={{ selected }}
+                  >
+                    <View
+                      style={[
+                        styles.radio,
+                        selected && styles.radioSelected,
+                      ]}
+                    >
+                      {selected ? <View style={styles.radioDot} /> : null}
+                    </View>
+                    <Text
+                      style={[
+                        styles.sortText,
+                        selected && styles.sortTextSelected,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          {/* Sheet actions: apply is live (taps filter immediately), so
+              the row offers clear-all + close. Pinned at the sheet's
+              bottom edge — outside the scroll body, so it stays visible
+              while the body scrolls. */}
+          <View style={styles.filterActions}>
+            <TouchableOpacity
+              style={styles.clearAllBtn}
+              onPress={clearAll}
+              disabled={!hasActiveFilters}
+            >
+              <Text
+                style={[
+                  styles.clearAllText,
+                  !hasActiveFilters && styles.clearAllTextDisabled,
+                ]}
+              >
+                Clear all
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.doneBtn}
+              onPress={() => setFiltersOpen(false)}
+            >
+              <Text style={styles.doneText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
 
       <PleaseLoginModal
         visible={loginPrompt}
@@ -497,28 +528,38 @@ const styles = StyleSheet.create({
   filtersChevron: {
     // Right-aligned chevron (the web disclosure rotates the same one)
   },
-  filterWrapper: {
-    position: "relative",
-  },
-  // The open panel: an absolutely positioned overlay that sits on top
-  // of the product cards (own scroll when tall) without shifting them.
-  filterPanelOverlay: {
+  // The open panel: a plain View frame, absolutely positioned at the
+  // screen's bottom edge (above the bottom nav). The frame owns the
+  // rounded/shadowed look and the viewport-safe maxHeight; it is a
+  // plain View on purpose — putting position/overflow/maxHeight on the
+  // ScrollView's own style broke both painting and scrolling on the
+  // RN-web runtime.
+  filterSheet: {
     position: "absolute",
-    top: 52,
-    left: 0,
-    right: 0,
-    maxHeight: 420,
+    left: 16,
+    right: 16,
+    maxHeight: 480,
+    flexDirection: "column",
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#EAE7DF",
     overflow: "hidden",
-    zIndex: 30,
-    elevation: 20,
+    zIndex: 50,
+    elevation: 30,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
+  },
+  // The scrollable body: a real ScrollView filling whatever height the
+  // frame leaves above the pinned actions row. flex:1 + minHeight:0
+  // lets it shrink under the frame's maxHeight (so tall content
+  // scrolls instead of overflowing), and grow to its content when
+  // short (so the sheet hugs its content).
+  filterSheetBody: {
+    flex: 1,
+    minHeight: 0,
   },
   filterPanel: {
     padding: 16,
@@ -604,7 +645,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
+    // Pinned footer: the scroll body's own bottom padding (filterPanel)
+    // spaces it from the last control; the border is the divider.
     paddingTop: 14,
     borderTopWidth: 1,
     borderTopColor: "#F2F2EB",
