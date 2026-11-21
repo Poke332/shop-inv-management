@@ -32,29 +32,31 @@ export default function ProductDetailScreen() {
   const [error, setError] = useState(null);
   const [selectedQty, setSelectedQty] = useState(1);
 
-  // Fetch product detail on mount or when ID changes
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchProduct() {
-      try {
-        const response = await fetch(`${API_URL}/api/products/${id}`);
-        if (!response.ok) {
-          throw new Error("Server responded with status " + response.status);
-        }
-        const data = await response.json();
-        if (!cancelled) setProduct(data);
-      } catch (err) {
-        if (!cancelled) setError(err.message);
-      } finally {
-        if (!cancelled) setLoading(false);
+  // Fetch product detail on mount, when the ID changes, and on Retry.
+  // Any failure surfaces the screen's error state; no default data is
+  // substituted.
+  async function loadProduct() {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}`);
+      if (!response.ok) {
+        throw new Error("Server responded with status " + response.status);
       }
+      const data = await response.json();
+      if (!data) {
+        throw new Error("Unexpected response from the server");
+      }
+      setProduct(data);
+    } catch {
+      setError("Failed to load product");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    fetchProduct();
-    return () => {
-      cancelled = true;
-    };
+  useEffect(() => {
+    loadProduct();
   }, [id]);
 
   // Handle Add to Cart action
@@ -107,11 +109,14 @@ export default function ProductDetailScreen() {
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
         <Text style={styles.errorIcon}>⚠️</Text>
         <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadProduct}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
         <TouchableOpacity
-          style={styles.retryButton}
+          style={styles.backToCatalogButton}
           onPress={() => router.replace("/")}
         >
-          <Text style={styles.retryButtonText}>Back to Catalog</Text>
+          <Text style={styles.backToCatalogText}>Back to catalog</Text>
         </TouchableOpacity>
       </View>
     );
@@ -319,6 +324,14 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
+  },
+  backToCatalogButton: {
+    marginTop: 10,
+  },
+  backToCatalogText: {
+    color: "#6B7280",
+    fontSize: 13,
+    fontWeight: "600",
   },
   heroImage: {
     width: "100%",

@@ -12,7 +12,6 @@ import {
 import { Stack } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { API_URL } from "../../config";
-import { FALLBACK_PRODUCTS } from "../../data/fallbackProducts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 
@@ -30,9 +29,11 @@ export default function HomeScreen() {
   const productSectionY = useRef(0);
   const { query, setQuery, homeScrollRef } = useSearch();
 
-  // Initialize with fallback catalog data so products render immediately without lag
-  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
-  const [loading, setLoading] = useState(false);
+  // Products load from the backend; `null` until the first successful
+  // fetch, and any failure shows the screen's error state instead.
+  const [products, setProducts] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Filter & Search states — the search query lives in the shared
@@ -51,8 +52,12 @@ export default function HomeScreen() {
     { slug: "accessories", label: "Accessories" },
   ];
 
-  // Fetch product catalog from backend with automatic fallback
+  // Fetch the product catalog from the backend. Any failure — network
+  // error, non-OK status, or an unexpected payload — surfaces as the
+  // screen's error state; no default data is substituted.
   async function loadProducts() {
+    setLoading(true);
+    setError(null);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -66,25 +71,19 @@ export default function HomeScreen() {
         throw new Error("Server returned status " + response.status);
       }
       const data = await response.json();
-      if (Array.isArray(data.items) && data.items.length > 0) {
-        setProducts(data.items);
+      if (!Array.isArray(data.items) || data.items.length === 0) {
+        throw new Error("Unexpected response from the server");
       }
+      setProducts(data.items);
     } catch {
-      // Graceful fallback: maintain catalog items so user never sees empty/broken screen
-      setProducts((prev) => (prev && prev.length > 0 ? prev : FALLBACK_PRODUCTS));
+      setError("Failed to load products");
+    } finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    let cancelled = false;
-
-    loadProducts().finally(() => {
-      if (!cancelled) setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    loadProducts();
   }, []);
 
   // Expose the products-scroll action to the shared top bar (search
@@ -125,8 +124,9 @@ export default function HomeScreen() {
     scrollToProducts();
   }
 
-  // Filtered Products List
-  const filteredProducts = products.filter((p) => {
+  // Filtered Products List (products may still be null before the first
+  // successful fetch)
+  const filteredProducts = (products || []).filter((p) => {
     const matchesCategory =
       selectedCategory === "all" || p.category === selectedCategory;
     const matchesSearch =
@@ -238,12 +238,28 @@ export default function HomeScreen() {
           </ScrollView>
 
           {/* Product Grid Content */}
-          {loading && products.length === 0 ? (
+          {error && !products ? (
+            <View style={styles.stateCenter}>
+              <Feather
+                name="alert-circle"
+                size={38}
+                color="#DC2626"
+                style={{ marginBottom: 10 }}
+              />
+              <Text style={styles.emptyTitle}>Failed to load products</Text>
+              <Text style={styles.emptySubtitle}>
+                Check your connection, then try again.
+              </Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={loadProducts}>
+                <Text style={styles.retryBtnText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : loading && !products ? (
             <View style={styles.stateCenter}>
               <ActivityIndicator size="large" color="#E05326" />
               <Text style={styles.stateText}>Loading collection…</Text>
             </View>
-          ) : filteredProducts.length === 0 ? (
+          ) : products && filteredProducts.length === 0 ? (
             <View style={styles.stateCenter}>
               <Feather name="package" size={38} color="#888C7F" style={{ marginBottom: 10 }} />
               <Text style={styles.emptyTitle}>More favorites are on the way.</Text>
@@ -260,13 +276,13 @@ export default function HomeScreen() {
                 <Text style={styles.retryBtnText}>Browse all products</Text>
               </TouchableOpacity>
             </View>
-          ) : (
+          ) : products ? (
             <View style={styles.gridContainer}>
               {filteredProducts.map((item) => (
                 <ProductCard key={String(item.id)} item={item} />
               ))}
             </View>
-          )}
+          ) : null}
         </View>
       </ScrollView>
     </View>

@@ -75,14 +75,14 @@ export default function MyOrdersScreen() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to load orders (status " + response.status + ")");
+        throw new Error("Server returned status " + response.status);
       }
 
       const data = await response.json();
       setOrders(Array.isArray(data) ? data : []);
       setError(null);
-    } catch (err) {
-      setError(err.message);
+    } catch {
+      setError("Failed to load orders");
     } finally {
       setLoading(false);
       setRefreshing(false);
