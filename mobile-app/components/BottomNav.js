@@ -13,6 +13,7 @@ import {
 } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 // Fixed bar content height. Content screens pad their scroll containers by
 // BOTTOM_NAV_HEIGHT + safe-area bottom inset so the pinned bar never covers
@@ -51,6 +52,7 @@ export default function BottomNav() {
   const segments = useSegments();
   const current = segments[0] || "";
   const { isAuthenticated, user, logout } = useAuth();
+  const { cartCount } = useCart();
   const insets = useSafeAreaInsets();
   const [popoutOpen, setPopoutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -85,15 +87,31 @@ export default function BottomNav() {
   function renderNavButton(button) {
     const active = isActive(button.key);
     const color = active ? "#E05326" : "#888C7F";
+    const showBadge = button.key === "cart" && cartCount > 0;
     return (
       <TouchableOpacity
         key={button.key}
         style={styles.slot}
         onPress={() => router.push(button.route)}
         activeOpacity={0.7}
+        accessibilityLabel={
+          button.key === "cart"
+            ? cartCount > 0
+              ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
+              : "Cart"
+            : button.label
+        }
       >
         <View style={styles.iconBox}>
           <Feather name={button.icon} size={20} color={color} />
+          {showBadge && (
+            // Notification bubble over the cart icon; the count is announced
+            // via the button's accessibilityLabel, so the badge stays out of
+            // the accessibility tree.
+            <View style={styles.cartBadge} accessible={false}>
+              <Text style={styles.cartBadgeText}>{cartCount}</Text>
+            </View>
+          )}
         </View>
         <Text
           style={[styles.slotLabel, active && styles.slotLabelActive]}
@@ -186,6 +204,30 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: "center",
     justifyContent: "center",
+  },
+  // Red notification circle anchored to the top-right of the cart icon.
+  // Grows horizontally for two-digit counts; the bar-colored border keeps it
+  // legible when it overlaps the icon.
+  cartBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#DC2626",
+    borderWidth: 1.5,
+    borderColor: "#FAF9F6",
+    paddingHorizontal: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
+  cartBadgeText: {
+    fontSize: 9.5,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    lineHeight: 12,
   },
   accountChip: {
     width: 32,
