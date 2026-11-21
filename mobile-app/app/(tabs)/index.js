@@ -13,6 +13,8 @@ import { Stack } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { API_URL } from "../../config";
 import { FALLBACK_PRODUCTS } from "../../data/fallbackProducts";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 
 // Modular Components
 import AnnouncementBar from "../../components/AnnouncementBar";
@@ -24,6 +26,7 @@ import ProductCard from "../../components/ProductCard";
 import PromoBanner from "../../components/PromoBanner";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
   const productSectionY = useRef(0);
 
@@ -135,7 +138,11 @@ export default function HomeScreen() {
       <ScrollView
         ref={scrollRef}
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          // Keep scroll content clear of the pinned bottom nav bar
+          { paddingBottom: 24 + BOTTOM_NAV_HEIGHT + insets.bottom },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

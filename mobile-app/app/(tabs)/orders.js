@@ -9,8 +9,10 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config";
+import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
@@ -49,6 +51,7 @@ function getStatusStyle(status) {
 
 export default function MyOrdersScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { token, isAuthenticated } = useAuth();
 
   const [orders, setOrders] = useState([]);
@@ -207,7 +210,11 @@ export default function MyOrdersScreen() {
         data={orders}
         keyExtractor={(item) => String(item.id || item.reference)}
         renderItem={renderOrderItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          // Keep the order list clear of the pinned bottom nav bar
+          { paddingBottom: 32 + BOTTOM_NAV_HEIGHT + insets.bottom },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

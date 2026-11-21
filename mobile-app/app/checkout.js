@@ -13,9 +13,11 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { API_URL } from "../config";
+import { BOTTOM_NAV_HEIGHT } from "../components/BottomNav";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
@@ -23,6 +25,7 @@ function formatPrice(value) {
 
 export default function CheckoutScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user, token, isAuthenticated } = useAuth();
   const { cart, subtotal, total, clearCart } = useCart();
 
@@ -211,7 +214,11 @@ export default function CheckoutScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          // Keep the checkout form clear of the pinned bottom nav bar
+          { paddingBottom: 40 + BOTTOM_NAV_HEIGHT + insets.bottom },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Auth Guard Banner if not logged in */}

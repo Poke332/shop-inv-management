@@ -1,0 +1,257 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  StyleSheet,
+} from "react-native";
+import { useSegments, useRouter } from "expo-router";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
+
+// Fixed bar content height. Content screens pad their scroll containers by
+// BOTTOM_NAV_HEIGHT + safe-area bottom inset so the pinned bar never covers
+// page content.
+export const BOTTOM_NAV_HEIGHT = 56;
+
+// 2/2 button split with the account button in the center slot:
+// [Home, Browse] [Account] [Cart, Orders]
+const NAV_BUTTONS = [
+  { key: "home", label: "Home", icon: "home", route: "/", side: "left" },
+  {
+    key: "browse",
+    label: "Browse",
+    icon: "grid",
+    route: "/browse",
+    side: "left",
+  },
+  {
+    key: "cart",
+    label: "Cart",
+    icon: "shopping-bag",
+    route: "/checkout",
+    side: "right",
+  },
+  {
+    key: "orders",
+    label: "Orders",
+    icon: "box",
+    route: "/orders",
+    side: "right",
+  },
+];
+
+export default function BottomNav() {
+  const router = useRouter();
+  const segments = useSegments();
+  const current = segments[0] || "";
+  const { isAuthenticated, user, logout } = useAuth();
+  const insets = useSafeAreaInsets();
+  const [popoutOpen, setPopoutOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  function isActive(key) {
+    if (key === "home") return current === "";
+    if (key === "cart") return current === "checkout";
+    return current === key;
+  }
+
+  function handleAccountPress() {
+    // Not logged in: go to the sign-in page (register is reachable from there).
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+    // Logged in: toggle the sign-out popout anchored above the bar.
+    setPopoutOpen((open) => !open);
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await logout();
+    } finally {
+      setPopoutOpen(false);
+      setSigningOut(false);
+    }
+    router.replace("/");
+  }
+
+  function renderNavButton(button) {
+    const active = isActive(button.key);
+    const color = active ? "#E05326" : "#888C7F";
+    return (
+      <TouchableOpacity
+        key={button.key}
+        style={styles.slot}
+        onPress={() => router.push(button.route)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.iconBox}>
+          <Feather name={button.icon} size={20} color={color} />
+        </View>
+        <Text
+          style={[styles.slotLabel, active && styles.slotLabelActive]}
+        >
+          {button.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <>
+      {popoutOpen && (
+        <>
+          {/* Dismisses the popout on any outside tap */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setPopoutOpen(false)}
+          />
+          <View style={[styles.popout, { bottom: BOTTOM_NAV_HEIGHT + insets.bottom + 8 }]}>
+            <View style={styles.popoutInner}>
+              <Text style={styles.popoutTitle}>
+                Signed in as {user?.username || "buyer"}
+              </Text>
+              <TouchableOpacity
+                style={styles.signOutBtn}
+                onPress={handleSignOut}
+                disabled={signingOut}
+                activeOpacity={0.7}
+              >
+                <Feather name="log-out" size={14} color="#E05326" />
+                <Text style={styles.signOutText}>
+                  {signingOut ? "Signing out…" : "Sign Out"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </>
+      )}
+      <SafeAreaView edges={["bottom"]} style={styles.barContainer}>
+        <View style={styles.row}>
+          {NAV_BUTTONS.filter((b) => b.side === "left").map(renderNavButton)}
+          {/* Center account slot */}
+          <TouchableOpacity
+            style={styles.slot}
+            onPress={handleAccountPress}
+            activeOpacity={0.7}
+          >
+            <View style={styles.accountChip}>
+              <Feather
+                name="user"
+                size={18}
+                color={isAuthenticated ? "#1A1A1A" : "#888C7F"}
+              />
+            </View>
+            <Text style={styles.slotLabel}>Account</Text>
+          </TouchableOpacity>
+          {NAV_BUTTONS.filter((b) => b.side === "right").map(renderNavButton)}
+        </View>
+      </SafeAreaView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  barContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#FAF9F6",
+    borderTopWidth: 1,
+    borderTopColor: "#EAE7DF",
+  },
+  row: {
+    height: BOTTOM_NAV_HEIGHT,
+    flexDirection: "row",
+    alignItems: "stretch",
+  },
+  slot: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accountChip: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E5DF",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#181A15",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  slotLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#888C7F",
+  },
+  slotLabelActive: {
+    color: "#E05326",
+  },
+  // Sign-out popout anchored above the bar, centered on the account slot.
+  // The actual bottom offset is set inline (bar height + safe-area inset + gap).
+  popout: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  popoutInner: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5DF",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minWidth: 180,
+    shadowColor: "#181A15",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  popoutTitle: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#FEF2EE",
+    borderRadius: 20,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+  },
+  signOutText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#E05326",
+  },
+});
