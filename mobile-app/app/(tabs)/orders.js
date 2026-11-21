@@ -3,8 +3,8 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   StyleSheet,
   StatusBar,
@@ -16,6 +16,7 @@ import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 import { TOP_BAR_HEIGHT } from "../../components/TopBar";
+import { SkeletonOrderCard } from "../../components/Skeleton";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
@@ -122,10 +123,21 @@ export default function MyOrdersScreen() {
   // Loading state
   if (loading && !refreshing) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
-        <ActivityIndicator size="large" color="#E05326" />
-        <Text style={styles.statusText}>Loading your orders…</Text>
+        <ScrollView
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              paddingTop: TOP_BAR_HEIGHT + insets.top + 16,
+              paddingBottom: 32 + BOTTOM_NAV_HEIGHT + insets.bottom,
+            },
+          ]}
+        >
+          <SkeletonOrderCard />
+          <SkeletonOrderCard />
+          <SkeletonOrderCard />
+        </ScrollView>
       </View>
     );
   }
@@ -270,11 +282,6 @@ const styles = StyleSheet.create({
     color: "#888C7F",
     textAlign: "center",
     marginBottom: 20,
-  },
-  statusText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: "#888C7F",
   },
   errorText: {
     fontSize: 15,

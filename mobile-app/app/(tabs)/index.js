@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   StyleSheet,
   StatusBar,
@@ -23,6 +22,7 @@ import BrandTicker from "../../components/BrandTicker";
 import CategoryGrid from "../../components/CategoryGrid";
 import ProductCard from "../../components/ProductCard";
 import PleaseLoginModal from "../../components/PleaseLoginModal";
+import { SkeletonProductGrid } from "../../components/Skeleton";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -257,10 +257,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           ) : loading && !products ? (
-            <View style={styles.stateCenter}>
-              <ActivityIndicator size="large" color="#E05326" />
-              <Text style={styles.stateText}>Loading collection…</Text>
-            </View>
+            <SkeletonProductGrid count={4} />
           ) : products && filteredProducts.length === 0 ? (
             <View style={styles.stateCenter}>
               <Feather name="package" size={38} color="#888C7F" style={{ marginBottom: 10 }} />
@@ -392,11 +389,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 40,
     paddingHorizontal: 20,
-  },
-  stateText: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 10,
   },
   emptyTitle: {
     fontSize: 16,

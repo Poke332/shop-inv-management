@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   StyleSheet,
   StatusBar,
   TextInput,
@@ -16,6 +15,7 @@ import ProductCard from "../../components/ProductCard";
 import PleaseLoginModal from "../../components/PleaseLoginModal";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 import { TOP_BAR_HEIGHT } from "../../components/TopBar";
+import { SkeletonProductGrid } from "../../components/Skeleton";
 
 // Category slugs + labels mirror the web filter set (frontend
 // CATEGORY_LABEL): the panel's single-select chips apply the same
@@ -52,7 +52,7 @@ export default function BrowseScreen() {
   // Filter state (page-local; the web keeps the same set in URL params)
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [sort, setSort] = useState("featured");
   // Signed-out users tapping a card CTA get the "Please login" popup
@@ -112,8 +112,8 @@ export default function BrowseScreen() {
           p.brand?.toLowerCase().includes(needle)
       );
     }
-    if (selectedCategory) {
-      list = list.filter((p) => p.category === selectedCategory);
+    if (selectedCategories.length > 0) {
+      list = list.filter((p) => selectedCategories.includes(p.category));
     }
     if (selectedBrands.length > 0) {
       list = list.filter((p) => selectedBrands.includes(p.brand));
@@ -124,12 +124,12 @@ export default function BrowseScreen() {
       list = [...list].sort((a, b) => Number(b.price) - Number(a.price));
     }
     return list;
-  }, [products, query, selectedCategory, selectedBrands, sort]);
+  }, [products, query, selectedCategories, selectedBrands, sort]);
 
   // "Clear all" resets the whole filter set (web: drops every param).
   function clearAll() {
     setQuery("");
-    setSelectedCategory(null);
+    setSelectedCategories([]);
     setSelectedBrands([]);
     setSort("featured");
   }
@@ -142,9 +142,17 @@ export default function BrowseScreen() {
     );
   }
 
+  function toggleCategory(slug) {
+    setSelectedCategories((prev) =>
+      prev.includes(slug)
+        ? prev.filter((c) => c !== slug)
+        : [...prev, slug]
+    );
+  }
+
   const hasActiveFilters =
     query.trim() !== "" ||
-    selectedCategory !== null ||
+    selectedCategories.length > 0 ||
     selectedBrands.length > 0 ||
     sort !== "featured";
 
@@ -198,145 +206,160 @@ export default function BrowseScreen() {
           <Text style={styles.title}>Browse all products.</Text>
         </View>
 
-        {/* Filters disclosure: replaces the side-scroll category pills;
-            the panel carries the web filter set (category / brand /
-            sort). Chevron mirrors state: down = collapsed, up = open. */}
-        <TouchableOpacity
-          style={styles.filtersButton}
-          onPress={() => setFiltersOpen((open) => !open)}
-          activeOpacity={0.8}
-          accessibilityLabel="Filters"
-          accessibilityState={{ expanded: filtersOpen }}
-          accessibilityExpanded={filtersOpen}
-        >
-          <Feather name="sliders" size={16} color="#4A4D43" />
-          <Text style={styles.filtersButtonText}>Filters</Text>
-          <Feather
-            name={filtersOpen ? "chevron-up" : "chevron-down"}
-            size={16}
-            color="#4A4D43"
-            style={styles.filtersChevron}
-          />
-        </TouchableOpacity>
+        {/* Filters disclosure: a single row that toggles the panel.
+            The panel opens as an overlay on top of the product cards
+            (absolute, own scroll) instead of pushing the grid down.
+            Chevron mirrors state: down = collapsed, up = open. */}
+        <View style={styles.filterWrapper}>
+          <TouchableOpacity
+            style={styles.filtersButton}
+            onPress={() => setFiltersOpen((open) => !open)}
+            activeOpacity={0.8}
+            accessibilityLabel="Filters"
+            accessibilityState={{ expanded: filtersOpen }}
+            accessibilityExpanded={filtersOpen}
+          >
+            <Feather name="sliders" size={16} color="#4A4D43" />
+            <Text style={styles.filtersButtonText}>Filters</Text>
+            <Feather
+              name={filtersOpen ? "chevron-up" : "chevron-down"}
+              size={16}
+              color="#4A4D43"
+              style={styles.filtersChevron}
+            />
+          </TouchableOpacity>
 
-        {filtersOpen ? (
-          <View style={styles.filterPanel}>
-            {/* Category — single-select chip row (web mobile panel: tap
-                the selected chip again to clear it) */}
-            <Text style={styles.filterSectionTitle}>Category</Text>
+          {filtersOpen ? (
             <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipRow}
-              accessibilityLabel="Filter by category"
+              style={styles.filterPanelOverlay}
+              contentContainerStyle={styles.filterPanel}
+              showsVerticalScrollIndicator={false}
             >
-              {CATEGORIES.map((cat) => {
-                const selected = selectedCategory === cat.slug;
-                return (
-                  <TouchableOpacity
-                    key={cat.slug}
-                    style={[styles.chip, selected && styles.chipSelected]}
-                    onPress={() =>
-                      setSelectedCategory(selected ? null : cat.slug)
-                    }
-                    accessibilityState={{ selected }}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        selected && styles.chipTextSelected,
-                      ]}
+              {/* Category — checklist matching Brand: two columns of
+                  44px checkbox rows, multi-select */}
+              <Text style={styles.filterSectionTitle}>Category</Text>
+              <View style={styles.brandGrid}>
+                {CATEGORIES.map((cat) => {
+                  const checked = selectedCategories.includes(cat.slug);
+                  return (
+                    <TouchableOpacity
+                      key={cat.slug}
+                      style={styles.brandRow}
+                      onPress={() => toggleCategory(cat.slug)}
+                      accessibilityState={{ selected: checked }}
                     >
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          checked && styles.checkboxChecked,
+                        ]}
+                      >
+                        {checked ? (
+                          <Feather name="check" size={10} color="#FFFFFF" />
+                        ) : null}
+                      </View>
+                      <Text style={styles.brandText} numberOfLines={1}>
+                        {cat.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
-            {/* Brand — multi-select, two columns of 44px tap rows */}
-            <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
-              Brand
-            </Text>
-            <View style={styles.brandGrid}>
-              {catalogBrands.map((brand) => {
-                const checked = selectedBrands.includes(brand);
-                return (
-                  <TouchableOpacity
-                    key={brand}
-                    style={styles.brandRow}
-                    onPress={() => toggleBrand(brand)}
-                    accessibilityState={{ selected: checked }}
-                  >
-                    <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-                      {checked ? (
-                        <Feather name="check" size={10} color="#FFFFFF" />
-                      ) : null}
-                    </View>
-                    <Text style={styles.brandText} numberOfLines={1}>
-                      {brand}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Sort — radio rows with the web select's labels */}
-            <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
-              Sort
-            </Text>
-            <View style={styles.sortList}>
-              {SORT_OPTIONS.map((option) => {
-                const selected = sort === option.value;
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={styles.sortRow}
-                    onPress={() => setSort(option.value)}
-                    accessibilityState={{ selected }}
-                  >
-                    <View style={[styles.radio, selected && styles.radioSelected]}>
-                      {selected ? <View style={styles.radioDot} /> : null}
-                    </View>
-                    <Text
-                      style={[
-                        styles.sortText,
-                        selected && styles.sortTextSelected,
-                      ]}
+              {/* Brand — multi-select, two columns of 44px tap rows */}
+              <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
+                Brand
+              </Text>
+              <View style={styles.brandGrid}>
+                {catalogBrands.map((brand) => {
+                  const checked = selectedBrands.includes(brand);
+                  return (
+                    <TouchableOpacity
+                      key={brand}
+                      style={styles.brandRow}
+                      onPress={() => toggleBrand(brand)}
+                      accessibilityState={{ selected: checked }}
                     >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          checked && styles.checkboxChecked,
+                        ]}
+                      >
+                        {checked ? (
+                          <Feather name="check" size={10} color="#FFFFFF" />
+                        ) : null}
+                      </View>
+                      <Text style={styles.brandText} numberOfLines={1}>
+                        {brand}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
-            {/* Panel actions: apply is live (taps filter immediately),
-                so the row offers clear-all + close */}
-            <View style={styles.filterActions}>
-              <TouchableOpacity
-                style={styles.clearAllBtn}
-                onPress={clearAll}
-                disabled={!hasActiveFilters}
-              >
-                <Text
-                  style={[
-                    styles.clearAllText,
-                    !hasActiveFilters && styles.clearAllTextDisabled,
-                  ]}
+              {/* Sort — radio rows with the web select's labels */}
+              <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
+                Sort
+              </Text>
+              <View style={styles.sortList}>
+                {SORT_OPTIONS.map((option) => {
+                  const selected = sort === option.value;
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={styles.sortRow}
+                      onPress={() => setSort(option.value)}
+                      accessibilityState={{ selected }}
+                    >
+                      <View
+                        style={[
+                          styles.radio,
+                          selected && styles.radioSelected,
+                        ]}
+                      >
+                        {selected ? <View style={styles.radioDot} /> : null}
+                      </View>
+                      <Text
+                        style={[
+                          styles.sortText,
+                          selected && styles.sortTextSelected,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Panel actions: apply is live (taps filter immediately),
+                  so the row offers clear-all + close */}
+              <View style={styles.filterActions}>
+                <TouchableOpacity
+                  style={styles.clearAllBtn}
+                  onPress={clearAll}
+                  disabled={!hasActiveFilters}
                 >
-                  Clear all
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.doneBtn}
-                onPress={() => setFiltersOpen(false)}
-              >
-                <Text style={styles.doneText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : null}
+                  <Text
+                    style={[
+                      styles.clearAllText,
+                      !hasActiveFilters && styles.clearAllTextDisabled,
+                    ]}
+                  >
+                    Clear all
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.doneBtn}
+                  onPress={() => setFiltersOpen(false)}
+                >
+                  <Text style={styles.doneText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          ) : null}
+        </View>
 
         {/* Product grid content */}
         {error && !products ? (
@@ -356,10 +379,7 @@ export default function BrowseScreen() {
             </TouchableOpacity>
           </View>
         ) : loading && !products ? (
-          <View style={styles.stateCenter}>
-            <ActivityIndicator size="large" color="#E05326" />
-            <Text style={styles.stateText}>Loading collection…</Text>
-          </View>
+          <SkeletonProductGrid count={6} />
         ) : products && filteredProducts.length === 0 ? (
           <View style={styles.stateCenter}>
             <Feather name="package" size={38} color="#888C7F" style={{ marginBottom: 10 }} />
@@ -477,13 +497,31 @@ const styles = StyleSheet.create({
   filtersChevron: {
     // Right-aligned chevron (the web disclosure rotates the same one)
   },
-  filterPanel: {
+  filterWrapper: {
+    position: "relative",
+  },
+  // The open panel: an absolutely positioned overlay that sits on top
+  // of the product cards (own scroll when tall) without shifting them.
+  filterPanelOverlay: {
+    position: "absolute",
+    top: 52,
+    left: 0,
+    right: 0,
+    maxHeight: 420,
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#EAE7DF",
+    overflow: "hidden",
+    zIndex: 30,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+  },
+  filterPanel: {
     padding: 16,
-    marginBottom: 16,
   },
   filterSectionTitle: {
     fontSize: 13,
@@ -493,35 +531,6 @@ const styles = StyleSheet.create({
   },
   brandHeading: {
     marginTop: 16,
-  },
-  chipRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 2,
-  },
-  chip: {
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F2F2EB",
-    borderWidth: 1,
-    borderColor: "#E3E1D8",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 14,
-  },
-  chipSelected: {
-    backgroundColor: "#FEF2EE",
-    borderColor: "#E05326",
-  },
-  chipText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#4A4D43",
-  },
-  chipTextSelected: {
-    color: "#E05326",
-    fontWeight: "700",
   },
   brandGrid: {
     flexDirection: "row",
@@ -633,11 +642,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 40,
     paddingHorizontal: 20,
-  },
-  stateText: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 10,
   },
   emptyTitle: {
     fontSize: 16,

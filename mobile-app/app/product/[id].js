@@ -5,7 +5,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   StyleSheet,
   StatusBar,
@@ -17,6 +16,7 @@ import { useCart } from "../../context/CartContext";
 import { API_URL } from "../../config";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 import PleaseLoginModal from "../../components/PleaseLoginModal";
+import { SkeletonDetail } from "../../components/Skeleton";
 
 // Format a number like 1290000 into "Rp 1.290.000"
 function formatPrice(value) {
@@ -107,10 +107,11 @@ export default function ProductDetailScreen() {
   // --- Loading State ---
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={styles.screenWrapper}>
         <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
-        <ActivityIndicator size="large" color="#E05326" />
-        <Text style={styles.statusText}>Loading product details…</Text>
+        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+          <SkeletonDetail />
+        </ScrollView>
       </View>
     );
   }
@@ -321,11 +322,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 24,
     backgroundColor: "#FAF9F6",
-  },
-  statusText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: "#888C7F",
   },
   errorIcon: {
     fontSize: 40,

@@ -470,15 +470,33 @@ export default function CheckoutWizardScreen() {
           </View>
         ) : null}
 
-        {/* Progress: 3 numbered circles + labels (web ProgressBar) */}
+        {/* Progress: 3 numbered circles + labels, centered on equal
+            thirds. The two connector segments sit absolutely behind the
+            circles and span the gap between adjacent centers. They share
+            a position:relative row that is exactly the content width, so
+            their percentage offsets align with the circle centers. */}
         <View style={styles.progressCard} accessibilityLabel="Checkout progress">
-          {["Personal info", "Shipping address", "Payment"].map((label, i) => {
-            const n = i + 1;
-            const done = step > n;
-            const active = step === n;
-            return (
-              <View key={label} style={styles.progressItem}>
-                <View style={styles.progressCircleRow}>
+          <View style={styles.progressRow}>
+            <View
+              style={[
+                styles.progressSegment,
+                styles.segmentOne,
+                step > 1 && styles.progressSegmentDone,
+              ]}
+            />
+            <View
+              style={[
+                styles.progressSegment,
+                styles.segmentTwo,
+                step > 2 && styles.progressSegmentDone,
+              ]}
+            />
+            {["Personal info", "Shipping address", "Payment"].map((label, i) => {
+              const n = i + 1;
+              const done = step > n;
+              const active = step === n;
+              return (
+                <View key={label} style={styles.progressItem}>
                   <View
                     style={[
                       styles.progressCircle,
@@ -494,26 +512,18 @@ export default function CheckoutWizardScreen() {
                       {n}
                     </Text>
                   </View>
-                  {i < 2 ? (
-                    <View
-                      style={[
-                        styles.progressConnector,
-                        step > n && styles.progressConnectorDone,
-                      ]}
-                    />
-                  ) : null}
+                  <Text
+                    style={[
+                      styles.progressLabel,
+                      active && styles.progressLabelActive,
+                    ]}
+                  >
+                    {label}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.progressLabel,
-                    active && styles.progressLabelActive,
-                  ]}
-                >
-                  {label}
-                </Text>
-              </View>
-            );
-          })}
+              );
+            })}
+          </View>
         </View>
 
         {/* Step 1: Personal information */}
@@ -1093,22 +1103,43 @@ const styles = StyleSheet.create({
     borderColor: "#EAE7DF",
     paddingVertical: 14,
     paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "flex-start",
     marginBottom: 16,
+  },
+  // Full-content-width row. It is the containing block for the connector
+  // segments (position: relative), so their percentage offsets line up
+  // with the centered circle centers.
+  progressRow: {
+    position: "relative",
+    flexDirection: "row",
   },
   progressItem: {
     flex: 1,
     alignItems: "center",
   },
-  // Circle row: the fixed circle + a connector that stretches to the
-  // item's right edge (the next item's circle continues the line)
-  progressCircleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "stretch",
+  // Connector segments: absolutely positioned behind the circles, centered
+  // on the circle row's vertical midline (14 half-circle - 1 half-line,
+  // from the row's top). Each spans the gap between two adjacent circle
+  // centers (width thirds at 1/6, 1/2, 5/6 of the row).
+  progressSegment: {
+    position: "absolute",
+    top: 13,
+    height: 2,
+    backgroundColor: "#D6D9CE",
+  },
+  segmentOne: {
+    left: "16.66%",
+    right: "50%",
+  },
+  segmentTwo: {
+    left: "50%",
+    right: "16.66%",
+  },
+  progressSegmentDone: {
+    backgroundColor: "#E05326",
   },
   progressCircle: {
+    position: "relative",
+    zIndex: 1,
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -1129,16 +1160,6 @@ const styles = StyleSheet.create({
   },
   progressNumberDone: {
     color: "#FFFFFF",
-  },
-  progressConnector: {
-    flex: 1,
-    height: 2,
-    backgroundColor: "#D6D9CE",
-    marginLeft: 6,
-    marginRight: 6,
-  },
-  progressConnectorDone: {
-    backgroundColor: "#E05326",
   },
   progressLabel: {
     fontSize: 10,
