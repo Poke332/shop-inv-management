@@ -9,7 +9,7 @@ const router = Router()
 router.use(requireAuth, requireRole('buyer'))
 router.get('/mine', async (req, res) => {
   const rows = await sql`SELECT * FROM orders WHERE buyer_id = ${req.user.id} ORDER BY created_at DESC, id DESC`
-  res.json(await Promise.all(rows.map(order)))
+  res.json(await Promise.all(rows.map(row => order(row))))
 })
 router.post('/', async (req, res) => res.status(201).json(await checkout(req.user, req.body)))
 router.post('/:id/reviews', async (req, res) => {

@@ -6,6 +6,7 @@ import authRouter from './routes/auth.js'
 import categoriesRouter from './routes/categories.js'
 import productsRouter from './routes/products.js'
 import ordersRouter from './routes/orders.js'
+import warehouseRouter from './routes/warehouse.js'
 import opsRouter from './routes/ops.js'
 import chatRouter from './routes/chat.js'
 
@@ -17,6 +18,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/categories', categoriesRouter)
 app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
+app.use('/api/warehouse', warehouseRouter)
 app.use('/api/ops', opsRouter)
 app.use('/api/chat', chatRouter)
 // Serve uploaded product images statically.

@@ -26,6 +26,7 @@ import { ProductsPage } from './pages/ProductsPage.jsx'
 import { ProductEditPage } from './pages/ProductEditPage.jsx'
 import { ReviewsPage } from './pages/ReviewsPage.jsx'
 import { UsersPage } from './pages/UsersPage.jsx'
+import { WarehousePage } from './pages/WarehousePage.jsx'
 
 /**
  * The single route tree (docs/IMPLEMENTATION.md §route table, the source
@@ -104,6 +105,7 @@ export default function AppRoutes() {
           <Route path="/ops/orders" element={<OngoingOrdersPage />} />
           <Route path="/ops/orders/:id" element={<OngoingOrderDetailPage />} />
           <Route path="/ops/inventory" element={<InventoryPage />} />
+          <Route path="/ops/warehouse" element={<WarehousePage />} />
           {/* /ops/products lives in the base ops tier: staff open the
               read-only view; the editor deep-link + the review panel
               below stay manager/admin. */}

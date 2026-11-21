@@ -22,7 +22,7 @@ router.get('/orders', async (req, res) => {
   const rows = status === 'all'
     ? await sql`SELECT * FROM orders ORDER BY created_at DESC, id DESC`
     : await sql`SELECT * FROM orders WHERE status = ${status} ORDER BY created_at DESC, id DESC`
-  res.json({ items: await Promise.all(rows.map(order)), tabs })
+  res.json({ items: await Promise.all(rows.map(row => order(row))), tabs })
 })
 router.patch('/orders/:id/status', async (req, res) => {
   const result = await sql.begin(async () => {
@@ -48,7 +48,7 @@ router.get('/stock', async (_req, res) => {
 router.patch('/stock/:id', manager, async (req, res) => {
   const qty = integer(req.body?.qty, 'Stock', { max: 1000000 })
   // stockChange carries no transaction of its own; the route is the top-level caller.
-  res.json(await sql.begin(() => stockChange(req.params.id, qty, req.user.id)))
+  res.json(await sql.begin(tx => stockChange(req.params.id, qty, req.user.id, tx)))
 })
 router.post('/products', manager, async (req, res) => res.status(201).json(await saveProduct(null, req.body, req.user.id)))
 router.patch('/products/:id', manager, async (req, res) => res.json(await saveProduct(req.params.id, req.body, req.user.id)))

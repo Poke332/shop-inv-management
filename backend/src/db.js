@@ -12,12 +12,15 @@ mkdirSync(uploadsDir, { recursive: true })
 const url = process.env.DATABASE_URL
 if (!url) throw new Error('DATABASE_URL must be set (see backend/.env.example)')
 
+const poolSize = Number(process.env.DB_POOL_MAX || 25)
+if (!Number.isInteger(poolSize) || poolSize < 1 || poolSize > 100) throw new Error('DB_POOL_MAX must be an integer from 1 to 100')
+
 // int4/int8 decode as JS numbers so money and stock arithmetic stays plain arithmetic.
 const sql = postgres(url, {
   // The product list fans out one spec lookup per row; size the pool to absorb
   // that concurrency and recycle connections so a half-open slot left by the
   // pooler's idle reclaim can't wedge every subsequent DB request.
-  max: 25,
+  max: poolSize,
   connection_timeout: 5, // seconds to establish a connection; fail a stuck one fast
   idle_timeout: 2000, // close idle clients (ms) before the pooler reclaims them
   max_lifetime: 60000, // recycle each connection after 60s (ms)

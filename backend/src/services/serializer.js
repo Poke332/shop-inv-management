@@ -8,7 +8,7 @@ function displayDate(value) {
   })
 }
 
-export async function product(row) {
+export async function product(row, connection = sql) {
   if (!row) fail(404, 'Product not found.')
   return {
     id: row.id, name: row.name, brand: row.brand, category: row.category_slug,
@@ -16,17 +16,17 @@ export async function product(row) {
     stock: row.stock, lowStockThreshold: row.low_stock_threshold,
     featured: Boolean(row.featured), onSale: Boolean(row.on_sale),
     description: row.description, image: row.image, createdAt: row.created_at,
-    specs: await sql`SELECT key,value FROM product_specs WHERE product_id = ${row.id} ORDER BY position`,
+    specs: await connection`SELECT key,value FROM product_specs WHERE product_id = ${row.id} ORDER BY position`,
   }
 }
 
-export async function order(row) {
+export async function order(row, connection = sql) {
   if (!row) fail(404, 'Order not found.')
-  const [buyer] = await sql`SELECT username FROM users WHERE id = ${row.buyer_id}`
+  const [buyer] = await connection`SELECT username FROM users WHERE id = ${row.buyer_id}`
   // Order lines carry no insertion-order column; product_id is the explicit ordering.
-  const lines = await sql`SELECT product_id AS "productId", product_name AS name,
+  const lines = await connection`SELECT product_id AS "productId", product_name AS name,
     unit_price AS "unitPrice", qty, amount FROM order_lines WHERE order_id = ${row.id} ORDER BY product_id`
-  const reviewed = (await sql`SELECT product_id FROM reviews WHERE order_id = ${row.id} AND buyer_id = ${row.buyer_id}`)
+  const reviewed = (await connection`SELECT product_id FROM reviews WHERE order_id = ${row.id} AND buyer_id = ${row.buyer_id}`)
     .map(item => item.product_id)
   return {
     id: row.reference, buyer: buyer.username, status: row.status,

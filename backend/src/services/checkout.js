@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import sql from '../db.js'
 import { order } from './serializer.js'
 import { fail, text, integer } from './validation.js'
+import { settleProductAllocations } from './warehouse.js'
 
 export function checkout(buyer, payload = {}) {
   const requestId = text(payload.id, 'Request ID', { max: 100 })
@@ -33,16 +34,16 @@ export function checkout(buyer, payload = {}) {
   const canonical = { buyerContact, shippingAddress, paymentMethod, lines }
   const fingerprint = createHash('sha256').update(JSON.stringify(canonical)).digest('hex')
 
-  return sql.begin(async () => {
-    const [existing] = await sql`SELECT * FROM orders WHERE buyer_id = ${buyer.id} AND client_request_id = ${requestId}`
+  return sql.begin(async tx => {
+    const [existing] = await tx`SELECT * FROM orders WHERE buyer_id = ${buyer.id} AND client_request_id = ${requestId}`
     if (existing) {
       if (existing.request_hash !== fingerprint) fail(409, 'Request ID sudah dipakai untuk isi berbeda.', { code: 'IDEMPOTENCY_CONFLICT' })
-      return order(existing)
+      return order(existing, tx)
     }
     const conflicts = []
     const snapshots = []
     for (const line of lines) {
-      const [row] = await sql`SELECT * FROM products WHERE id = ${line.productId}`
+      const [row] = await tx`SELECT * FROM products WHERE id = ${line.productId} FOR UPDATE`
       if (!row || row.stock < line.qty) conflicts.push({ productId: line.productId, available: row?.stock || 0, requested: line.qty })
       snapshots.push({ ...line, row })
     }
@@ -52,7 +53,7 @@ export function checkout(buyer, payload = {}) {
     const shipping = 0 // Matches the current checkout behavior; do not accept shipping/price from the browser.
     const now = new Date().toISOString()
     const reference = 'WB-' + randomUUID()
-    const [inserted] = await sql`INSERT INTO orders
+    const [inserted] = await tx`INSERT INTO orders
       (reference,buyer_id,client_request_id,request_hash,buyer_contact,shipping_address,payment_method,subtotal,shipping,total,created_at,updated_at)
       VALUES (${reference}, ${buyer.id}, ${requestId}, ${fingerprint},
         ${JSON.stringify(buyerContact)}, ${JSON.stringify(shippingAddress)}, ${paymentMethod}, ${subtotal}, ${shipping}, ${subtotal + shipping}, ${now}, ${now})
@@ -61,14 +62,15 @@ export function checkout(buyer, payload = {}) {
     for (const item of snapshots) {
       // The guard and the decrement stay in one statement: zero affected rows
       // means the stock moved since the snapshot, so the whole checkout rolls back.
-      const guarded = await sql`UPDATE products SET stock = stock - ${item.qty} WHERE id = ${item.productId} AND stock >= ${item.qty}`
+      const guarded = await tx`UPDATE products SET stock = stock - ${item.qty} WHERE id = ${item.productId} AND stock >= ${item.qty}`
       if (guarded.count === 0) fail(409, 'Stock has changed.', { code: 'STOCK_CONFLICT', conflicts: [{ productId: item.productId, available: 0, requested: item.qty }] })
-      await sql`INSERT INTO order_lines(order_id,product_id,product_name,unit_price,qty,amount)
+      await settleProductAllocations(tx, item.productId, { actorId: buyer.id, orderId: id, reason: 'settle-order' })
+      await tx`INSERT INTO order_lines(order_id,product_id,product_name,unit_price,qty,amount)
         VALUES (${id}, ${item.productId}, ${item.row.name}, ${item.row.price}, ${item.qty}, ${item.row.price * item.qty})`
-      await sql`INSERT INTO stock_movements(product_id,actor_id,delta,reason,order_id,created_at)
+      await tx`INSERT INTO stock_movements(product_id,actor_id,delta,reason,order_id,created_at)
         VALUES (${item.productId}, ${buyer.id}, ${-item.qty}, 'order-decrement', ${id}, ${now})`
     }
-    const [orderRow] = await sql`SELECT * FROM orders WHERE id = ${id}`
-    return order(orderRow)
+    const [orderRow] = await tx`SELECT * FROM orders WHERE id = ${id}`
+    return order(orderRow, tx)
   })
 }
