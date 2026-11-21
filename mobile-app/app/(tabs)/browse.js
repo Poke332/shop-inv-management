@@ -14,6 +14,7 @@ import { API_URL } from "../../config";
 import { FALLBACK_PRODUCTS } from "../../data/fallbackProducts";
 import ProductCard from "../../components/ProductCard";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
+import { TOP_BAR_HEIGHT } from "../../components/TopBar";
 
 // Minimal catalog screen: category filter + full product grid.
 // Reuses the home screen's data-fetch pattern and visual language.
@@ -83,7 +84,11 @@ export default function BrowseScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: BOTTOM_NAV_HEIGHT + insets.bottom },
+          {
+            // Clear the pinned top bar and the pinned bottom nav bar
+            paddingTop: TOP_BAR_HEIGHT + insets.top + 16,
+            paddingBottom: BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -167,7 +172,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
   },
   headingBlock: {
     marginBottom: 14,

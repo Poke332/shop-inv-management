@@ -7,12 +7,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
+  StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
+import { TOP_BAR_HEIGHT } from "../../components/TopBar";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
@@ -100,6 +102,7 @@ export default function MyOrdersScreen() {
   if (!isAuthenticated) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
         <Text style={styles.emptyIcon}>🔒</Text>
         <Text style={styles.emptyTitle}>Sign In to View Orders</Text>
         <Text style={styles.emptySubtitle}>
@@ -119,6 +122,7 @@ export default function MyOrdersScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
         <ActivityIndicator size="large" color="#E05326" />
         <Text style={styles.statusText}>Loading your orders…</Text>
       </View>
@@ -129,6 +133,7 @@ export default function MyOrdersScreen() {
   if (error && orders.length === 0) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
         <Text style={styles.emptyIcon}>⚠️</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.primaryButton} onPress={fetchOrders}>
@@ -142,6 +147,7 @@ export default function MyOrdersScreen() {
   if (orders.length === 0) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
         <Text style={styles.emptyIcon}>📦</Text>
         <Text style={styles.emptyTitle}>No Orders Placed Yet</Text>
         <Text style={styles.emptySubtitle}>
@@ -206,14 +212,19 @@ export default function MyOrdersScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
       <FlatList
         data={orders}
         keyExtractor={(item) => String(item.id || item.reference)}
         renderItem={renderOrderItem}
         contentContainerStyle={[
           styles.listContent,
-          // Keep the order list clear of the pinned bottom nav bar
-          { paddingBottom: 32 + BOTTOM_NAV_HEIGHT + insets.bottom },
+          // Keep the order list clear of the pinned top bar and the
+          // pinned bottom nav bar
+          {
+            paddingTop: TOP_BAR_HEIGHT + insets.top + 16,
+            paddingBottom: 32 + BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
         ]}
         refreshControl={
           <RefreshControl
@@ -231,15 +242,15 @@ export default function MyOrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FAF9F6",
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
     paddingBottom: 32,
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FAF9F6",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -251,19 +262,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#888C7F",
     textAlign: "center",
     marginBottom: 20,
   },
   statusText: {
     marginTop: 12,
     fontSize: 15,
-    color: "#6B7280",
+    color: "#888C7F",
   },
   errorText: {
     fontSize: 15,
@@ -284,11 +295,11 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#EAE7DF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -303,11 +314,11 @@ const styles = StyleSheet.create({
   orderRef: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
   },
   orderDate: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#888C7F",
     marginTop: 2,
   },
   statusBadge: {
@@ -321,7 +332,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F2F2EB",
     marginVertical: 12,
   },
   linesContainer: {
@@ -335,18 +346,18 @@ const styles = StyleSheet.create({
   lineName: {
     flex: 1,
     fontSize: 13,
-    color: "#374151",
+    color: "#4A4D43",
     marginRight: 8,
   },
   lineQty: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#888C7F",
     marginRight: 12,
   },
   lineAmount: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#111827",
+    color: "#181A15",
   },
   orderFooter: {
     flexDirection: "row",
@@ -355,7 +366,7 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    color: "#4B5563",
+    color: "#4A4D43",
     fontWeight: "500",
   },
   totalAmount: {

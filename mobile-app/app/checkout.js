@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { API_URL } from "../config";
 import { BOTTOM_NAV_HEIGHT } from "../components/BottomNav";
+import { TOP_BAR_HEIGHT } from "../components/TopBar";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
@@ -193,6 +195,7 @@ export default function CheckoutScreen() {
   if (!cart || cart.length === 0) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
         <Text style={styles.emptyIcon}>🛒</Text>
         <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
         <Text style={styles.emptySubtitle}>
@@ -213,11 +216,16 @@ export default function CheckoutScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          // Keep the checkout form clear of the pinned bottom nav bar
-          { paddingBottom: 40 + BOTTOM_NAV_HEIGHT + insets.bottom },
+          // Clear the pinned top bar, and keep the form clear of the
+          // pinned bottom nav bar
+          {
+            paddingTop: TOP_BAR_HEIGHT + insets.top + 16,
+            paddingBottom: 40 + BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
       >
@@ -472,7 +480,7 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FAF9F6",
   },
   scrollContent: {
     padding: 16,
@@ -480,7 +488,7 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FAF9F6",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -492,12 +500,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#888C7F",
     textAlign: "center",
     marginBottom: 24,
   },
@@ -550,10 +558,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#EF4444",
+    borderLeftColor: "#DC2626",
   },
   errorBannerText: {
-    color: "#B91C1C",
+    color: "#DC2626",
     fontSize: 13,
     fontWeight: "500",
   },
@@ -563,7 +571,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#EAE7DF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -573,7 +581,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
     marginBottom: 14,
   },
   itemRow: {
@@ -585,10 +593,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 8,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F2F2EB",
   },
   imagePlaceholder: {
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#EAE7DF",
   },
   itemInfo: {
     flex: 1,
@@ -596,14 +604,14 @@ const styles = StyleSheet.create({
   },
   itemBrand: {
     fontSize: 11,
-    color: "#6B7280",
+    color: "#888C7F",
     textTransform: "uppercase",
     fontWeight: "600",
   },
   itemName: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#1F2937",
+    color: "#1A1A1A",
     marginTop: 1,
   },
   itemPriceQty: {
@@ -614,7 +622,7 @@ const styles = StyleSheet.create({
   },
   itemPrice: {
     fontSize: 12,
-    color: "#4B5563",
+    color: "#4A4D43",
   },
   itemQty: {
     fontSize: 12,
@@ -624,11 +632,11 @@ const styles = StyleSheet.create({
   itemLineTotal: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
   },
   divider: {
     height: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F2F2EB",
     marginVertical: 12,
   },
   totalRow: {
@@ -639,12 +647,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#888C7F",
   },
   totalValue: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1F2937",
+    color: "#1A1A1A",
   },
   freeShippingBadge: {
     fontSize: 12,
@@ -659,12 +667,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: "#EAE7DF",
   },
   grandTotalLabel: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
   },
   grandTotalValue: {
     fontSize: 18,
@@ -680,18 +688,18 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#374151",
+    color: "#4A4D43",
     marginBottom: 4,
   },
   input: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: "#E3E1D8",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: "#111827",
+    color: "#181A15",
   },
   multilineInput: {
     height: 72,
@@ -699,7 +707,7 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 11,
-    color: "#6B7280",
+    color: "#888C7F",
     marginTop: 4,
   },
   paymentOption: {
@@ -708,7 +716,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: "#E5E7EB",
+    borderColor: "#EAE7DF",
     marginBottom: 10,
     backgroundColor: "#FFFFFF",
   },
@@ -721,7 +729,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#9CA3AF",
+    borderColor: "#9A9E91",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -738,11 +746,11 @@ const styles = StyleSheet.create({
   paymentTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
   },
   paymentDesc: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#888C7F",
     marginTop: 2,
   },
   placeOrderButton: {

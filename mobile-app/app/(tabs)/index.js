@@ -17,7 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 
 // Modular Components
-import HomeHeader, { TOP_BAR_HEIGHT } from "../../components/HomeHeader";
+import { TOP_BAR_HEIGHT } from "../../components/TopBar";
+import { useSearch } from "../../context/SearchContext";
 import HeroSection from "../../components/HeroSection";
 import BrandTicker from "../../components/BrandTicker";
 import CategoryGrid from "../../components/CategoryGrid";
@@ -27,15 +28,18 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
   const productSectionY = useRef(0);
+  const { query, setQuery, homeScrollRef } = useSearch();
 
   // Initialize with fallback catalog data so products render immediately without lag
   const [products, setProducts] = useState(FALLBACK_PRODUCTS);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Filter & Search states
+  // Filter & Search states — the search query lives in the shared
+  // context so the pinned top bar (rendered from the root layout) can
+  // drive it on every screen; home applies it to the product grid.
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchQuery = query;
 
   const categoriesFilter = [
     { slug: "all", label: "All picks" },
@@ -81,6 +85,22 @@ export default function HomeScreen() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Expose the products-scroll action to the shared top bar (search
+  // submit on home); runs after every render so the closure stays
+  // current.
+  useEffect(() => {
+    homeScrollRef.current = scrollToProducts;
+  });
+
+  // Arriving on home from another screen with a pending search: jump
+  // straight to the filtered results.
+  useEffect(() => {
+    if (query.trim()) {
+      setTimeout(scrollToProducts, 350);
+    }
+    // Mount-only behavior; the pending query is read once.
   }, []);
 
   async function handleRefresh() {
@@ -179,7 +199,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => {
                 setSelectedCategory("all");
-                setSearchQuery("");
+                setQuery("");
               }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={styles.shopEverythingBtn}
@@ -234,7 +254,7 @@ export default function HomeScreen() {
                 style={styles.retryBtn}
                 onPress={() => {
                   setSelectedCategory("all");
-                  setSearchQuery("");
+                  setQuery("");
                 }}
               >
                 <Text style={styles.retryBtnText}>Browse all products</Text>
@@ -249,14 +269,6 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
-
-      {/* Pinned top bar (title + full-remaining-width search), rendered
-          above the scroll content. */}
-      <HomeHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={scrollToProducts}
-      />
     </View>
   );
 }

@@ -6,7 +6,7 @@ import {
   Pressable,
   StyleSheet,
 } from "react-native";
-import { useSegments, useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -49,18 +49,23 @@ const NAV_BUTTONS = [
 
 export default function BottomNav() {
   const router = useRouter();
-  const segments = useSegments();
-  const current = segments[0] || "";
+  const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuth();
   const { cartCount } = useCart();
   const insets = useSafeAreaInsets();
   const [popoutOpen, setPopoutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
+  // Active-route highlight must track the CURRENT page. Matching against
+  // the normalized pathname (not useSegments, which on web returns the
+  // route group "(tabs)" as a literal segment) keeps the highlight on
+  // the screen the user is actually on.
   function isActive(key) {
-    if (key === "home") return current === "";
-    if (key === "cart") return current === "checkout";
-    return current === key;
+    if (key === "home") return pathname === "/";
+    if (key === "browse") return pathname === "/browse";
+    if (key === "orders") return pathname === "/orders";
+    if (key === "cart") return pathname === "/checkout";
+    return false;
   }
 
   function handleAccountPress() {

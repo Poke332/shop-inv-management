@@ -30,10 +30,7 @@ export default function TabsLayout() {
         name="orders"
         options={{
           title: "My Orders",
-          headerShown: true,
-          headerStyle: { backgroundColor: "#FAF9F6" },
-          headerTintColor: "#181A15",
-          headerTitleStyle: { fontWeight: "700" },
+          headerShown: false,
         }}
       />
     </Tabs>

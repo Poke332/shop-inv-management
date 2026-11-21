@@ -1,13 +1,9 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { usePathname, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSearch } from "../context/SearchContext";
 
 // Fixed top bar content height (the title + search row, excluding the
 // safe-area top inset). Content screens pad their scroll containers by
@@ -15,14 +11,26 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 // covers page content.
 export const TOP_BAR_HEIGHT = 44;
 
-// Pinned top bar: the "Sunset Electronics" title on the left and a
-// search field spanning all remaining width. No other controls.
-export default function HomeHeader({
-  searchQuery,
-  onSearchChange,
-  onSearchSubmit,
-}) {
+// Pinned top bar shared by every standard screen: the "Sunset
+// Electronics" title on the left and a search field spanning all
+// remaining width. Rendered once from the root layout, so every page
+// shows the same bar.
+export default function TopBar() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { query, setQuery, homeScrollRef } = useSearch();
+
+  // Home is the search-results surface: on home the submit scrolls the
+  // product grid into view; from any other screen it navigates to home
+  // so the query filters the catalog there.
+  function handleSearchSubmit() {
+    if (pathname === "/") {
+      homeScrollRef.current?.();
+    } else {
+      router.push("/");
+    }
+  }
 
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
@@ -43,13 +51,13 @@ export default function HomeHeader({
             accessibilityLabel="Search products"
             placeholder="Find your next favorite"
             placeholderTextColor="#7C8071"
-            value={searchQuery}
-            onChangeText={onSearchChange}
+            value={query}
+            onChangeText={setQuery}
             returnKeyType="search"
           />
           <TouchableOpacity
             style={styles.searchSubmitBtn}
-            onPress={onSearchSubmit}
+            onPress={handleSearchSubmit}
             hitSlop={8}
             accessibilityLabel="Submit search"
           >
