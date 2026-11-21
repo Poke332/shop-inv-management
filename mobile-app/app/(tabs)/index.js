@@ -17,13 +17,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 
 // Modular Components
-import AnnouncementBar from "../../components/AnnouncementBar";
-import HomeHeader from "../../components/HomeHeader";
+import HomeHeader, { TOP_BAR_HEIGHT } from "../../components/HomeHeader";
 import HeroSection from "../../components/HeroSection";
 import BrandTicker from "../../components/BrandTicker";
 import CategoryGrid from "../../components/CategoryGrid";
 import ProductCard from "../../components/ProductCard";
-import PromoBanner from "../../components/PromoBanner";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -91,11 +89,12 @@ export default function HomeScreen() {
     setRefreshing(false);
   }
 
-  // Scroll smoothly to the product section
+  // Scroll smoothly to the product section (offset accounts for the
+  // pinned top bar overlapping the top of the viewport)
   function scrollToProducts() {
     if (scrollRef.current && productSectionY.current > 0) {
       scrollRef.current.scrollTo({
-        y: productSectionY.current - 10,
+        y: productSectionY.current - TOP_BAR_HEIGHT - insets.top - 10,
         animated: true,
       });
     }
@@ -119,29 +118,21 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F2F0EB" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
 
       {/* Explicitly guarantee native navigation header is hidden */}
       <Stack.Screen options={{ headerShown: false, title: "" }} />
-
-      {/* 1. TOP ANNOUNCEMENT BAR (dengan safe-area inset top rapat) */}
-      <AnnouncementBar />
-
-      {/* 2. APP HEADER & NAVIGATION (Wordmark, Profile, Bag, Tabs, Search) */}
-      <HomeHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSelectCategory={handleSelectCategory}
-        onShopNowPress={scrollToProducts}
-      />
 
       <ScrollView
         ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={[
-          styles.scrollContent,
-          // Keep scroll content clear of the pinned bottom nav bar
-          { paddingBottom: 24 + BOTTOM_NAV_HEIGHT + insets.bottom },
+          // Keep scroll content clear of the pinned top bar and the
+          // pinned bottom nav bar
+          {
+            paddingTop: TOP_BAR_HEIGHT + insets.top,
+            paddingBottom: 24 + BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -153,22 +144,22 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* 3. HERO BANNER SECTION (Card Cream #F6F4EE, Heading italic, Dual Buttons, Featured Product) */}
+        {/* Hero banner section (cream card, featured product) */}
         <HeroSection
           onExploreAudio={() => handleSelectCategory("audio")}
           onFindUpgrade={scrollToProducts}
         />
 
-        {/* 4. BRAND LOGO TICKER (SONY, Anker, logitech, SAMSUNG, JBL, ASUS) */}
+        {/* Brand logo ticker */}
         <BrandTicker />
 
-        {/* 5. CATEGORY GRID SECTION (FIND YOUR THING - 6 Kategori dengan Feather Vector Icons) */}
+        {/* Category grid section */}
         <CategoryGrid
           onSelectCategory={handleSelectCategory}
           selectedCategory={selectedCategory}
         />
 
-        {/* 6. PRODUCT SHOWCASE / FILTER SECTION (THE GOOD STUFF) */}
+        {/* Product showcase / filter section */}
         <View
           style={styles.productsSection}
           onLayout={(event) => {
@@ -257,10 +248,15 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-
-        {/* 7. PROMOTIONAL BANNER BOTTOM SECTION (MAKE ROOM FOR BETTER) */}
-        <PromoBanner onUpgradePress={scrollToProducts} />
       </ScrollView>
+
+      {/* Pinned top bar (title + full-remaining-width search), rendered
+          above the scroll content. */}
+      <HomeHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={scrollToProducts}
+      />
     </View>
   );
 }
@@ -273,9 +269,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: "#FAF9F6",
-  },
-  scrollContent: {
-    paddingBottom: 24,
   },
   productsSection: {
     paddingHorizontal: 16,
