@@ -5,300 +5,286 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { useFormKeyboard } from "../hooks/useFormKeyboard";
+
+// Same email format rule the web register page validates against.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
   // Form states
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
 
   // UI & validation states
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [emailErr, setEmailErr] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
-  // Client-side validation function
-  function validateForm() {
-    // 1. Check for empty fields
-    if (!username.trim()) {
-      return "Username cannot be empty.";
-    }
-    if (username.trim().length > 80) {
-      return "Username must be under 80 characters.";
-    }
-    if (!email.trim()) {
-      return "Email cannot be empty.";
-    }
+  // Same enable-submit rule as the web register page.
+  const nameValid = name.trim().length > 0;
+  const emailValid = EMAIL_RE.test(email.trim());
+  const pwValid = password.length >= 8;
+  const confirmErr =
+    confirm && confirm !== password ? "Passwords do not match." : null;
+  const canSubmit =
+    nameValid && emailValid && pwValid && confirm.length > 0 && !confirmErr;
 
-    // 2. Format email check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      return "Please enter a valid email address.";
-    }
-
-    // 3. Password length check (min 8 characters)
-    if (!password) {
-      return "Password cannot be empty.";
-    }
-    if (password.length < 8) {
-      return "Password must be at least 8 characters long.";
-    }
-
-    // 4. Confirm password match check
-    if (!confirmPassword) {
-      return "Please confirm your password.";
-    }
-    if (password !== confirmPassword) {
-      return "Passwords do not match.";
-    }
-
-    return null;
-  }
-
-  // Handle register submission
   async function handleRegister() {
-    setErrorMessage("");
-
-    const validationError = validateForm();
-    if (validationError) {
-      setErrorMessage(validationError);
-      Alert.alert("Validation Error", validationError);
-      return;
-    }
-
+    if (loading || !canSubmit) return;
+    setEmailErr(null);
     setLoading(true);
-
     try {
-      await register(username.trim(), email.trim(), password);
-
-      // Show success alert and navigate automatically to /login
-      Alert.alert(
-        "Registration Successful",
-        "Your account has been created! Please log in to continue.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/login"),
-          },
-        ]
-      );
+      // register() signs the session in on success; success = the redirect
+      // to the buyer home, no confirmation screen (like the web page).
+      await register(name.trim(), email.trim(), password);
+      router.replace("/");
     } catch (err) {
-      const msg = err.message || "Failed to register. Please try again.";
-      setErrorMessage(msg);
-      Alert.alert("Registration Failed", msg);
+      // 409 duplicate email and any other failure land under the email
+      // field, like the web register page.
+      setEmailErr(err.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.bottom : 0}
       >
-        {/* Brand / Header */}
-        <View style={styles.brandContainer}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoBadgeText}>SE</Text>
-          </View>
-          <Text style={styles.brandTitle}>Sunset Electronics</Text>
-          <Text style={styles.brandSubtitle}>Create your Buyer Account</Text>
-        </View>
-
-        {/* Card Form */}
-        <View style={styles.card}>
-          {/* Error Banner */}
-          {errorMessage ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorBannerText}>{errorMessage}</Text>
-            </View>
-          ) : null}
-
-          {/* Username Field */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. jordan_w"
-              placeholderTextColor="#9CA3AF"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={username}
-              onChangeText={(text) => {
-                setUsername(text);
-                if (errorMessage) setErrorMessage("");
-              }}
-              editable={!loading}
-            />
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Brand / Header */}
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandWordmark}>Sunset Electronics</Text>
+            <Text style={styles.brandTitle}>Create account</Text>
           </View>
 
-          {/* Email Field */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (errorMessage) setErrorMessage("");
-              }}
-              editable={!loading}
-            />
-          </View>
-
-          {/* Password Field */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordWrapper}>
+          {/* Card Form */}
+          <View style={styles.card}>
+            {/* Name */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Name</Text>
               <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="At least 8 characters"
+                style={styles.input}
+                accessibilityLabel="Name"
+                onFocus={revealFocusedInput}
+                placeholder="Jordan Wijaya"
                 placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPassword}
-                value={password}
+                autoCapitalize="words"
+                autoCorrect={false}
+                textContentType="name"
+                value={name}
+                onChangeText={setName}
+                editable={!loading}
+              />
+            </View>
+
+            {/* Email */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={[styles.input, emailErr ? styles.inputInvalid : null]}
+                accessibilityLabel="Email"
+                onFocus={revealFocusedInput}
+                placeholder="you@example.com"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="emailAddress"
+                value={email}
                 onChangeText={(text) => {
-                  setPassword(text);
-                  if (errorMessage) setErrorMessage("");
+                  setEmail(text);
+                  if (emailErr) setEmailErr(null);
+                }}
+                onBlur={() => {
+                  setEmailErr(
+                    email && !EMAIL_RE.test(email.trim())
+                      ? "Enter a valid email address."
+                      : null
+                  );
                 }}
                 editable={!loading}
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Text style={styles.eyeButtonText}>
-                  {showPassword ? "Hide" : "Show"}
+              {emailErr ? (
+                <Text style={styles.fieldErrorText} accessibilityRole="alert">
+                  {emailErr}
                 </Text>
-              </TouchableOpacity>
+              ) : null}
             </View>
+
+            {/* Password */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordWrapper}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  accessibilityLabel="Password"
+                  onFocus={revealFocusedInput}
+                  placeholder="At least 8 characters"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!showPassword}
+                  textContentType="newPassword"
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                />
+                {/* Bordered show/hide toggle box, matching the web affordance */}
+                <TouchableOpacity
+                  style={styles.pwToggle}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  <Text style={styles.pwToggleText}>
+                    {showPassword ? "hide" : "show"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Confirm password */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Confirm password</Text>
+              <View style={styles.passwordWrapper}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.passwordInput,
+                    confirmErr ? styles.inputInvalid : null,
+                  ]}
+                  accessibilityLabel="Confirm password"
+                  onFocus={revealFocusedInput}
+                  secureTextEntry={!showConfirm}
+                  textContentType="newPassword"
+                  value={confirm}
+                  onChangeText={(text) => {
+                    setConfirm(text);
+                  }}
+                  editable={!loading}
+                />
+                {/* Bordered show/hide toggle box, matching the web affordance */}
+                <TouchableOpacity
+                  style={styles.pwToggle}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showConfirm
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                  onPress={() => setShowConfirm(!showConfirm)}
+                  disabled={loading}
+                >
+                  <Text style={styles.pwToggleText}>
+                    {showConfirm ? "hide" : "show"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {confirmErr ? (
+                <Text style={styles.fieldErrorText} accessibilityRole="alert">
+                  {confirmErr}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Register Button */}
+            <TouchableOpacity
+              style={[
+                styles.primaryButton,
+                (!canSubmit || loading) && styles.buttonDisabled,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Create account"
+              accessibilityState={{ disabled: !canSubmit || loading }}
+              onPress={handleRegister}
+              disabled={!canSubmit || loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <View style={styles.busyRow} accessibilityRole="alert">
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                  <Text style={styles.primaryButtonText}>
+                    Creating account…
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.primaryButtonText}>Create account →</Text>
+              )}
+            </TouchableOpacity>
           </View>
 
-          {/* Confirm Password Field */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Confirm Password</Text>
-            <View style={styles.passwordWrapper}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Re-enter your password"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text);
-                  if (errorMessage) setErrorMessage("");
-                }}
-                editable={!loading}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Text style={styles.eyeButtonText}>
-                  {showConfirmPassword ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+          {/* Footer Link to Login */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity
+              onPress={() => router.replace("/login")}
+              accessibilityRole="link"
+              accessibilityLabel="Sign in"
+              hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}
+            >
+              <Text style={styles.footerLink}>Sign in</Text>
+            </TouchableOpacity>
           </View>
-
-          {/* Register Button */}
-          <TouchableOpacity
-            style={[styles.primaryButton, loading && styles.buttonDisabled]}
-            onPress={handleRegister}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Create Account</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer Link to Login */}
-        <View style={styles.footerRow}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity
-            onPress={() => router.replace("/login")}
-            hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}
-          >
-            <Text style={styles.footerLink}>Sign In</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardContainer: {
+  container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
+  },
+  flex: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 36,
+    paddingTop: 24,
     paddingBottom: 40,
-    justifyContent: "center",
   },
   brandContainer: {
     alignItems: "center",
     marginBottom: 24,
   },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: "#E05326",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    shadowColor: "#E05326",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 22,
+  brandWordmark: {
+    fontSize: 20,
     fontWeight: "800",
-    letterSpacing: 1,
+    color: "#E05326",
+    letterSpacing: -0.3,
+    marginBottom: 12,
   },
   brandTitle: {
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
-  },
-  brandSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 4,
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -311,20 +297,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: "#F3F4F6",
-  },
-  errorBanner: {
-    backgroundColor: "#FEE2E2",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: "#EF4444",
-  },
-  errorBannerText: {
-    color: "#B91C1C",
-    fontSize: 13,
-    fontWeight: "500",
   },
   fieldGroup: {
     marginBottom: 16,
@@ -341,27 +313,41 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 15,
     color: "#111827",
   },
+  inputInvalid: {
+    borderColor: "#EF4444",
+  },
+  fieldErrorText: {
+    fontSize: 12,
+    color: "#B91C1C",
+    marginTop: 5,
+  },
   passwordWrapper: {
-    position: "relative",
-    justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
   },
   passwordInput: {
-    paddingRight: 64,
+    flex: 1,
+    marginRight: 6,
   },
-  eyeButton: {
-    position: "absolute",
-    right: 14,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+  // Bordered toggle box, vertically centered in the input row, >=44pt tall.
+  pwToggle: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
   },
-  eyeButtonText: {
+  pwToggleText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#E05326",
+    color: "#6B7280",
   },
   primaryButton: {
     backgroundColor: "#E05326",
@@ -377,7 +363,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.45,
+  },
+  busyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   primaryButtonText: {
     color: "#FFFFFF",
@@ -400,4 +391,3 @@ const styles = StyleSheet.create({
     color: "#E05326",
   },
 });
-

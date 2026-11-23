@@ -1,0 +1,713 @@
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  TextInput,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { API_URL } from "../../config";
+import ProductCard from "../../components/ProductCard";
+import PleaseLoginModal from "../../components/PleaseLoginModal";
+import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
+import { TOP_BAR_HEIGHT } from "../../components/TopBar";
+import { SkeletonBlock, SkeletonProductGrid } from "../../components/Skeleton";
+
+// Category slugs + labels mirror the web filter set (frontend
+// CATEGORY_LABEL): the panel's single-select chips apply the same
+// filter the web rail/panel does.
+const CATEGORIES = [
+  { slug: "audio", label: "Audio" },
+  { slug: "smart-home", label: "Smart Home" },
+  { slug: "gaming", label: "Gaming" },
+  { slug: "laptops", label: "Laptops & PC" },
+  { slug: "accessories", label: "Accessories" },
+  { slug: "wearables", label: "Wearables" },
+];
+
+// Sort options mirror the web results-header select (labels included):
+// "featured" keeps the catalog order the server returned.
+const SORT_OPTIONS = [
+  { value: "featured", label: "Sort: Featured" },
+  { value: "price-asc", label: "Sort: Price ↑" },
+  { value: "price-desc", label: "Sort: Price ↓" },
+];
+
+// Browse screen: page-level full-span search input + a "Filters"
+// disclosure panel (category / brand / sort — the web's filter set) in
+// place of the side-scroll category pills; the product grid below is
+// unchanged. Filters apply live, like the web's immediate filters.
+export default function BrowseScreen() {
+  const insets = useSafeAreaInsets();
+  // Products load from the backend; `null` until the first successful
+  // fetch, and any failure shows the screen's error state instead.
+  const [products, setProducts] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Filter state (page-local; the web keeps the same set in URL params)
+  const [query, setQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [sort, setSort] = useState("featured");
+  // Signed-out users tapping a card CTA get the "Please login" popup
+  const [loginPrompt, setLoginPrompt] = useState(false);
+
+  // Fetch the product catalog from the backend. Any failure — network
+  // error, non-OK status, or an unexpected payload — surfaces as the
+  // screen's error state; no default data is substituted.
+  async function loadProducts() {
+    setLoading(true);
+    setError(null);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const response = await fetch(`${API_URL}/api/products`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error("Server returned status " + response.status);
+      }
+      const data = await response.json();
+      if (!Array.isArray(data.items) || data.items.length === 0) {
+        throw new Error("Unexpected response from the server");
+      }
+      setProducts(data.items);
+    } catch {
+      setError("Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  // Brand options reflect the catalog (the web fetches the unfiltered
+  // catalog for its rail the same way — not hard-coded).
+  const catalogBrands = useMemo(() => {
+    if (!products) return [];
+    return [...new Set(products.map((p) => p.brand).filter(Boolean))].sort();
+  }, [products]);
+
+  // products may still be null before the first successful fetch.
+  // Query/category/brand filter the catalog; "featured" keeps the
+  // server's catalog order (the sort the API applies by default).
+  const filteredProducts = useMemo(() => {
+    let list = products || [];
+    const needle = query.trim().toLowerCase();
+    if (needle) {
+      list = list.filter(
+        (p) =>
+          p.name?.toLowerCase().includes(needle) ||
+          p.brand?.toLowerCase().includes(needle)
+      );
+    }
+    if (selectedCategories.length > 0) {
+      list = list.filter((p) => selectedCategories.includes(p.category));
+    }
+    if (selectedBrands.length > 0) {
+      list = list.filter((p) => selectedBrands.includes(p.brand));
+    }
+    if (sort === "price-asc") {
+      list = [...list].sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sort === "price-desc") {
+      list = [...list].sort((a, b) => Number(b.price) - Number(a.price));
+    }
+    return list;
+  }, [products, query, selectedCategories, selectedBrands, sort]);
+
+  // "Clear all" resets the whole filter set (web: drops every param).
+  function clearAll() {
+    setQuery("");
+    setSelectedCategories([]);
+    setSelectedBrands([]);
+    setSort("featured");
+  }
+
+  function toggleBrand(brand) {
+    setSelectedBrands((prev) =>
+      prev.includes(brand)
+        ? prev.filter((b) => b !== brand)
+        : [...prev, brand]
+    );
+  }
+
+  function toggleCategory(slug) {
+    setSelectedCategories((prev) =>
+      prev.includes(slug)
+        ? prev.filter((c) => c !== slug)
+        : [...prev, slug]
+    );
+  }
+
+  const hasActiveFilters =
+    query.trim() !== "" ||
+    selectedCategories.length > 0 ||
+    selectedBrands.length > 0 ||
+    sort !== "featured";
+
+  return (
+    <View style={styles.screen}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            // Clear the pinned top bar and the pinned bottom nav bar
+            paddingTop: TOP_BAR_HEIGHT + insets.top + 16,
+            paddingBottom: BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Page-level search: full-span input at the top of the content
+            (the browse top bar is title-only) */}
+        <View style={styles.searchBox}>
+          <Feather name="search" size={15} color="#767B6C" />
+          <TextInput
+            style={styles.searchInput}
+            accessibilityLabel="Search products"
+            placeholder="Find your next favorite"
+            placeholderTextColor="#7C8071"
+            value={query}
+            onChangeText={setQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {query ? (
+            <TouchableOpacity
+              style={styles.searchClearBtn}
+              onPress={() => setQuery("")}
+              accessibilityLabel="Clear search"
+            >
+              <Feather name="x" size={14} color="#4A4D43" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {/* Page heading (preserved) */}
+        <View style={styles.headingBlock}>
+          <View style={styles.eyebrowRow}>
+            <View style={styles.orangeDot} />
+            <Text style={styles.eyebrowText}>CATALOG</Text>
+          </View>
+          <Text style={styles.title}>Browse all products.</Text>
+        </View>
+
+        {/* Filters disclosure: a single row that toggles the panel.
+            The panel opens as a bottom-anchored sheet overlay on top of
+            the product cards (screen-level absolute, own scroll) instead
+            of pushing the grid down. Chevron mirrors state: down =
+            collapsed, up = open. */}
+        <TouchableOpacity
+          style={styles.filtersButton}
+          onPress={() => setFiltersOpen((open) => !open)}
+          activeOpacity={0.8}
+          accessibilityLabel="Filters"
+          accessibilityState={{ expanded: filtersOpen }}
+          accessibilityExpanded={filtersOpen}
+        >
+          <Feather name="sliders" size={16} color="#4A4D43" />
+          <Text style={styles.filtersButtonText}>Filters</Text>
+          <Feather
+            name={filtersOpen ? "chevron-up" : "chevron-down"}
+            size={16}
+            color="#4A4D43"
+            style={styles.filtersChevron}
+          />
+        </TouchableOpacity>
+
+        {/* Product grid content */}
+        {error && !products ? (
+          <View style={styles.stateCenter}>
+            <Feather
+              name="alert-circle"
+              size={38}
+              color="#DC2626"
+              style={{ marginBottom: 10 }}
+            />
+            <Text style={styles.emptyTitle}>Failed to load products</Text>
+            <Text style={styles.emptySubtitle}>
+              Check your connection, then try again.
+            </Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={loadProducts}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : loading && !products ? (
+          <SkeletonProductGrid count={6} />
+        ) : products && filteredProducts.length === 0 ? (
+          <View style={styles.stateCenter}>
+            <Feather name="package" size={38} color="#888C7F" style={{ marginBottom: 10 }} />
+            <Text style={styles.emptyTitle}>No matches for these filters.</Text>
+            <Text style={styles.emptySubtitle}>
+              Try removing a filter, or start from the full catalog.
+            </Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={clearAll}>
+              <Text style={styles.retryBtnText}>Clear all</Text>
+            </TouchableOpacity>
+          </View>
+        ) : products ? (
+          <View style={styles.gridContainer}>
+            {filteredProducts.map((item) => (
+              <ProductCard
+                key={String(item.id)}
+                item={item}
+                onPurchaseBlocked={() => setLoginPrompt(true)}
+              />
+            ))}
+          </View>
+        ) : null}
+      </ScrollView>
+
+      {/* Filters panel: a bottom-anchored sheet that overlays the product
+          cards instead of pushing them down. Rendered at the screen level
+          (a sibling of the main scroll container) rather than inside it:
+          an in-scroll absolute ScrollView broke on the RN-web runtime
+          (the panel never painted over the cards, and content past the
+          maxHeight was unreachable). Frame = a plain View (rounded,
+          shadowed, capped at a viewport-safe maxHeight above the bottom
+          nav); body = a real ScrollView so every control stays reachable;
+          the clear-all / done row is pinned at the sheet's bottom edge,
+          visible while the body scrolls. Category + Sort are static, so
+          the panel is fully openable before the catalog lands; the brand
+          list is genuinely async and shows skeleton rows until the
+          catalog fetch resolves (no fake data). */}
+      {filtersOpen ? (
+        <View
+          style={[
+            styles.filterSheet,
+            { bottom: BOTTOM_NAV_HEIGHT + insets.bottom + 8 },
+          ]}
+        >
+          <ScrollView
+            style={styles.filterSheetBody}
+            contentContainerStyle={styles.filterPanel}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Category — checklist matching Brand: two columns of
+                44px checkbox rows, multi-select */}
+            <Text style={styles.filterSectionTitle}>Category</Text>
+            <View style={styles.brandGrid}>
+              {CATEGORIES.map((cat) => {
+                const checked = selectedCategories.includes(cat.slug);
+                return (
+                  <TouchableOpacity
+                    key={cat.slug}
+                    style={styles.brandRow}
+                    onPress={() => toggleCategory(cat.slug)}
+                    accessibilityState={{ selected: checked }}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        checked && styles.checkboxChecked,
+                      ]}
+                    >
+                      {checked ? (
+                        <Feather name="check" size={10} color="#FFFFFF" />
+                      ) : null}
+                    </View>
+                    <Text style={styles.brandText} numberOfLines={1}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Brand — multi-select, two columns of 44px tap rows; the
+                options come from the fetched catalog, so while the fetch
+                is in flight the grid shows skeleton rows instead */}
+            <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
+              Brand
+            </Text>
+            <View style={styles.brandGrid}>
+              {loading && !products ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <View key={i} style={styles.brandRow}>
+                    <SkeletonBlock height={14} width="70%" />
+                  </View>
+                ))
+              ) : (
+                catalogBrands.map((brand) => {
+                  const checked = selectedBrands.includes(brand);
+                  return (
+                    <TouchableOpacity
+                      key={brand}
+                      style={styles.brandRow}
+                      onPress={() => toggleBrand(brand)}
+                      accessibilityState={{ selected: checked }}
+                    >
+                      <View
+                        style={[
+                          styles.checkbox,
+                          checked && styles.checkboxChecked,
+                        ]}
+                      >
+                        {checked ? (
+                          <Feather name="check" size={10} color="#FFFFFF" />
+                        ) : null}
+                      </View>
+                      <Text style={styles.brandText} numberOfLines={1}>
+                        {brand}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </View>
+
+            {/* Sort — radio rows with the web select's labels */}
+            <Text style={[styles.filterSectionTitle, styles.brandHeading]}>
+              Sort
+            </Text>
+            <View style={styles.sortList}>
+              {SORT_OPTIONS.map((option) => {
+                const selected = sort === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.sortRow}
+                    onPress={() => setSort(option.value)}
+                    accessibilityState={{ selected }}
+                  >
+                    <View
+                      style={[
+                        styles.radio,
+                        selected && styles.radioSelected,
+                      ]}
+                    >
+                      {selected ? <View style={styles.radioDot} /> : null}
+                    </View>
+                    <Text
+                      style={[
+                        styles.sortText,
+                        selected && styles.sortTextSelected,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          {/* Sheet actions: apply is live (taps filter immediately), so
+              the row offers clear-all + close. Pinned at the sheet's
+              bottom edge — outside the scroll body, so it stays visible
+              while the body scrolls. */}
+          <View style={styles.filterActions}>
+            <TouchableOpacity
+              style={styles.clearAllBtn}
+              onPress={clearAll}
+              disabled={!hasActiveFilters}
+            >
+              <Text
+                style={[
+                  styles.clearAllText,
+                  !hasActiveFilters && styles.clearAllTextDisabled,
+                ]}
+              >
+                Clear all
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.doneBtn}
+              onPress={() => setFiltersOpen(false)}
+            >
+              <Text style={styles.doneText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
+
+      <PleaseLoginModal
+        visible={loginPrompt}
+        onDismiss={() => setLoginPrompt(false)}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#FAF9F6",
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#FAF9F6",
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+  },
+  // Full-span left-to-right search input at the top of the page content
+  searchBox: {
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E3E1D8",
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: "#1A1A1A",
+  },
+  searchClearBtn: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headingBlock: {
+    marginBottom: 14,
+  },
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  orangeDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: "#E05326",
+  },
+  eyebrowText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#6A6E61",
+    letterSpacing: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#181A15",
+    letterSpacing: -0.5,
+  },
+  // Filters disclosure button: 44px tap row, chevron mirrors state
+  filtersButton: {
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E3E1D8",
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  filtersButtonText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#181A15",
+  },
+  filtersChevron: {
+    // Right-aligned chevron (the web disclosure rotates the same one)
+  },
+  // The open panel: a plain View frame, absolutely positioned at the
+  // screen's bottom edge (above the bottom nav). The frame owns the
+  // rounded/shadowed look and the viewport-safe maxHeight; it is a
+  // plain View on purpose — putting position/overflow/maxHeight on the
+  // ScrollView's own style broke both painting and scrolling on the
+  // RN-web runtime.
+  filterSheet: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    maxHeight: 480,
+    flexDirection: "column",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#EAE7DF",
+    overflow: "hidden",
+    zIndex: 50,
+    elevation: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+  },
+  // The scrollable body: a real ScrollView filling whatever height the
+  // frame leaves above the pinned actions row. flex:1 + minHeight:0
+  // lets it shrink under the frame's maxHeight (so tall content
+  // scrolls instead of overflowing), and grow to its content when
+  // short (so the sheet hugs its content).
+  filterSheetBody: {
+    flex: 1,
+    minHeight: 0,
+  },
+  filterPanel: {
+    padding: 16,
+  },
+  filterSectionTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#181A15",
+    marginBottom: 8,
+  },
+  brandHeading: {
+    marginTop: 16,
+  },
+  brandGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  // Two-column checkbox rows; each row is a 44px tap target
+  brandRow: {
+    width: "50%",
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: "#9A9E91",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxChecked: {
+    backgroundColor: "#E05326",
+    borderColor: "#E05326",
+  },
+  brandText: {
+    fontSize: 13,
+    color: "#1A1A1A",
+    flexShrink: 1,
+  },
+  sortList: {
+    gap: 2,
+  },
+  sortRow: {
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 4,
+  },
+  radio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: "#9A9E91",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioSelected: {
+    borderColor: "#E05326",
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#E05326",
+  },
+  sortText: {
+    fontSize: 13,
+    color: "#4A4D43",
+  },
+  sortTextSelected: {
+    color: "#181A15",
+    fontWeight: "700",
+  },
+  filterActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    // Pinned footer: the scroll body's own bottom padding (filterPanel)
+    // spaces it from the last control; the border is the divider.
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "#F2F2EB",
+  },
+  clearAllBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  clearAllText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#E05326",
+  },
+  clearAllTextDisabled: {
+    opacity: 0.4,
+  },
+  doneBtn: {
+    backgroundColor: "#E05326",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  doneText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  stateCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#181A15",
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  retryBtn: {
+    backgroundColor: "#E05326",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+  },
+  retryBtnText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+});

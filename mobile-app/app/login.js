@@ -5,159 +5,250 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { useFormKeyboard } from "../hooks/useFormKeyboard";
+
+// Same email format rule the web login page validates against.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Demo quick-fill rows — the 5 seeded accounts from the web login page's
+// "Explore the demo" section; every one shares the seeded demo password.
+const DEMO_ACCOUNTS = [
+  ["buyer", "buyer_102@mock.local"],
+  ["staff", "marta@mock.local"],
+  ["manager", "rina@mock.local"],
+  ["admin", "ria@mock.local"],
+  ["disabled", "dan@mock.local"],
+];
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailErr, setEmailErr] = useState(null);
+  const [pwErr, setPwErr] = useState(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
-  function validate() {
-    if (!email.trim()) return "Please enter your email.";
-    if (!password) return "Please enter your password.";
-    return null;
-  }
+  // The web login page enables submit only when both fields hold.
+  const emailValid = EMAIL_RE.test(email.trim());
+  const pwValid = password.length >= 8;
+  const canSubmit = emailValid && pwValid;
 
   async function handleLogin() {
-    setErrorMessage("");
-    const validationError = validate();
-    if (validationError) {
-      setErrorMessage(validationError);
-      return;
-    }
-
+    if (loading || !canSubmit) return;
+    setError("");
     setLoading(true);
     try {
       await login(email.trim(), password);
-      // Success: Navigate to home/catalog
+      // Success = the redirect (no toast, like the web): back to where the
+      // sign-in was started (the bottom-nav account button), else the
+      // buyer home.
       if (router.canGoBack()) {
         router.back();
       } else {
         router.replace("/");
       }
     } catch (err) {
-      const msg = err.message || "Failed to sign in. Please verify your credentials.";
-      setErrorMessage(msg);
-      Alert.alert("Sign In Failed", msg);
+      setError(err.message || "Sign-in failed.");
     } finally {
       setLoading(false);
     }
   }
 
+  // Dev aid: quick-fill a demo account (mirrors the web login page).
+  function fillDemo(addr) {
+    setEmail(addr);
+    setPassword("sunset123");
+    setEmailErr(null);
+    setPwErr(null);
+    setError("");
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.bottom : 0}
       >
-        {/* Brand / Header */}
-        <View style={styles.brandContainer}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoBadgeText}>SE</Text>
-          </View>
-          <Text style={styles.brandTitle}>Welcome Back</Text>
-          <Text style={styles.brandSubtitle}>
-            Sign in to your Sunset Electronics account
-          </Text>
-        </View>
-
-        {/* Card Form */}
-        <View style={styles.card}>
-          {errorMessage ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorBannerText}>{errorMessage}</Text>
-            </View>
-          ) : null}
-
-          {/* Email */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (errorMessage) setErrorMessage("");
-              }}
-              editable={!loading}
-            />
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Brand / Header */}
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandWordmark}>Sunset Electronics</Text>
+            <Text style={styles.brandTitle}>Welcome back.</Text>
+            <Text style={styles.brandSubtitle}>
+              Sign in to pick up where you left off.
+            </Text>
           </View>
 
-          {/* Password */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordWrapper}>
+          {/* Card Form */}
+          <View style={styles.card}>
+            {error ? (
+              <View style={styles.errorBanner} accessibilityRole="alert">
+                <Text style={styles.errorBannerText}>{error}</Text>
+              </View>
+            ) : null}
+
+            {/* Email */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Email</Text>
               <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Enter your password"
+                style={[styles.input, emailErr ? styles.inputInvalid : null]}
+                accessibilityLabel="Email"
+                onFocus={revealFocusedInput}
+                placeholder="you@example.com"
                 placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPassword}
-                value={password}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="emailAddress"
+                value={email}
                 onChangeText={(text) => {
-                  setPassword(text);
-                  if (errorMessage) setErrorMessage("");
+                  setEmail(text);
+                  if (error) setError("");
+                  if (emailErr) setEmailErr(null);
+                }}
+                onBlur={() => {
+                  setEmailErr(
+                    email && !EMAIL_RE.test(email.trim())
+                      ? "Enter a valid email address."
+                      : null
+                  );
                 }}
                 editable={!loading}
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Text style={styles.eyeButtonText}>
-                  {showPassword ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
+              {emailErr ? (
+                <Text style={styles.fieldErrorText}>{emailErr}</Text>
+              ) : null}
             </View>
+
+            {/* Password */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordWrapper}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.passwordInput,
+                    pwErr ? styles.inputInvalid : null,
+                  ]}
+                  accessibilityLabel="Password"
+                  onFocus={revealFocusedInput}
+                  placeholder="••••••••"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!showPassword}
+                  textContentType="password"
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (error) setError("");
+                    if (pwErr) setPwErr(null);
+                  }}
+                  onBlur={() => {
+                    setPwErr(
+                      password && password.length < 8
+                        ? "At least 8 characters."
+                        : null
+                    );
+                  }}
+                  editable={!loading}
+                />
+                {/* Bordered show/hide toggle box, matching the web affordance */}
+                <TouchableOpacity
+                  style={styles.pwToggle}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  <Text style={styles.pwToggleText}>
+                    {showPassword ? "hide" : "show"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {pwErr ? (
+                <Text style={styles.fieldErrorText}>{pwErr}</Text>
+              ) : null}
+            </View>
+
+            {/* Sign In Button */}
+            <TouchableOpacity
+              style={[
+                styles.primaryButton,
+                (!canSubmit || loading) && styles.buttonDisabled,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in"
+              accessibilityState={{ disabled: !canSubmit || loading }}
+              onPress={handleLogin}
+              disabled={!canSubmit || loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <View style={styles.busyRow} accessibilityRole="alert">
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                  <Text style={styles.primaryButtonText}>Signing in…</Text>
+                </View>
+              ) : (
+                <Text style={styles.primaryButtonText}>Sign in →</Text>
+              )}
+            </TouchableOpacity>
           </View>
 
-          {/* Sign In Button */}
-          <TouchableOpacity
-            style={[styles.primaryButton, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+          {/* Footer Link to Register */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>New here? </Text>
+            <TouchableOpacity
+              onPress={() => router.replace("/register")}
+              accessibilityRole="link"
+              accessibilityLabel="Register"
+              hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}
+            >
+              <Text style={styles.footerLink}>Register</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Footer Link to Register */}
-        <View style={styles.footerRow}>
-          <Text style={styles.footerText}>Don't have an account yet? </Text>
-          <TouchableOpacity
-            onPress={() => router.replace("/register")}
-            hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}
-          >
-            <Text style={styles.footerLink}>Register</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* Dev aid: quick-fill the 5 demo credential rows */}
+          <View style={styles.demoSection}>
+            <Text style={styles.demoHeading}>
+              Explore the demo · choose an account to fill the form
+            </Text>
+            <View style={styles.demoRow}>
+              {DEMO_ACCOUNTS.map(([label, addr]) => (
+                <TouchableOpacity
+                  key={addr}
+                  style={styles.demoChip}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Fill ${label} demo account`}
+                  onPress={() => fillDemo(addr)}
+                >
+                  <Text style={styles.demoChipText}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -166,35 +257,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9FAFB",
   },
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 48,
+    paddingTop: 24,
     paddingBottom: 40,
-    justifyContent: "center",
   },
   brandContainer: {
     alignItems: "center",
     marginBottom: 28,
   },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: "#E05326",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    shadowColor: "#E05326",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 22,
+  brandWordmark: {
+    fontSize: 20,
     fontWeight: "800",
+    color: "#E05326",
+    letterSpacing: -0.3,
+    marginBottom: 12,
   },
   brandTitle: {
     fontSize: 24,
@@ -248,27 +329,41 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 15,
     color: "#111827",
   },
+  inputInvalid: {
+    borderColor: "#EF4444",
+  },
+  fieldErrorText: {
+    fontSize: 12,
+    color: "#B91C1C",
+    marginTop: 5,
+  },
   passwordWrapper: {
-    position: "relative",
-    justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
   },
   passwordInput: {
-    paddingRight: 64,
+    flex: 1,
+    marginRight: 6,
   },
-  eyeButton: {
-    position: "absolute",
-    right: 14,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+  // Bordered toggle box, vertically centered in the input row, >=44pt tall.
+  pwToggle: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
   },
-  eyeButtonText: {
+  pwToggleText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#E05326",
+    color: "#6B7280",
   },
   primaryButton: {
     backgroundColor: "#E05326",
@@ -284,7 +379,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.45,
+  },
+  busyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   primaryButtonText: {
     color: "#FFFFFF",
@@ -306,5 +406,35 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#E05326",
   },
+  demoSection: {
+    marginTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    paddingTop: 16,
+    alignItems: "center",
+  },
+  demoHeading: {
+    fontSize: 12,
+    color: "#4B5563",
+    marginBottom: 10,
+  },
+  demoRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+  },
+  demoChip: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: "#FFFFFF",
+  },
+  demoChipText: {
+    fontSize: 13,
+    color: "#374151",
+    fontWeight: "500",
+  },
 });
-

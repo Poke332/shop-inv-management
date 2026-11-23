@@ -12,15 +12,26 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-      });
+      let response;
+      try {
+        response = await fetch(`${API_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            password,
+          }),
+        });
+      } catch {
+        // Same network failure wording the web data layer surfaces.
+        throw new Error("The backend is not reachable.");
+      }
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Failed to sign in");
+        // Surface the backend's own message (401 bad credentials, 403
+        // disabled account) the way the web login page does.
+        throw new Error(data.message || "Sign-in failed.");
       }
 
       setToken(data.token);
@@ -31,25 +42,38 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Register a new buyer account
+  // Register a new buyer account; the backend signs the user in on
+  // success (201 + session), so set the local session too — the register
+  // screen then redirects straight to the home landing, no sign-in step.
   async function register(username, email, password) {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username.trim(),
-          email: email.trim().toLowerCase(),
-          password,
-        }),
-      });
+      let response;
+      try {
+        response = await fetch(`${API_URL}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: username.trim(),
+            email: email.trim().toLowerCase(),
+            password,
+          }),
+        });
+      } catch {
+        // Same network failure wording the web data layer surfaces.
+        throw new Error("The backend is not reachable.");
+      }
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
+        // 409 duplicate -> "Account name or email is already in use.";
+        // 400 invalid fields -> the backend's message. Both land under
+        // the email field on the register screen, like the web page.
+        throw new Error(data.message || "Registration failed.");
       }
 
+      setToken(data.token);
+      setUser(data.user);
       return data;
     } finally {
       setLoading(false);

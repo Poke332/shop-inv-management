@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   StyleSheet,
   StatusBar,
@@ -12,29 +11,38 @@ import {
 import { Stack } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { API_URL } from "../../config";
-import { FALLBACK_PRODUCTS } from "../../data/fallbackProducts";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BOTTOM_NAV_HEIGHT } from "../../components/BottomNav";
 
 // Modular Components
-import AnnouncementBar from "../../components/AnnouncementBar";
-import HomeHeader from "../../components/HomeHeader";
+import { TOP_BAR_HEIGHT } from "../../components/TopBar";
+import { useSearch } from "../../context/SearchContext";
 import HeroSection from "../../components/HeroSection";
 import BrandTicker from "../../components/BrandTicker";
 import CategoryGrid from "../../components/CategoryGrid";
 import ProductCard from "../../components/ProductCard";
-import PromoBanner from "../../components/PromoBanner";
+import PleaseLoginModal from "../../components/PleaseLoginModal";
+import { SkeletonProductGrid } from "../../components/Skeleton";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
   const productSectionY = useRef(0);
+  const { query, setQuery, homeScrollRef } = useSearch();
 
-  // Initialize with fallback catalog data so products render immediately without lag
-  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
-  const [loading, setLoading] = useState(false);
+  // Products load from the backend; `null` until the first successful
+  // fetch, and any failure shows the screen's error state instead.
+  const [products, setProducts] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Filter & Search states
+  // Filter & Search states — the search query lives in the shared
+  // context so the pinned top bar (rendered from the root layout) can
+  // drive it on every screen; home applies it to the product grid.
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [loginPrompt, setLoginPrompt] = useState(false);
+  const searchQuery = query;
 
   const categoriesFilter = [
     { slug: "all", label: "All picks" },
@@ -46,8 +54,12 @@ export default function HomeScreen() {
     { slug: "accessories", label: "Accessories" },
   ];
 
-  // Fetch product catalog from backend with automatic fallback
+  // Fetch the product catalog from the backend. Any failure — network
+  // error, non-OK status, or an unexpected payload — surfaces as the
+  // screen's error state; no default data is substituted.
   async function loadProducts() {
+    setLoading(true);
+    setError(null);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -61,25 +73,35 @@ export default function HomeScreen() {
         throw new Error("Server returned status " + response.status);
       }
       const data = await response.json();
-      if (Array.isArray(data.items) && data.items.length > 0) {
-        setProducts(data.items);
+      if (!Array.isArray(data.items) || data.items.length === 0) {
+        throw new Error("Unexpected response from the server");
       }
+      setProducts(data.items);
     } catch {
-      // Graceful fallback: maintain catalog items so user never sees empty/broken screen
-      setProducts((prev) => (prev && prev.length > 0 ? prev : FALLBACK_PRODUCTS));
+      setError("Failed to load products");
+    } finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    let cancelled = false;
+    loadProducts();
+  }, []);
 
-    loadProducts().finally(() => {
-      if (!cancelled) setLoading(false);
-    });
+  // Expose the products-scroll action to the shared top bar (search
+  // submit on home); runs after every render so the closure stays
+  // current.
+  useEffect(() => {
+    homeScrollRef.current = scrollToProducts;
+  });
 
-    return () => {
-      cancelled = true;
-    };
+  // Arriving on home from another screen with a pending search: jump
+  // straight to the filtered results.
+  useEffect(() => {
+    if (query.trim()) {
+      setTimeout(scrollToProducts, 350);
+    }
+    // Mount-only behavior; the pending query is read once.
   }, []);
 
   async function handleRefresh() {
@@ -88,11 +110,12 @@ export default function HomeScreen() {
     setRefreshing(false);
   }
 
-  // Scroll smoothly to the product section
+  // Scroll smoothly to the product section (offset accounts for the
+  // pinned top bar overlapping the top of the viewport)
   function scrollToProducts() {
     if (scrollRef.current && productSectionY.current > 0) {
       scrollRef.current.scrollTo({
-        y: productSectionY.current - 10,
+        y: productSectionY.current - TOP_BAR_HEIGHT - insets.top - 10,
         animated: true,
       });
     }
@@ -103,8 +126,9 @@ export default function HomeScreen() {
     scrollToProducts();
   }
 
-  // Filtered Products List
-  const filteredProducts = products.filter((p) => {
+  // Filtered Products List (products may still be null before the first
+  // successful fetch)
+  const filteredProducts = (products || []).filter((p) => {
     const matchesCategory =
       selectedCategory === "all" || p.category === selectedCategory;
     const matchesSearch =
@@ -116,26 +140,22 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F2F0EB" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
 
       {/* Explicitly guarantee native navigation header is hidden */}
       <Stack.Screen options={{ headerShown: false, title: "" }} />
 
-      {/* 1. TOP ANNOUNCEMENT BAR (dengan safe-area inset top rapat) */}
-      <AnnouncementBar />
-
-      {/* 2. APP HEADER & NAVIGATION (Wordmark, Profile, Bag, Tabs, Search) */}
-      <HomeHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSelectCategory={handleSelectCategory}
-        onShopNowPress={scrollToProducts}
-      />
-
       <ScrollView
         ref={scrollRef}
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          // Keep scroll content clear of the pinned top bar and the
+          // pinned bottom nav bar
+          {
+            paddingTop: TOP_BAR_HEIGHT + insets.top,
+            paddingBottom: 24 + BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -146,22 +166,22 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* 3. HERO BANNER SECTION (Card Cream #F6F4EE, Heading italic, Dual Buttons, Featured Product) */}
+        {/* Hero banner section (cream card, featured product) */}
         <HeroSection
           onExploreAudio={() => handleSelectCategory("audio")}
           onFindUpgrade={scrollToProducts}
         />
 
-        {/* 4. BRAND LOGO TICKER (SONY, Anker, logitech, SAMSUNG, JBL, ASUS) */}
+        {/* Brand logo ticker */}
         <BrandTicker />
 
-        {/* 5. CATEGORY GRID SECTION (FIND YOUR THING - 6 Kategori dengan Feather Vector Icons) */}
+        {/* Category grid section */}
         <CategoryGrid
           onSelectCategory={handleSelectCategory}
           selectedCategory={selectedCategory}
         />
 
-        {/* 6. PRODUCT SHOWCASE / FILTER SECTION (THE GOOD STUFF) */}
+        {/* Product showcase / filter section */}
         <View
           style={styles.productsSection}
           onLayout={(event) => {
@@ -181,7 +201,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => {
                 setSelectedCategory("all");
-                setSearchQuery("");
+                setQuery("");
               }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={styles.shopEverythingBtn}
@@ -220,12 +240,25 @@ export default function HomeScreen() {
           </ScrollView>
 
           {/* Product Grid Content */}
-          {loading && products.length === 0 ? (
+          {error && !products ? (
             <View style={styles.stateCenter}>
-              <ActivityIndicator size="large" color="#E05326" />
-              <Text style={styles.stateText}>Loading collection…</Text>
+              <Feather
+                name="alert-circle"
+                size={38}
+                color="#DC2626"
+                style={{ marginBottom: 10 }}
+              />
+              <Text style={styles.emptyTitle}>Failed to load products</Text>
+              <Text style={styles.emptySubtitle}>
+                Check your connection, then try again.
+              </Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={loadProducts}>
+                <Text style={styles.retryBtnText}>Retry</Text>
+              </TouchableOpacity>
             </View>
-          ) : filteredProducts.length === 0 ? (
+          ) : loading && !products ? (
+            <SkeletonProductGrid count={4} />
+          ) : products && filteredProducts.length === 0 ? (
             <View style={styles.stateCenter}>
               <Feather name="package" size={38} color="#888C7F" style={{ marginBottom: 10 }} />
               <Text style={styles.emptyTitle}>More favorites are on the way.</Text>
@@ -236,24 +269,30 @@ export default function HomeScreen() {
                 style={styles.retryBtn}
                 onPress={() => {
                   setSelectedCategory("all");
-                  setSearchQuery("");
+                  setQuery("");
                 }}
               >
                 <Text style={styles.retryBtnText}>Browse all products</Text>
               </TouchableOpacity>
             </View>
-          ) : (
+          ) : products ? (
             <View style={styles.gridContainer}>
               {filteredProducts.map((item) => (
-                <ProductCard key={String(item.id)} item={item} />
+                <ProductCard
+                  key={String(item.id)}
+                  item={item}
+                  onPurchaseBlocked={() => setLoginPrompt(true)}
+                />
               ))}
             </View>
-          )}
+          ) : null}
         </View>
-
-        {/* 7. PROMOTIONAL BANNER BOTTOM SECTION (MAKE ROOM FOR BETTER) */}
-        <PromoBanner onUpgradePress={scrollToProducts} />
       </ScrollView>
+
+      <PleaseLoginModal
+        visible={loginPrompt}
+        onDismiss={() => setLoginPrompt(false)}
+      />
     </View>
   );
 }
@@ -266,9 +305,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: "#FAF9F6",
-  },
-  scrollContent: {
-    paddingBottom: 24,
   },
   productsSection: {
     paddingHorizontal: 16,
@@ -353,11 +389,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 40,
     paddingHorizontal: 20,
-  },
-  stateText: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 10,
   },
   emptyTitle: {
     fontSize: 16,

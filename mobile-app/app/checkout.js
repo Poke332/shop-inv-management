@@ -1,196 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
+  Image,
   TouchableOpacity,
   ScrollView,
-  Image,
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
+  StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "../context/AuthContext";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "../context/CartContext";
-import { API_URL } from "../config";
+import { BOTTOM_NAV_HEIGHT } from "../components/BottomNav";
+import { TOP_BAR_HEIGHT } from "../components/TopBar";
 
 function formatPrice(value) {
   return "Rp " + Number(value || 0).toLocaleString("id-ID");
 }
 
-export default function CheckoutScreen() {
+// The pinned purchase-detail bar: 44px row + 6px vertical pads + 1px
+// top border. Scroll content pads below by this so the last item
+// never hides behind the bar.
+const BAR_HEIGHT = 57;
+
+// Cart page: the cart items and nothing else (the checkout form moved
+// to the /checkout-wizard route). The pinned bar below the content
+// carries the totals + the single "Checkout" button + an expand
+// chevron that opens the purchase-detail panel anchored above the bar.
+export default function CartScreen() {
   const router = useRouter();
-  const { user, token, isAuthenticated } = useAuth();
-  const { cart, subtotal, total, clearCart } = useCart();
+  const insets = useSafeAreaInsets();
+  const { cart, subtotal, total } = useCart();
+  // Which item rows have their per-product details open
+  const [expandedItems, setExpandedItems] = useState([]);
+  // The purchase-detail panel above the bar (the bar's chevron toggles it)
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
-  // Contact Form States
-  const [buyerName, setBuyerName] = useState(user?.username || "");
-  const [buyerEmail, setBuyerEmail] = useState(user?.email || "");
-  const [buyerPhone, setBuyerPhone] = useState("");
-  const [buyerNote, setBuyerNote] = useState("");
-
-  // Shipping Address Form States (Backend requires min. 20 chars for address)
-  const [address, setAddress] = useState("");
-  const [district, setDistrict] = useState("");
-  const [city, setCity] = useState("");
-  const [province, setProvince] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-
-  // Payment Method: 'bank_transfer' or 'card'
-  const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
-
-  // Submission & Validation States
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  // Keep contact details in sync with authenticated user
-  useEffect(() => {
-    if (user?.username && !buyerName) setBuyerName(user.username);
-    if (user?.email && !buyerEmail) setBuyerEmail(user.email);
-  }, [user]);
-
-  // Client-side validation
-  function validate() {
-    if (!isAuthenticated || !token) {
-      return "Please log in first to complete your purchase.";
-    }
-
-    if (!cart || cart.length === 0) {
-      return "Your cart is empty. Please add items before checking out.";
-    }
-
-    if (!buyerName.trim()) {
-      return "Recipient name is required.";
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(buyerEmail.trim())) {
-      return "Please enter a valid email address.";
-    }
-
-    // Phone validation (min 8 numeric digits)
-    const phoneDigits = buyerPhone.replace(/\D/g, "");
-    if (phoneDigits.length < 8) {
-      return "Please enter a valid phone number (at least 8 digits).";
-    }
-
-    // Backend requires shippingAddress.address to be between 20 and 500 characters
-    if (address.trim().length < 20) {
-      return "Street address must be at least 20 characters long (include street, number, and RT/RW).";
-    }
-
-    if (!district.trim()) {
-      return "District (Kecamatan) is required.";
-    }
-    if (!city.trim()) {
-      return "City / Regency is required.";
-    }
-    if (!province.trim()) {
-      return "Province is required.";
-    }
-    if (!postalCode.trim()) {
-      return "Postal code is required.";
-    }
-
-    return null;
+  function toggleItem(productId) {
+    setExpandedItems((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
   }
 
-  // Handle Order Submission
-  async function handlePlaceOrder() {
-    setErrorMessage("");
-
-    const validationError = validate();
-    if (validationError) {
-      setErrorMessage(validationError);
-      Alert.alert("Incomplete Details", validationError);
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      const payload = {
-        // Unique client request ID for backend idempotency
-        id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        buyerContact: {
-          name: buyerName.trim(),
-          email: buyerEmail.trim().toLowerCase(),
-          phone: buyerPhone.trim(),
-          note: buyerNote.trim(),
-        },
-        shippingAddress: {
-          address: address.trim(),
-          district: district.trim(),
-          city: city.trim(),
-          province: province.trim(),
-          postalCode: postalCode.trim(),
-        },
-        paymentMethod: paymentMethod === "card" ? "card" : "bank_transfer",
-        lines: cart.map((item) => ({
-          productId: item.productId,
-          qty: item.qty,
-        })),
-      };
-
-      const response = await fetch(`${API_URL}/api/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 409) {
-          throw new Error(
-            data.message || "Stock conflict: some items are no longer available in the requested quantity."
-          );
-        }
-        if (response.status === 401) {
-          throw new Error("Your session has expired. Please log in again.");
-        }
-        throw new Error(data.message || `Order failed (${response.status})`);
-      }
-
-      // Success: clear cart and inform user
-      clearCart();
-
-      const orderRef = data.reference || data.id || "Success";
-
-      Alert.alert(
-        "Order Placed Successfully! 🎉",
-        `Thank you for your purchase!\nYour order reference: ${orderRef}`,
-        [
-          {
-            text: "View My Orders",
-            onPress: () => {
-              // Redirect to (tabs)/orders screen
-              router.replace("/(tabs)/orders");
-            },
-          },
-        ],
-        { cancelable: false }
-      );
-    } catch (err) {
-      const msg = err.message || "Something went wrong while placing your order.";
-      setErrorMessage(msg);
-      Alert.alert("Checkout Failed", msg);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  // If cart is empty, show empty state
+  // Empty cart: the pre-polish empty state, unchanged
   if (!cart || cart.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.emptyIcon}>🛒</Text>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
+        <Feather name="shopping-bag" size={48} color="#888C7F" style={styles.emptyIcon} />
         <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
         <Text style={styles.emptySubtitle}>
           Add items to your cart before proceeding to checkout.
@@ -206,66 +66,99 @@ export default function CheckoutScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F6" />
+
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: TOP_BAR_HEIGHT + insets.top + 16,
+            // Clear the pinned purchase-detail bar + the bottom nav
+            paddingBottom: 12 + BAR_HEIGHT + BOTTOM_NAV_HEIGHT + insets.bottom,
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Auth Guard Banner if not logged in */}
-        {!isAuthenticated && (
-          <View style={styles.authWarningCard}>
-            <Text style={styles.authWarningTitle}>Sign In Required</Text>
-            <Text style={styles.authWarningText}>
-              You need to be logged in to place an order.
-            </Text>
-            <TouchableOpacity
-              style={styles.authWarningButton}
-              onPress={() => router.push("/login")}
-            >
-              <Text style={styles.authWarningButtonText}>Sign In Now</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Heading (web cart parity: "Cart" + the item count) */}
+        <View style={styles.headingRow}>
+          <Text style={styles.heading}>Cart</Text>
+          <Text style={styles.headingMeta}>
+            ({cart.length} item{cart.length === 1 ? "" : "s"})
+          </Text>
+        </View>
 
-        {/* Error Banner */}
-        {errorMessage ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{errorMessage}</Text>
-          </View>
-        ) : null}
-
-        {/* 1. ORDER SUMMARY */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionHeading}>Order Summary ({cart.length} items)</Text>
-
-          {cart.map((item) => (
-            <View key={item.productId} style={styles.itemRow}>
-              {item.image ? (
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
-              ) : (
-                <View style={[styles.itemImage, styles.imagePlaceholder]} />
-              )}
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemBrand}>{item.brand}</Text>
-                <Text style={styles.itemName} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <View style={styles.itemPriceQty}>
-                  <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
-                  <Text style={styles.itemQty}>× {item.qty}</Text>
+        {/* Cart items only: each card's primary row stays compact; the
+            expand chevron reveals that line's details below it */}
+        {cart.map((item) => {
+          const expanded = expandedItems.includes(item.productId);
+          return (
+            <View key={item.productId} style={styles.itemCard}>
+              <View style={styles.itemRow}>
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={styles.itemImage} />
+                ) : (
+                  <View style={[styles.itemImage, styles.imagePlaceholder]} />
+                )}
+                <View style={styles.itemInfo}>
+                  <Text style={styles.itemBrand}>{item.brand}</Text>
+                  <Text style={styles.itemName} numberOfLines={2}>
+                    {item.name}
+                  </Text>
                 </View>
+                <Text style={styles.itemLineTotal}>
+                  {formatPrice(item.price * item.qty)}
+                </Text>
+                <TouchableOpacity
+                  style={styles.expandBtn}
+                  onPress={() => toggleItem(item.productId)}
+                  accessibilityLabel={expanded ? "Collapse details" : "Expand details"}
+                  accessibilityState={{ expanded }}
+                  accessibilityExpanded={expanded}
+                >
+                  <Feather
+                    name={expanded ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color="#4A4D43"
+                  />
+                </TouchableOpacity>
               </View>
-              <Text style={styles.itemLineTotal}>
-                {formatPrice(item.price * item.qty)}
-              </Text>
-            </View>
-          ))}
 
-          {/* Pricing Totals */}
-          <View style={styles.divider} />
+              {expanded ? (
+                <View style={styles.itemDetails}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Unit price</Text>
+                    <Text style={styles.detailValue}>
+                      {formatPrice(item.price)}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Quantity</Text>
+                    <Text style={styles.detailValue}>{item.qty}</Text>
+                  </View>
+                  <View style={[styles.detailRow, styles.detailRowLast]}>
+                    <Text style={styles.detailLabel}>Line total</Text>
+                    <Text style={styles.detailValue}>
+                      {formatPrice(item.price * item.qty)}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          );
+        })}
+      </ScrollView>
+
+      {/* Purchase-detail panel: anchored above the bar while open */}
+      {detailsOpen ? (
+        <View
+          style={[
+            styles.detailsPanel,
+            { bottom: BAR_HEIGHT + BOTTOM_NAV_HEIGHT + insets.bottom },
+          ]}
+        >
+          <Text style={styles.panelTitle}>Purchase details</Text>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal</Text>
             <Text style={styles.totalValue}>{formatPrice(subtotal)}</Text>
@@ -275,222 +168,82 @@ export default function CheckoutScreen() {
             <Text style={styles.freeShippingBadge}>FREE</Text>
           </View>
           <View style={[styles.totalRow, styles.grandTotalRow]}>
-            <Text style={styles.grandTotalLabel}>Total Amount</Text>
+            <Text style={styles.grandTotalLabel}>Total</Text>
             <Text style={styles.grandTotalValue}>{formatPrice(total)}</Text>
           </View>
         </View>
+      ) : null}
 
-        {/* 2. SHIPPING & CONTACT INFO */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionHeading}>Recipient & Contact</Text>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Recipient Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Full name"
-              value={buyerName}
-              onChangeText={setBuyerName}
-              editable={!submitting}
-            />
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Phone / WhatsApp Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 08123456789 (min. 8 digits)"
-              keyboardType="phone-pad"
-              value={buyerPhone}
-              onChangeText={setBuyerPhone}
-              editable={!submitting}
-            />
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={buyerEmail}
-              onChangeText={setBuyerEmail}
-              editable={!submitting}
-            />
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Full Street Address</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              placeholder="Street name, house/building number, RT/RW (min. 20 characters)"
-              multiline
-              numberOfLines={3}
-              value={address}
-              onChangeText={setAddress}
-              editable={!submitting}
-            />
-            <Text style={styles.helperText}>
-              {address.trim().length}/20 characters minimum
-            </Text>
-          </View>
-
-          <View style={styles.twoColumnRow}>
-            <View style={[styles.fieldGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.fieldLabel}>District (Kecamatan)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Kebayoran Baru"
-                value={district}
-                onChangeText={setDistrict}
-                editable={!submitting}
-              />
-            </View>
-            <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text style={styles.fieldLabel}>City / Regency</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Jakarta Selatan"
-                value={city}
-                onChangeText={setCity}
-                editable={!submitting}
-              />
-            </View>
-          </View>
-
-          <View style={styles.twoColumnRow}>
-            <View style={[styles.fieldGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.fieldLabel}>Province</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. DKI Jakarta"
-                value={province}
-                onChangeText={setProvince}
-                editable={!submitting}
-              />
-            </View>
-            <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text style={styles.fieldLabel}>Postal Code</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. 12140"
-                keyboardType="numeric"
-                value={postalCode}
-                onChangeText={setPostalCode}
-                editable={!submitting}
-              />
-            </View>
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Order Note (Optional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Special delivery instructions"
-              value={buyerNote}
-              onChangeText={setBuyerNote}
-              editable={!submitting}
-            />
-          </View>
+      {/* Sticky purchase-detail bar: pinned just above the bottom nav,
+          never scrolls away. Totals + the single "Checkout" button +
+          the expand chevron (down = collapsed, up = expanded) */}
+      <View
+        style={[
+          styles.bar,
+          { bottom: BOTTOM_NAV_HEIGHT + insets.bottom },
+        ]}
+      >
+        <View style={styles.barTotals}>
+          <Text style={styles.barTotalLabel}>Total</Text>
+          <Text style={styles.barTotalValue}>{formatPrice(total)}</Text>
         </View>
-
-        {/* 3. PAYMENT METHOD */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionHeading}>Payment Method</Text>
-
-          {/* Option: Bank Transfer */}
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === "bank_transfer" && styles.paymentOptionSelected,
-            ]}
-            onPress={() => setPaymentMethod("bank_transfer")}
-            activeOpacity={0.8}
-          >
-            <View style={styles.radioOuter}>
-              {paymentMethod === "bank_transfer" && (
-                <View style={styles.radioInner} />
-              )}
-            </View>
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Bank Transfer / Virtual Account</Text>
-              <Text style={styles.paymentDesc}>
-                Automatic verification via BCA, Mandiri, BNI, or BRI
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Option: Card */}
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === "card" && styles.paymentOptionSelected,
-            ]}
-            onPress={() => setPaymentMethod("card")}
-            activeOpacity={0.8}
-          >
-            <View style={styles.radioOuter}>
-              {paymentMethod === "card" && <View style={styles.radioInner} />}
-            </View>
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Credit / Debit Card</Text>
-              <Text style={styles.paymentDesc}>
-                Instant checkout via Visa, MasterCard, or JCB
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* SUBMIT BUTTON */}
         <TouchableOpacity
-          style={[styles.placeOrderButton, submitting && styles.buttonDisabled]}
-          onPress={handlePlaceOrder}
-          disabled={submitting}
+          style={styles.checkoutBtn}
+          onPress={() => router.push("/checkout-wizard")}
           activeOpacity={0.85}
         >
-          {submitting ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <Text style={styles.placeOrderButtonText}>
-              Place Order • {formatPrice(total)}
-            </Text>
-          )}
+          <Text style={styles.checkoutText}>Checkout</Text>
         </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <TouchableOpacity
+          style={styles.expandBtn}
+          onPress={() => setDetailsOpen((open) => !open)}
+          accessibilityLabel={
+            detailsOpen ? "Collapse details" : "Expand details"
+          }
+          accessibilityState={{ expanded: detailsOpen }}
+          accessibilityExpanded={detailsOpen}
+        >
+          <Feather
+            name={detailsOpen ? "chevron-up" : "chevron-down"}
+            size={16}
+            color="#4A4D43"
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FAF9F6",
+  },
+  scroll: {
+    flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FAF9F6",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
   emptyIcon: {
-    fontSize: 56,
     marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#888C7F",
     textAlign: "center",
     marginBottom: 24,
   },
@@ -505,124 +258,168 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
-  authWarningCard: {
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FDE68A",
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  authWarningTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#92400E",
-    marginBottom: 4,
-  },
-  authWarningText: {
-    fontSize: 13,
-    color: "#B45309",
-    marginBottom: 12,
-  },
-  authWarningButton: {
-    backgroundColor: "#E05326",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  authWarningButtonText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  errorBanner: {
-    backgroundColor: "#FEE2E2",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: "#EF4444",
-  },
-  errorBannerText: {
-    color: "#B91C1C",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  sectionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionHeading: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
+  headingRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 8,
     marginBottom: 14,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#181A15",
+    letterSpacing: -0.5,
+  },
+  headingMeta: {
+    fontSize: 13,
+    color: "#888C7F",
+    fontWeight: "600",
+  },
+  itemCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#EAE7DF",
+    marginBottom: 12,
+    overflow: "hidden",
   },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    padding: 12,
   },
   itemImage: {
     width: 52,
     height: 52,
     borderRadius: 8,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F2F2EB",
   },
   imagePlaceholder: {
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#EAE7DF",
   },
   itemInfo: {
     flex: 1,
-    marginHorizontal: 12,
+    marginHorizontal: 10,
   },
   itemBrand: {
-    fontSize: 11,
-    color: "#6B7280",
+    fontSize: 10,
+    color: "#888C7F",
     textTransform: "uppercase",
-    fontWeight: "600",
+    fontWeight: "700",
+    letterSpacing: 0.4,
   },
   itemName: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#1F2937",
-    marginTop: 1,
-  },
-  itemPriceQty: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    color: "#1A1A1A",
     marginTop: 2,
-  },
-  itemPrice: {
-    fontSize: 12,
-    color: "#4B5563",
-  },
-  itemQty: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#E05326",
+    lineHeight: 17,
   },
   itemLineTotal: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
   },
-  divider: {
-    height: 1,
-    backgroundColor: "#F3F4F6",
-    marginVertical: 12,
+  // 44px tap target for the expand chevrons (item rows + the bar)
+  expandBtn: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  itemDetails: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F2F2EB",
+    paddingTop: 4,
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+  },
+  detailRowLast: {
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#F2F2EB",
+  },
+  detailLabel: {
+    fontSize: 12.5,
+    color: "#888C7F",
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  // The pinned bar just above the bottom nav
+  bar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#EAE7DF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  barTotals: {
+    flex: 1,
+  },
+  barTotalLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#888C7F",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  barTotalValue: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#E05326",
+  },
+  checkoutBtn: {
+    backgroundColor: "#E05326",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  checkoutText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  // The expanded purchase-detail panel, anchored above the bar
+  detailsPanel: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5DF",
+    padding: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  panelTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#181A15",
+    marginBottom: 8,
   },
   totalRow: {
     flexDirection: "row",
@@ -631,16 +428,16 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   totalLabel: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: 13,
+    color: "#888C7F",
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
-    color: "#1F2937",
+    color: "#1A1A1A",
   },
   freeShippingBadge: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     color: "#059669",
     backgroundColor: "#D1FAE5",
@@ -649,116 +446,20 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   grandTotalRow: {
-    marginTop: 8,
+    marginTop: 6,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: "#EAE7DF",
+    marginBottom: 0,
   },
   grandTotalLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
+    color: "#181A15",
   },
   grandTotalValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "800",
     color: "#E05326",
   },
-  fieldGroup: {
-    marginBottom: 12,
-  },
-  twoColumnRow: {
-    flexDirection: "row",
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 4,
-  },
-  input: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#111827",
-  },
-  multilineInput: {
-    height: 72,
-    textAlignVertical: "top",
-  },
-  helperText: {
-    fontSize: 11,
-    color: "#6B7280",
-    marginTop: 4,
-  },
-  paymentOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    marginBottom: 10,
-    backgroundColor: "#FFFFFF",
-  },
-  paymentOptionSelected: {
-    borderColor: "#E05326",
-    backgroundColor: "#FEF2EE",
-  },
-  radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#9CA3AF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#E05326",
-  },
-  paymentInfo: {
-    flex: 1,
-  },
-  paymentTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  paymentDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 2,
-  },
-  placeOrderButton: {
-    backgroundColor: "#E05326",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 4,
-    shadowColor: "#E05326",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  placeOrderButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-  },
 });
-
