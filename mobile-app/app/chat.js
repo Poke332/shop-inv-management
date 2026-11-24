@@ -144,7 +144,7 @@ export default function ChatScreen() {
       <View
         style={[
           styles.assistantHeader,
-          { paddingTop: TOP_BAR_HEIGHT + insets.top },
+          { paddingTop: TOP_BAR_HEIGHT + insets.top + 12 },
         ]}
       >
         <Feather name="message-circle" size={18} color="#C64A22" />
@@ -231,7 +231,7 @@ export default function ChatScreen() {
 
       {/* Input row — pinned above the bottom nav (which overlays the
           screen), mirroring the web panel's message form. */}
-      <View style={[styles.inputRow, { paddingBottom: BOTTOM_NAV_HEIGHT + insets.bottom }]}>
+      <View style={[styles.inputRow, { paddingBottom: BOTTOM_NAV_HEIGHT + insets.bottom + 12 }]}>
         <TextInput
           style={styles.input}
           accessibilityLabel="Message"
