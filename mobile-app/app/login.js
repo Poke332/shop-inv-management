@@ -18,16 +18,6 @@ import { useFormKeyboard } from "../hooks/useFormKeyboard";
 // Same email format rule the web login page validates against.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Demo quick-fill rows — the 5 seeded accounts from the web login page's
-// "Explore the demo" section; every one shares the seeded demo password.
-const DEMO_ACCOUNTS = [
-  ["buyer", "buyer_102@mock.local"],
-  ["staff", "marta@mock.local"],
-  ["manager", "rina@mock.local"],
-  ["admin", "ria@mock.local"],
-  ["disabled", "dan@mock.local"],
-];
-
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
@@ -66,15 +56,6 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  }
-
-  // Dev aid: quick-fill a demo account (mirrors the web login page).
-  function fillDemo(addr) {
-    setEmail(addr);
-    setPassword("sunset123");
-    setEmailErr(null);
-    setPwErr(null);
-    setError("");
   }
 
   return (
@@ -225,26 +206,6 @@ export default function LoginScreen() {
             >
               <Text style={styles.footerLink}>Register</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Dev aid: quick-fill the 5 demo credential rows */}
-          <View style={styles.demoSection}>
-            <Text style={styles.demoHeading}>
-              Explore the demo · choose an account to fill the form
-            </Text>
-            <View style={styles.demoRow}>
-              {DEMO_ACCOUNTS.map(([label, addr]) => (
-                <TouchableOpacity
-                  key={addr}
-                  style={styles.demoChip}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Fill ${label} demo account`}
-                  onPress={() => fillDemo(addr)}
-                >
-                  <Text style={styles.demoChipText}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -405,36 +366,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#E05326",
-  },
-  demoSection: {
-    marginTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    paddingTop: 16,
-    alignItems: "center",
-  },
-  demoHeading: {
-    fontSize: 12,
-    color: "#4B5563",
-    marginBottom: 10,
-  },
-  demoRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 8,
-  },
-  demoChip: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#FFFFFF",
-  },
-  demoChipText: {
-    fontSize: 13,
-    color: "#374151",
-    fontWeight: "500",
   },
 });
