@@ -27,6 +27,7 @@ Sunset Electronics keeps its warm brand character while using a calmer ivory and
 - A skip link, focus outlines, reduced-motion support, and image alt text support keyboard and assistive technology use.
 - Mobile product actions have a 44px height; cards use larger text at narrow widths.
 - The operations workspace shows computed total products, available units, low stock, and out of stock.
+- The warehouse operations screen renders a lazy-loaded three.js rack diorama with transfer animations; the 3D code stays out of the eager bundle (three.js lives in its own chunk).
 - Sign-in keeps demo account shortcuts and uses simpler customer-facing copy.
 
 The existing route guards, checkout steps, review flows, and mock data facade remain available. Shared styles apply across their screens; the largest layout changes are the homepage, collection header, auth shell, and operations shell.

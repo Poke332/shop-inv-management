@@ -20,7 +20,7 @@ Full-stack shop-inventory system for the "Sunset" electronics store: a REST API,
    - `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` — used by the product-image pipeline (and by the seed, which uploads images). Service-role only: it grants admin access to the project and must stay server-side.
    - `JWT_SECRET` — the example ships a 41-char dev-only placeholder; rotate it anywhere that is not your own machine.
 
-   Every backend script loads `.env` via `node --env-file`.
+   Every backend script loads `.env` via `node --env-file`. Schema migrations (`backend/migrations/*.sql`, including the virtual-warehouse tables) auto-apply at boot — unapplied files run in one transaction via `schema_migrations`, so a fresh Supabase database needs no manual SQL.
 
 2. **Seed demo data** (`cd backend`): `npm run seed` loads the demo catalog, users and orders and uploads the seeded product images to the storage bucket. It is idempotent — deterministic object paths, upserted — so re-running is safe. `npm run seed:refresh` truncates the seeded data tables and re-seeds from scratch (the schema is untouched).
 
@@ -34,7 +34,7 @@ Full-stack shop-inventory system for the "Sunset" electronics store: a REST API,
 
 **Web frontend** — `cd frontend && npm run dev -- --port 5174`. Port 5174 matches the API's default CORS origin (`FRONTEND_ORIGIN=http://localhost:5174`); use a different port and set `FRONTEND_ORIGIN` in `backend/.env` to match.
 
-**Mobile** — `cd mobile-app && npx expo start`, then open the app in Expo Go (scan the QR code). Testing from a real phone or tablet on your local network? `localhost` only resolves on the machine running the API, so point `EXPO_PUBLIC_API_URL` at that machine's LAN IP instead, e.g. `http://192.168.1.42:3000/api` (device and API must share the network).
+**Mobile** — `cd mobile-app && npx expo start`, then open the app in Expo Go (scan the QR code). Testing from a real phone or tablet on your local network? `localhost` only resolves on the machine running the API, so point `EXPO_PUBLIC_API_URL` at that machine's LAN IP instead, e.g. `http://192.168.1.42:3000/api` (device and API must share the network). The app also runs in a browser via `react-native-web`: choose the web target in `npx expo start`, or export a production bundle with `npx expo export --platform web`.
 
 ## Auth and roles
 
@@ -68,6 +68,8 @@ Base path `/api` on the backend port:
 | `GET /ops/orders` · `PATCH /ops/orders/:id/status` · `GET /ops/stock` | staff+ |
 | `PATCH /ops/stock/:id` · `POST /ops/products` (201) · `PATCH /ops/products/:id` · `GET /ops/products/:id/reviews` · `PATCH /ops/reviews/:id/hidden` · `PATCH /ops/reviews/:id/comment` | manager+ |
 | `GET /ops/users` · `PATCH /ops/users/:username/role` · `PATCH /ops/users/:username/active` | admin |
+| `GET /warehouse` (overview) · `GET /warehouse/movements` | staff+ |
+| `POST /warehouse/move` · `POST /warehouse/locations` · `PATCH /warehouse/locations/:id` | manager+ |
 
 `/uploads` additionally serves legacy uploaded images statically.
 
