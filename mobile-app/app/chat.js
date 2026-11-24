@@ -161,7 +161,6 @@ export default function ChatScreen() {
         style={styles.log}
         contentContainerStyle={styles.logContent}
         showsVerticalScrollIndicator={false}
-        accessibilityRole="log"
       >
         {messages.length === 0 && (
           <View>
