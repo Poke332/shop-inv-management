@@ -1,6 +1,6 @@
 /**
  * The tile glyph: one 40px stroke-1.5 blueSlate-900 line shape per category
- * (decorative, aria-hidden). The dev token-smoke check expects these on tiles.
+ * (decorative, aria-hidden).
  * @param {string} category  a category slug (or anything -> the generic tile).
  * @param {number} [size]  glyph pixel size (default 40; the details-page
  *   gallery thumbnails render the 32px form, per the mockup generator).
