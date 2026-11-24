@@ -18,19 +18,9 @@ import { useFormKeyboard } from "../hooks/useFormKeyboard";
 // Same email format rule the web login page validates against.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Demo quick-fill rows — the 5 seeded accounts from the web login page's
-// "Explore the demo" section; every one shares the seeded demo password.
-const DEMO_ACCOUNTS = [
-  ["buyer", "buyer_102@mock.local"],
-  ["staff", "marta@mock.local"],
-  ["manager", "rina@mock.local"],
-  ["admin", "ria@mock.local"],
-  ["disabled", "dan@mock.local"],
-];
-
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
@@ -52,7 +42,20 @@ export default function LoginScreen() {
     setError("");
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      const data = await login(email.trim(), password);
+      // The mobile storefront is buyer-only: a staff/manager/admin sign-in
+      // is rejected right here on the sign-in page — undo the session that
+      // was just minted and say why, instead of dropping the user into a
+      // storefront the orders API would refuse to sell to (403).
+      if (data.role !== "buyer") {
+        await logout();
+        setPassword("");
+        setError(
+          "The mobile storefront is for buyer accounts. " +
+          "Staff, manager, and admin accounts use the web ops console."
+        );
+        return;
+      }
       // Success = the redirect (no toast, like the web): back to where the
       // sign-in was started (the bottom-nav account button), else the
       // buyer home.
@@ -68,15 +71,6 @@ export default function LoginScreen() {
     }
   }
 
-  // Dev aid: quick-fill a demo account (mirrors the web login page).
-  function fillDemo(addr) {
-    setEmail(addr);
-    setPassword("sunset123");
-    setEmailErr(null);
-    setPwErr(null);
-    setError("");
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
@@ -89,9 +83,22 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Brand / Header */}
+          {/* Brand / Header — the store wordmark in the web storefront's
+              treatment (DM Sans 700 lowercase "sunset." + ELECTRONICS
+              subline), centered for the auth screens. */}
           <View style={styles.brandContainer}>
-            <Text style={styles.brandWordmark}>Sunset Electronics</Text>
+            <View
+              style={styles.brandBlock}
+              accessibilityRole="text"
+              accessibilityLabel="Sunset Electronics"
+            >
+              <Text style={styles.brandWordmark}>
+                sunset<Text style={styles.brandWordmarkDot}>.</Text>
+              </Text>
+              <Text style={styles.brandSub} accessibilityElementsHidden>
+                ELECTRONICS
+              </Text>
+            </View>
             <Text style={styles.brandTitle}>Welcome back.</Text>
             <Text style={styles.brandSubtitle}>
               Sign in to pick up where you left off.
@@ -226,26 +233,6 @@ export default function LoginScreen() {
               <Text style={styles.footerLink}>Register</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Dev aid: quick-fill the 5 demo credential rows */}
-          <View style={styles.demoSection}>
-            <Text style={styles.demoHeading}>
-              Explore the demo · choose an account to fill the form
-            </Text>
-            <View style={styles.demoRow}>
-              {DEMO_ACCOUNTS.map(([label, addr]) => (
-                <TouchableOpacity
-                  key={addr}
-                  style={styles.demoChip}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Fill ${label} demo account`}
-                  onPress={() => fillDemo(addr)}
-                >
-                  <Text style={styles.demoChipText}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -262,6 +249,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    // Center the brand + form block in the available viewport height;
+    // when the content outgrows the viewport the container is exactly
+    // content-sized, so centering is a no-op and it scrolls top-first
+    // as before (no clipped top edge).
+    justifyContent: "center",
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 40,
@@ -270,12 +262,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 28,
   },
+  brandBlock: {
+    alignItems: "center",
+  },
   brandWordmark: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#E05326",
-    letterSpacing: -0.3,
-    marginBottom: 12,
+    // Web wordmark metrics at the mobile size: 28px / 700 / -0.054em.
+    fontSize: 28,
+    lineHeight: 28,
+    fontFamily: "DMSans",
+    fontWeight: "700",
+    letterSpacing: -1.5,
+    color: "#252821",
+  },
+  brandWordmarkDot: {
+    color: "#C64A22",
+  },
+  brandSub: {
+    fontSize: 7,
+    lineHeight: 7,
+    fontFamily: "DMSans",
+    fontWeight: "500",
+    letterSpacing: 1.5,
+    color: "#252821",
+    marginTop: 4,
   },
   brandTitle: {
     fontSize: 24,
@@ -405,36 +414,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#E05326",
-  },
-  demoSection: {
-    marginTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    paddingTop: 16,
-    alignItems: "center",
-  },
-  demoHeading: {
-    fontSize: 12,
-    color: "#4B5563",
-    marginBottom: 10,
-  },
-  demoRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 8,
-  },
-  demoChip: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#FFFFFF",
-  },
-  demoChipText: {
-    fontSize: 13,
-    color: "#374151",
-    fontWeight: "500",
   },
 });

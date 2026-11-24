@@ -1,9 +1,9 @@
 # Progress — Pull Requests Merged into main
 
-Last updated: 2026-11-10 · generated from `origin/main` @ `50064f2` (50064f25c366d10178dd8215941bd32a88280494)
+Last updated: 2026-11-23 · generated from `origin/main` @ `3193333` (31933334c55e10aafd537d4901deb83c7f776a49)
 
-All 24 merged pull requests, in merge order (oldest first). Verified two ways:
-`git log origin/main --merges` (24 merge commits) cross-checked 1:1 against
+All 31 merged pull requests, in merge order (oldest first). Verified two ways:
+`git log origin/main --merges` (30 merge commits on main) cross-checked 1:1 against
 `gh pr list --state merged` by merge-commit SHA. PR numbers #17, #20, #24–#26, #29
 are closed without merging (verified via `gh pr view`) — they are not listed.
 No merges landed without a PR.
@@ -34,3 +34,10 @@ No merges landed without a PR.
 | 27 | Deploy readiness: Render bind 0.0.0.0 + env-safe start | 2026-11-03 | f3d55df | feat/supabase-postgres | Deploy readiness: 0.0.0.0 bind and env-safe start for Render |
 | 28 | Add mobile app: product list and detail screens | 2026-11-09 | 2a1c3c8 | mobile-app-week12 | Expo mobile app: product list and detail screens |
 | 30 | Feature/chatbot | 2026-11-10 | 50064f2 | feature/chatbot | AI chatbot for stock info, recommendations, and app help (POST /api/chat + provider config) |
+| 33 | Chatbot: dual-provider (OpenAI main, Anthropic optional) + OpenRouter removal + strict shop scope | 2026-11-15 | 2819e62 | feat/chat-dual-provider | Chatbot dual-provider: OpenAI-compatible endpoint as the main/default provider, Anthropic as explicit optional; OpenRouter alias removed (reachable via OPENAI_BASE_URL); OpenAI-shaped tool format; strict shop scope + injection-resistant prompt |
+| 31 | feat(mobile): update UI buyer home screen, header, and icons to match | 2026-11-17 | 41c5c9d | feat/mobile-buyer-ui | Mobile buyer UI refresh: home screen, header, and icons aligned with the web storefront |
+| 34 | fix: resolve product detail syntax and align expo dependencies | 2026-11-17 | 9ff65d7 | fix/product-detail-expo | Fixed the product-detail syntax break and aligned Expo dependency versions |
+| 35 | fix: restore full product detail file | 2026-11-17 | 87c35e3 | fix/restore-product-id | Restored the full product-detail file that the previous fix had truncated |
+| 32 | integrate warehouse 3D and rack transfers | 2026-11-21 | 3a04fab | feat/warehouse-3d | Warehouse ops: lazy-loaded three.js rack diorama + transfer animations, warehouse API (overview, movements, move, locations), transactional checkout settlement, migration 005 |
+| 36 | Mobile app: revision + bug-fix phase (nav, bars, auth, cart/checkout flow, skeletons, 24 files under mobile-app/) | 2026-11-23 | 3193333 | fix/mobile-revisions | Mobile revision phase: react-native-web bundling fix, bottom-nav split + auth-gated account button, home/top-bar declutter, web-parity auth screens, cart/checkout flow, skeletons, form-keyboard + filters crash fixes |
+| 37 | Mobile storefront hardening + docs refresh (THIS PR) | 2026-11-23 | a5682e7 | docs/markdown-refresh | Mobile buyer-only hardening: demo quick-fill removed, non-buyer sign-in rejected at the login screen; web-matched wordmark (bundled DM Sans, `sunset.` + ELECTRONICS subline, TopBar + auth brand blocks), centered auth forms; docs updates (this file, README, frontend/DESIGN) |

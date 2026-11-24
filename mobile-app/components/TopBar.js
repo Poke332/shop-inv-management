@@ -40,9 +40,18 @@ export default function TopBar() {
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <View style={styles.row}>
-        <Text style={styles.title} accessibilityLabel="Sunset">
-          Sunset
-        </Text>
+        {/* Store wordmark — same treatment as the web storefront title:
+            DM Sans 700 lowercase "sunset." with the orange dot and the
+            small ELECTRONICS subline (web: 28px at the mobile width). */}
+        <View
+          style={styles.titleBlock}
+          accessibilityRole="text"
+          accessibilityLabel="Sunset Electronics"
+        >
+          <Text style={styles.title}>
+            sunset<Text style={styles.titleDot}>.</Text>
+          </Text>
+        </View>
 
         {titleOnly ? null : (
           <View style={styles.searchBar}>
@@ -93,12 +102,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
-  title: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#E05326",
-    letterSpacing: -0.3,
+  titleBlock: {
     flexShrink: 0,
+    alignItems: "flex-start",
+  },
+  title: {
+    // Web wordmark metrics at the mobile size: 28px / 700 / -0.054em.
+    fontSize: 28,
+    lineHeight: 28,
+    fontFamily: "DMSans",
+    fontWeight: "700",
+    letterSpacing: -1.5,
+    color: "#252821",
+  },
+  titleDot: {
+    color: "#C64A22",
   },
   searchBar: {
     flex: 1,
