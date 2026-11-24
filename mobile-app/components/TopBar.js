@@ -24,7 +24,9 @@ export default function TopBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { query, setQuery, homeScrollRef } = useSearch();
-  const titleOnly = pathname === "/browse";
+  // Browse carries its search into the page body, and the chat screen has
+  // its own input row — so both show the title only.
+  const titleOnly = pathname === "/browse" || pathname === "/chat";
 
   // Home is the search-results surface: on home the submit scrolls the
   // product grid into view; from any other screen it navigates to home
@@ -79,6 +81,18 @@ export default function TopBar() {
               <Feather name="arrow-up-right" size={16} color="#1A1A1A" />
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* Chat assistant launcher (hidden on the chat screen itself) */}
+        {pathname === "/chat" ? null : (
+          <TouchableOpacity
+            style={styles.chatBtn}
+            onPress={() => router.push("/chat")}
+            accessibilityRole="button"
+            accessibilityLabel="Open chat assistant"
+          >
+            <Feather name="message-circle" size={20} color="#252821" />
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -146,5 +160,15 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: "center",
     justifyContent: "center",
+  },
+  chatBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E3E1D8",
   },
 });
