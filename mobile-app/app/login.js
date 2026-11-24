@@ -20,7 +20,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const { scrollRef, revealFocusedInput } = useFormKeyboard();
 
@@ -42,7 +42,20 @@ export default function LoginScreen() {
     setError("");
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      const data = await login(email.trim(), password);
+      // The mobile storefront is buyer-only: a staff/manager/admin sign-in
+      // is rejected right here on the sign-in page — undo the session that
+      // was just minted and say why, instead of dropping the user into a
+      // storefront the orders API would refuse to sell to (403).
+      if (data.role !== "buyer") {
+        await logout();
+        setPassword("");
+        setError(
+          "The mobile storefront is for buyer accounts. " +
+          "Staff, manager, and admin accounts use the web ops console."
+        );
+        return;
+      }
       // Success = the redirect (no toast, like the web): back to where the
       // sign-in was started (the bottom-nav account button), else the
       // buyer home.
