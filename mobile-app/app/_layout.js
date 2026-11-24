@@ -18,6 +18,7 @@ function isStandardScreen(pathname) {
     pathname === "/orders" ||
     pathname === "/checkout" ||
     pathname === "/checkout-wizard" ||
+    pathname === "/chat" ||
     pathname.startsWith("/product")
   );
 }
@@ -57,6 +58,7 @@ export default function RootLayout() {
               >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="chat" options={{ headerShown: false }} />
                 <Stack.Screen
                   name="register"
                   options={{ headerShown: true, title: "Create Account" }}

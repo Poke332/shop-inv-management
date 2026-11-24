@@ -32,6 +32,7 @@ const { createOpenAICompatibleClient } = await import('../src/services/chat/open
 const { createAnthropicClient } = await import('../src/services/chat/anthropicAdapter.js')
 const { runChat } = await import('../src/services/chat/agent.js')
 const { normalizeMessages } = await import('../src/services/chat/messages.js')
+const { buildSystemPrompt } = await import('../src/services/chat/systemPrompt.js')
 const { rateLimit } = await import('../src/services/rateLimit.js')
 const { executeTool, toolDefinitions } = await import('../src/services/chat/tools.js')
 await initDatabase()
@@ -130,6 +131,32 @@ test('normalizeMessages keeps only the most recent turns', () => {
   assert.ok(result.length <= 20)
   assert.equal(result[0].role, 'user')
   assert.equal(result.at(-1).content, 'last')
+})
+
+// ---- platform-aware system prompt -------------------------------------------
+
+test('buildSystemPrompt: default (no client) equals the explicit "web" guide', () => {
+  assert.equal(buildSystemPrompt(null), buildSystemPrompt(null, 'web'))
+  const prompt = buildSystemPrompt(null, 'web')
+  assert.ok(prompt.includes('list the catalog'))
+  assert.ok(prompt.includes('the header search box'))
+  assert.ok(prompt.includes('The visitor is using the website.'))
+})
+
+test('buildSystemPrompt: client "mobile" swaps in the mobile storefront guide', () => {
+  const prompt = buildSystemPrompt(null, 'mobile')
+  assert.ok(prompt.includes('bottom navigation'))
+  assert.ok(prompt.includes('buyer-only'))
+  assert.ok(prompt.includes('The visitor is using the mobile app.'))
+  // Web-only surfaces must not leak into the mobile guide
+  assert.ok(!prompt.includes('the header search box'))
+  assert.ok(!prompt.includes('Ongoing Orders (/ops/orders)'))
+})
+
+test('buildSystemPrompt: unknown client values fall back to the website guide', () => {
+  const prompt = buildSystemPrompt({ role: 'buyer' }, 'android')
+  assert.ok(prompt.includes('list the catalog'))
+  assert.ok(prompt.includes('The visitor is signed in with the "buyer" role.'))
 })
 
 // ---- agent loop (fake client, OpenAI shapes) ---------------------------------

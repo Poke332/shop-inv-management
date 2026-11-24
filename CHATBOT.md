@@ -1,6 +1,7 @@
 # Chatbot (Sunset assistant)
 
 Arsitektur: UI chat -> `POST /api/chat` -> LLM (tool calling) -> tools -> query Postgres -> jawaban.
+Body chat mendukung field opsional `client: "mobile"` (dikirim oleh mobile app): panduan navigasi asisten mengikuti layout mobile (top bar + bottom nav, storefront buyer-only, tanpa ops console); nilai selain "mobile" (termasuk tidak dikirim) memakai panduan website.
 
 Format message/tool kanonik aplikasi ini gaya OpenAI (function-tool, `tool_calls`,
 `role: 'tool'`, `finish_reason`). Adapter `openaiCompatible.js` meneruskannya apa
