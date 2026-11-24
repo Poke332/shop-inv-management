@@ -121,8 +121,15 @@ export default function ChatScreen() {
   }
 
   // Resend the last user message with everything before it as the history.
+  // (Plain loop instead of findLastIndex — ES2023, not in every JS engine.)
   function retry() {
-    const index = messages.findLastIndex((m) => m.role === "user");
+    let index = -1;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === "user") {
+        index = i;
+        break;
+      }
+    }
     if (index >= 0) send(messages[index].content, messages.slice(0, index));
   }
 
