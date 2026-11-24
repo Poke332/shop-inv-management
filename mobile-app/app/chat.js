@@ -91,6 +91,9 @@ export default function ChatScreen() {
         },
         body: JSON.stringify({
           messages: history.map(({ role, content }) => ({ role, content })),
+          // Tell the assistant this is the mobile storefront so its
+          // navigation help matches the layout the visitor actually sees.
+          client: "mobile",
         }),
       });
       status = response.status;

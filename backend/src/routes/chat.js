@@ -44,6 +44,10 @@ const limiter = rateLimit({ limit: Number(process.env.CHAT_RATE_LIMIT_PER_MIN) |
 // Open to guests (the catalog is public); a valid token only tailors the app-help answers to the user's role.
 router.post('/', limiter, optionalAuth, async (req, res) => {
   const messages = normalizeMessages(req.body?.messages)
+  // Which app the visitor is in — the mobile storefront sends "mobile" so the
+  // assistant's navigation guide matches what the visitor actually sees.
+  // Anything else (including absent) behaves as the website.
+  const platform = req.body?.client === "mobile" ? "mobile" : "web"
   const client = getClient()
   if (!client) {
     // The openai provider without a base URL names both required vars; every
@@ -59,7 +63,7 @@ router.post('/', limiter, optionalAuth, async (req, res) => {
     const result = await runChat({
       client,
       model: model(),
-      system: buildSystemPrompt(req.user || null),
+      system: buildSystemPrompt(req.user || null, platform),
       tools: toolDefinitions,
       executeTool,
       messages,
