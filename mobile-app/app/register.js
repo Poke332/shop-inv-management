@@ -279,6 +279,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    // Center the brand + form block in the available viewport height;
+    // when the content outgrows the viewport the container is exactly
+    // content-sized, so centering is a no-op and it scrolls top-first
+    // as before (no clipped top edge).
+    justifyContent: "center",
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 40,
