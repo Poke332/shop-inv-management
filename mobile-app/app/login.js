@@ -83,9 +83,22 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Brand / Header */}
+          {/* Brand / Header — the store wordmark in the web storefront's
+              treatment (DM Sans 700 lowercase "sunset." + ELECTRONICS
+              subline), centered for the auth screens. */}
           <View style={styles.brandContainer}>
-            <Text style={styles.brandWordmark}>Sunset Electronics</Text>
+            <View
+              style={styles.brandBlock}
+              accessibilityRole="text"
+              accessibilityLabel="Sunset Electronics"
+            >
+              <Text style={styles.brandWordmark}>
+                sunset<Text style={styles.brandWordmarkDot}>.</Text>
+              </Text>
+              <Text style={styles.brandSub} accessibilityElementsHidden>
+                ELECTRONICS
+              </Text>
+            </View>
             <Text style={styles.brandTitle}>Welcome back.</Text>
             <Text style={styles.brandSubtitle}>
               Sign in to pick up where you left off.
@@ -244,12 +257,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 28,
   },
+  brandBlock: {
+    alignItems: "center",
+  },
   brandWordmark: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#E05326",
-    letterSpacing: -0.3,
-    marginBottom: 12,
+    // Web wordmark metrics at the mobile size: 28px / 700 / -0.054em.
+    fontSize: 28,
+    lineHeight: 28,
+    fontFamily: "DMSans",
+    fontWeight: "700",
+    letterSpacing: -1.5,
+    color: "#252821",
+  },
+  brandWordmarkDot: {
+    color: "#C64A22",
+  },
+  brandSub: {
+    fontSize: 7,
+    lineHeight: 7,
+    fontFamily: "DMSans",
+    fontWeight: "500",
+    letterSpacing: 1.5,
+    color: "#252821",
+    marginTop: 4,
   },
   brandTitle: {
     fontSize: 24,

@@ -9,7 +9,7 @@ import { useSearch } from "../context/SearchContext";
 // safe-area top inset). Content screens pad their scroll containers by
 // TOP_BAR_HEIGHT + the safe-area top inset so the pinned bar never
 // covers page content.
-export const TOP_BAR_HEIGHT = 48;
+export const TOP_BAR_HEIGHT = 56;
 
 // Pinned top bar shared by every standard screen: the "Sunset" title on
 // the left and a search field spanning all remaining width. Rendered
@@ -40,9 +40,21 @@ export default function TopBar() {
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <View style={styles.row}>
-        <Text style={styles.title} accessibilityLabel="Sunset">
-          Sunset
-        </Text>
+        {/* Store wordmark — same treatment as the web storefront title:
+            DM Sans 700 lowercase "sunset." with the orange dot and the
+            small ELECTRONICS subline (web: 28px at the mobile width). */}
+        <View
+          style={styles.titleBlock}
+          accessibilityRole="text"
+          accessibilityLabel="Sunset Electronics"
+        >
+          <Text style={styles.title}>
+            sunset<Text style={styles.titleDot}>.</Text>
+          </Text>
+          <Text style={styles.titleSub} accessibilityElementsHidden>
+            ELECTRONICS
+          </Text>
+        </View>
 
         {titleOnly ? null : (
           <View style={styles.searchBar}>
@@ -93,12 +105,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
-  title: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#E05326",
-    letterSpacing: -0.3,
+  titleBlock: {
     flexShrink: 0,
+    alignItems: "flex-start",
+  },
+  title: {
+    // Web wordmark metrics at the mobile size: 28px / 700 / -0.054em.
+    fontSize: 28,
+    lineHeight: 28,
+    fontFamily: "DMSans",
+    fontWeight: "700",
+    letterSpacing: -1.5,
+    color: "#252821",
+  },
+  titleDot: {
+    color: "#C64A22",
+  },
+  titleSub: {
+    fontSize: 7,
+    lineHeight: 7,
+    fontFamily: "DMSans",
+    fontWeight: "500",
+    letterSpacing: 1.5,
+    color: "#252821",
+    marginTop: 4,
   },
   searchBar: {
     flex: 1,
