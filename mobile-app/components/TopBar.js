@@ -9,7 +9,7 @@ import { useSearch } from "../context/SearchContext";
 // safe-area top inset). Content screens pad their scroll containers by
 // TOP_BAR_HEIGHT + the safe-area top inset so the pinned bar never
 // covers page content.
-export const TOP_BAR_HEIGHT = 56;
+export const TOP_BAR_HEIGHT = 48;
 
 // Pinned top bar shared by every standard screen: the "Sunset" title on
 // the left and a search field spanning all remaining width. Rendered
@@ -50,9 +50,6 @@ export default function TopBar() {
         >
           <Text style={styles.title}>
             sunset<Text style={styles.titleDot}>.</Text>
-          </Text>
-          <Text style={styles.titleSub} accessibilityElementsHidden>
-            ELECTRONICS
           </Text>
         </View>
 
@@ -120,15 +117,6 @@ const styles = StyleSheet.create({
   },
   titleDot: {
     color: "#C64A22",
-  },
-  titleSub: {
-    fontSize: 7,
-    lineHeight: 7,
-    fontFamily: "DMSans",
-    fontWeight: "500",
-    letterSpacing: 1.5,
-    color: "#252821",
-    marginTop: 4,
   },
   searchBar: {
     flex: 1,
