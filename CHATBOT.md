@@ -34,7 +34,6 @@ dalam pesan pengguna dianggap teks biasa.
    deployment yang bergantung pada itu sekarang harus set `CHAT_PROVIDER=anthropic` eksplisit atau
    sediakan `OPENAI_API_KEY`.
 3. `npm run dev` di backend, lalu jalankan frontend / mobile-app seperti biasa.
-4. Tes: `DATABASE_URL=postgres://... npm test` (tes chatbot memakai server Anthropic + OpenAI palsu, tidak butuh API key).
 
 ## Peta file
 - `backend/src/routes/chat.js` — endpoint, rate limit, error 503 yang rapi, pilihan provider.

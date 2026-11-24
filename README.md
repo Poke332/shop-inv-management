@@ -91,7 +91,3 @@ There is no fallback between providers: with no usable key for the chosen provid
 ## Product image storage
 
 `POST`/`PATCH /api/ops/products` accepts an inline `data:image/{png,jpeg,webp};base64` payload (≤ 1.5 MB): the bytes are converted to WebP (quality 80, via `sharp`) and stored in the public Supabase Storage bucket `product-images` under `products/<productId>/<uuid>.webp`; the returned public URL is what gets stored in `products.image`. The bucket is provisioned by the backend itself on first use (`createBucket` with the service-role key, "already exists" tolerated) — only if your project blocks bucket creation from the API do you create it manually (Storage → New bucket, public, read-only for anon). Existing plain paths (`/products`, `/img`, `/uploads`) and public Supabase object URLs pass through unchanged; files already in `backend/data/uploads` stay served at `/uploads` for back-compat. Seeded products upload their source images (`frontend/public/products/*.png`) as `products/<id>/<name>.webp` with deterministic, upserted object paths, so the database always points at bucket images.
-
-## Tests
-
-`cd backend && npm test` (`node --test test/*.test.js`). The suite needs a `DATABASE_URL` pointing at a Postgres where the app user can create databases — four of the suites drop and create a disposable database per run. The chat and storage suites run against fake LLM / storage servers, so no API key or Supabase account is needed for them.
