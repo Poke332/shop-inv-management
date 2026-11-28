@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 import WarehouseWorkspace from './WarehouseWorkspace.jsx'
 import { useWarehouseDialog } from '../hooks/useWarehouseDialog.js'
@@ -170,13 +170,13 @@ function LocationConfigModal({ location, data, onClose, onSave, mode }) {
     setSaveError(null)
     try {
       if (isEdit) {
-        await mockApi.updateWarehouseLocation(location.id, {
+        await httpApi.updateWarehouseLocation(location.id, {
           label: form.label.trim() || `Bay ${form.code}`,
           capacity: Number(form.capacity),
           active: form.active,
         })
       } else {
-        await mockApi.createWarehouseLocation({
+        await httpApi.createWarehouseLocation({
           code: form.code.toUpperCase(),
           zone: form.zone.trim(),
           rack: form.rack.trim() || null,
@@ -601,8 +601,8 @@ export function WarehousePage() {
     try {
       setInitialLoadError(null)
       const [ov, mv] = await Promise.all([
-        mockApi.getWarehouseOverview(),
-        mockApi.getWarehouseMovements({ limit: 20 })
+        httpApi.getWarehouseOverview(),
+        httpApi.getWarehouseMovements({ limit: 20 })
       ])
       setData(ov)
       setMovements(mv.items || [])
@@ -615,7 +615,7 @@ export function WarehousePage() {
 
   useEffect(() => {
     let alive = true
-    Promise.all([mockApi.getWarehouseOverview(), mockApi.getWarehouseMovements({ limit: 20 })])
+    Promise.all([httpApi.getWarehouseOverview(), httpApi.getWarehouseMovements({ limit: 20 })])
       .then(([ov, mv]) => {
         if (!alive) return
         setData(ov)
@@ -635,7 +635,7 @@ export function WarehousePage() {
   const handleMove = async (payload) => {
     if(activeTransfer.current)throw new Error('Finish or skip the current visualization first.')
     setTransferNotice('')
-    const result=await mockApi.moveWarehouseStock(payload)
+    const result=await httpApi.moveWarehouseStock(payload)
     const refreshed=await refresh()
     const event=refreshed?confirmedTransfer(result):null
     if(event){activeTransfer.current=event;setTransferEvent(event)}

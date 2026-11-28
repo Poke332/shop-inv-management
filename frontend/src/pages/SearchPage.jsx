@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useSearchParams } from 'react-router'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { ProductGrid } from '../components/ProductGrid.jsx'
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton.jsx'
 import { FilterRail } from '../components/search/FilterRail.jsx'
@@ -52,7 +52,7 @@ export default function SearchPage() {
   // brands … not hard-coded") — fetch the unfiltered catalog once for it.
   useEffect(() => {
     let alive = true
-    mockApi
+    httpApi
       .getProducts()
       .then((res) => {
         if (!alive) return
@@ -82,7 +82,7 @@ export default function SearchPage() {
       // case; multi-brand is refined client-side (order preserved: the API
       // sorts before we filter).
       if (activeBrands.length === 1) filter.brand = activeBrands[0]
-      mockApi
+      httpApi
         .getProducts(filter)
         .then((res) => {
           if (!alive) return

@@ -6,13 +6,13 @@ import { ToastHost } from '../components/ToastHost.jsx'
 import { ProductSelect } from '../components/per-product-review-panel/ProductSelect.jsx'
 import { ReviewCard } from '../components/per-product-review-panel/ReviewCard.jsx'
 import { SectionHeader } from '../components/per-product-review-panel/SectionHeader.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useToasts } from '../hooks/useToasts.js'
 
 /**
  * The per-product review panel (docs/per-product-review-panel). Route
  * /ops/reviews?product=<id> — manager/admin (requireManagerOrAdmin): the
- * moderation console over ONE review list (mockApi.getProductReviewsAll,
+ * moderation console over ONE review list (httpApi.getProductReviewsAll,
  * public + hidden, newest first) split into the Public section and the
  * collapsed Hidden section. The meta line ("122 public / 6 hidden · 128
  * total") is the response's stats — never recomputed from the split
@@ -48,7 +48,7 @@ function ReviewsContent() {
 
   useEffect(() => {
     let cancelled = false
-    mockApi
+    httpApi
       .getProductReviewsAll(productId)
       .then((d) => {
         if (cancelled) return
@@ -93,10 +93,10 @@ function ReviewsContent() {
       hidden: nextHidden ? stats.hidden + 1 : stats.hidden - 1,
     })
     if (nextHidden) setHiddenOpen(true)
-    mockApi
+    httpApi
       .setReviewHidden(r.id, nextHidden)
       .then(() =>
-        mockApi.getProductReviewsAll(productId).then((d) => {
+        httpApi.getProductReviewsAll(productId).then((d) => {
           setItems(d.items)
           setStats({ public: d.publicCount, hidden: d.hiddenCount, total: d.total })
           flash(r.id, `${r.buyer}’s review moved to ${nextHidden ? 'Hidden' : 'Public'}`)
@@ -139,10 +139,10 @@ function ReviewsContent() {
     setSaving((s) => new Set(s).add(r.id))
     // optimistic: the comment lands on the row before the PUT settles
     setItems(items.map((x) => (x.id === r.id ? { ...x, sellerComment: text ? { text, at: '' } : undefined } : x)))
-    mockApi
+    httpApi
       .setSellerComment(r.id, text)
       .then(() =>
-        mockApi.getProductReviewsAll(productId).then((d) => {
+        httpApi.getProductReviewsAll(productId).then((d) => {
           setItems(d.items)
           closeDraft(r.id)
           flash(r.id, `Seller comment ${text ? 'saved' : 'cleared'} for ${r.buyer}`)

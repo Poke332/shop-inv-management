@@ -9,7 +9,7 @@ import { TileGlyph } from '../TileGlyph.jsx'
  * description, and the specs table. No controls: no form inputs, no save,
  * no spec add/remove, no "New product", no editor link — the manager/admin
  * ProductForm pane is simply not rendered for staff (visibility gating,
- * not disabled styling). Data shape = the mockApi Product record.
+ * not disabled styling). Data shape = the httpApi Product record.
  * @param {{product: object | null, loading: boolean}} props  product null
  *   = loading skeleton.
  * @returns {object} the read-only detail card.

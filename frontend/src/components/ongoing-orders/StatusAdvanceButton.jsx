@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { mockApi } from '../../data'
+import { httpApi } from '../../data/httpApi.js'
 import { ORDER_FLOW } from '../../utils/utils.js'
 
 /**
@@ -30,7 +30,7 @@ export function StatusAdvanceButton({ order, onOptimistic, onOk, onFail }) {
     setBusy(true)
     onOptimistic(order.id, next)
     try {
-      await mockApi.advanceOrderStatus(order.id, next)
+      await httpApi.advanceOrderStatus(order.id, next)
       onOk(order.id, next)
     } catch {
       onFail(order.id)

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { FiMessageCircle, FiSend, FiX } from 'react-icons/fi'
 
-import { mockApi } from '../../data'
+import { httpApi } from '../../data/httpApi.js'
 import '../../styles/chat.css'
 
 const SUGGESTIONS = [
@@ -89,7 +89,7 @@ export default function ChatWidget() {
     setLoading(true)
     controllerRef.current = new AbortController()
     try {
-      const { reply } = await mockApi.sendChat(history.map(({ role, content }) => ({ role, content })), controllerRef.current.signal)
+      const { reply } = await httpApi.sendChat(history.map(({ role, content }) => ({ role, content })), controllerRef.current.signal)
       setMessages([...history, newMessage({ role: 'assistant', content: reply })])
     } catch (error) {
       if (error.name === 'AbortError') return

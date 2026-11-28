@@ -4,7 +4,7 @@ import {
 
 import { useLocation } from 'react-router'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { profile, onAuthChange } from '../data/authStorage.js'
 import { CartContext, CheckoutWizardContext } from './contextObjects.js'
 import { estimatedArrival, generateOrderNumber } from '../utils/utils.js'
@@ -71,7 +71,7 @@ function reshaped(data, lines) {
 }
 
 /**
- * The CartStore provider: hydrates from mockApi.getCart() on mount,
+ * The CartStore provider: hydrates from httpApi.getCart() on mount,
  * mirrors every cart mutation (optimistic or pessimistic, per call), and
  * carries the checkout wizard's step + form state for the whole order flow.
  * @param {{children: object}} props
@@ -173,7 +173,7 @@ export function CartProvider({ children }) {
   // panel + retry.
   const refresh = useCallback(async () => {
     try {
-      const d = await mockApi.getCart()
+      const d = await httpApi.getCart()
       lastGood.current = d
       setCart(d)
       setCartError(false)
@@ -220,7 +220,7 @@ export function CartProvider({ children }) {
         setCart(reshaped(cart, cart.lines.map((l) => (l.lineId === lineId ? { ...l, qty } : l))))
       }
       try {
-        const d = await mockApi.setQty(lineId, qty)
+        const d = await httpApi.setQty(lineId, qty)
         lastGood.current = d
         setCart(d)
         return true
@@ -242,7 +242,7 @@ export function CartProvider({ children }) {
     async (lineId, mode = 'optimistic') => {
       if (mode === 'optimistic' && cart) setCart(reshaped(cart, withoutLine(cart.lines, lineId)))
       try {
-        const d = await mockApi.removeLine(lineId)
+        const d = await httpApi.removeLine(lineId)
         lastGood.current = d
         setCart(d)
         return true
@@ -262,7 +262,7 @@ export function CartProvider({ children }) {
   const clear = useCallback(async () => {
     if (cart) setCart(reshaped(cart, []))
     try {
-      const d = await mockApi.clearCart()
+      const d = await httpApi.clearCart()
       lastGood.current = d
       setCart(d)
       return true
@@ -305,7 +305,7 @@ export function CartProvider({ children }) {
       lines: cartLines,
       ...extra,
     }
-    const order = await mockApi.createOrder(payload)
+    const order = await httpApi.createOrder(payload)
     // Capture the order-review panel's step-4 content BEFORE the clear:
     // the enriched cart lines (category/name/price/subline) + the order
     // total, so the panel still renders the just-placed items after the

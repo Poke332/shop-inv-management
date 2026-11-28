@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 
-import { mockApi } from '../../data'
+import { httpApi } from '../../data/httpApi.js'
 
 /**
  * The product selector of the review panel: a 44px selectbox (`.input` —
  * 1px blueSlate-200 border, 8px radius) over the product catalog
- * (mockApi.getProducts id→name). Fully controlled — the selected id lives in
+ * (httpApi.getProducts id→name). Fully controlled — the selected id lives in
  * the URL (?product=), so deep-links pre-select and switching refetches.
  * @param {object} props
  * @param {string} props.value  the selected product id (never empty — the
@@ -19,7 +19,7 @@ export function ProductSelect({ value, onChange }) {
 
   useEffect(() => {
     let cancelled = false
-    mockApi
+    httpApi
       .getProducts()
       .then((d) => {
         if (!cancelled) setOptions(d.items.map((p) => ({ id: p.id, name: p.name })))

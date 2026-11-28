@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { ConfirmDialog } from '../../components/ConfirmDialog.jsx'
-import { mockApi } from '../../data'
+import { httpApi } from '../../data/httpApi.js'
 import { CATEGORY_LABEL } from '../../utils/utils.js'
 import { ImageDropzone } from './ImageDropzone.jsx'
 import { SpecsCard } from './SpecsCard.jsx'
@@ -100,7 +100,7 @@ export function ProductForm({ product, onSaved, onCancel }) {
     setSaving(true)
     const payload = buildPayload()
     try {
-      const p = isCreate ? await mockApi.createProduct(payload) : await mockApi.updateProduct(product.id, payload)
+      const p = isCreate ? await httpApi.createProduct(payload) : await httpApi.updateProduct(product.id, payload)
       lastSaved.current = p
       setSaved(true)
       setDirty(false)

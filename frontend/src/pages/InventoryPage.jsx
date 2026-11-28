@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { AlertBanner } from '../components/inventory-dashboard/AlertBanner.jsx'
 import { ProductTable } from '../components/inventory-dashboard/ProductTable.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { useDebounce } from '../hooks/useDebounce.js'
 import { CATEGORY_LABEL, stockStatus } from '../utils/utils.js'
@@ -13,7 +13,7 @@ import { CATEGORY_LABEL, stockStatus } from '../utils/utils.js'
  * stock overview + "Needs attention" alerts READ-ONLY (the steppers and the
  * "Open editor" links are not rendered — visibility gating, not disabled
  * styling); manager/admin get the inline StockStepper quick-set + editor
- * deep links. Data = mockApi.getProducts (catalog order, all 48) +
+ * deep links. Data = httpApi.getProducts (catalog order, all 48) +
  * getStockOverview (stock ≤ 5, out-of-stock first).
  * @returns {object} the page.
  */
@@ -30,7 +30,7 @@ export function InventoryPage() {
 
   useEffect(() => {
     let alive = true
-    Promise.all([mockApi.getProducts({ sort: 'catalog' }), mockApi.getStockOverview()])
+    Promise.all([httpApi.getProducts({ sort: 'catalog' }), httpApi.getStockOverview()])
       .then(([cat, att]) => {
         if (!alive) return
         setProducts(cat.items)
@@ -58,7 +58,7 @@ export function InventoryPage() {
   const onStockSet = async (id, qty) => {
     // re-throw: ProductTable owns the inline "Save failed — retry" link
     // (failed row set); the page re-fetches the committed product on success.
-    const p = await mockApi.setStock(id, qty)
+    const p = await httpApi.setStock(id, qty)
     setProducts((ps) => (ps ? ps.map((x) => (x.id === p.id ? p : x)) : ps))
     const status = stockStatus(p)
     setAttention((a) =>

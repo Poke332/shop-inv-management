@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Link, useNavigate } from 'react-router'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 
 /**
@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth.js'
  * provisioned by an admin — documented assumption). Fields: name (required),
  * email (required + format), password (required, min 8, show toggle),
  * confirm password (=== password, re-validated live when either password
- * changes). Submit enabled only when all four hold. mockApi.register: 409
+ * changes). Submit enabled only when all four hold. httpApi.register: 409
  * duplicate email -> "An account with this email already exists" under the
  * email field (the rian@mock.local case); 200/201 -> auto sign-in as buyer
  * + redirect to / (the transition to a logged-in storefront is the feedback —
@@ -47,7 +47,7 @@ export default function RegisterPage() {
     setBusy(true)
     setEmailErr(null)
     try {
-      const res = await mockApi.register({ username: name.trim(), email: email.trim(), password })
+      const res = await httpApi.register({ username: name.trim(), email: email.trim(), password })
       signIn(res, 'buyer')
       navigate('/', { replace: true }) // success = auto-login + redirect (no confirmation)
     } catch (err) {

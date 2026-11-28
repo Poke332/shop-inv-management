@@ -2,13 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { ToastHost } from '../components/ToastHost.jsx'
 import { OrderQueue } from '../components/ongoing-orders/OrderQueue.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useToasts } from '../hooks/useToasts.js'
 
 /**
  * Ongoing-orders queue page (docs/ongoing-orders). Route /ops/orders —
  * OpsShell, staff/manager/admin (RequireOps): the OrderQueue with status
- * tabs + receipt-table detail expand. Data = mockApi.getOrders (oldest
+ * tabs + receipt-table detail expand. Data = httpApi.getOrders (oldest
  * pending first); advances are optimistic (chip + button move forward on
  * click, success flash on settle, REVERT + error toast on failure). The
  * first pending order in the freshly loaded queue (the just-placed order,
@@ -29,7 +29,7 @@ export function OngoingOrdersPage() {
 
   const autoExpanded = useRef(false)
   const load = useCallback(() => {
-    mockApi
+    httpApi
       .getOrders(tab === 'all' ? undefined : tab)
       .then((d) => {
         setItems(d.items)
@@ -85,7 +85,7 @@ export function OngoingOrdersPage() {
         }),
       2000,
     )
-    mockApi
+    httpApi
       .getOrders(tab === 'all' ? undefined : tab)
       .then((d) => {
         setItems(d.items)

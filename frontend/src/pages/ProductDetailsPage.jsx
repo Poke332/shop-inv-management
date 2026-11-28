@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { useCart } from '../hooks/useCart.js'
 import { discountPercent, formatIdr, fireToast } from '../utils/utils.js'
@@ -26,7 +26,7 @@ import { QuantityStepper } from '../components/QuantityStepper.jsx'
  * spec table); ReviewList = PUBLIC reviews only (hidden never render but
  * count in the "Reviews (128)" total); stock line states (in-stock
  * willowGreen / 1–5 "Only N left" / 0 out-of-stock) per the doc; AddToCart
- * is wired to the cart module via mockApi.addToCart + the cart context's
+ * is wired to the cart module via httpApi.addToCart + the cart context's
  * refresh, firing the "Added — View cart" toast.
  *
  * Route /products/:id — PUBLIC; back link is history-aware
@@ -70,7 +70,7 @@ export default function ProductDetailsPage() {
         setQty(1)
       }
     }
-    mockApi
+    httpApi
       .getProduct(id)
       .then((p) => {
         if (alive) setProduct(p)
@@ -78,7 +78,7 @@ export default function ProductDetailsPage() {
       .catch(() => {
         if (alive) setError(true)
       })
-    mockApi
+    httpApi
       .getProductReviews(id)
       .then((r) => {
         if (alive) setReviews(r)
@@ -108,7 +108,7 @@ export default function ProductDetailsPage() {
   const performAdd = async (p, q, buyNow) => {
     setAdding(true)
     try {
-      await mockApi.addToCart({ productId: p.id, qty: q })
+      await httpApi.addToCart({ productId: p.id, qty: q })
       await refresh()
       fireToast({ tone: 'success', text: 'Added — View cart', actionLabel: 'View cart', to: '/cart' })
       if (buyNow) navigate('/cart')

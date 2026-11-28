@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router'
 
 import { ToastHost } from '../components/ToastHost.jsx'
 import { OrderQueue } from '../components/ongoing-orders/OrderQueue.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useToasts } from '../hooks/useToasts.js'
 
 /**
@@ -31,7 +31,7 @@ function OngoingOrderDetailPageContent({ id }) {
   const { toasts, toast, dismiss } = useToasts()
 
   useEffect(() => {
-    mockApi
+    httpApi
       .getOrders()
       .then((d) => {
         setItems(d.items)
@@ -56,7 +56,7 @@ function OngoingOrderDetailPageContent({ id }) {
       cleared.delete(oid)
       return cleared
     })
-    mockApi
+    httpApi
       .getOrders()
       .then((d) => {
         setItems(d.items)

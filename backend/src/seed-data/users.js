@@ -41,7 +41,7 @@ users.push(
 );
 
 // The §4.2 mock LOGIN CREDENTIALS table (role → email → password) + edge cases.
-// mockApi.login/register resolve against this: one active login per role, ops_dan
+// httpApi.login/register resolve against this: one active login per role, ops_dan
 // disabled → 403 "Account not available", register with any existing email (e.g.
 // rian@mock.local) → 409 duplicate.
 /**

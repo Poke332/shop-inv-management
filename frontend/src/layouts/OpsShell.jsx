@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { FiChevronDown, FiLogOut, FiMenu, FiX, FiSun, FiGrid } from 'react-icons/fi'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { OPS_NAV_ITEMS } from '../routePaths.js'
 import ChatWidget from '../components/chat/ChatWidget.jsx'
@@ -61,7 +61,7 @@ function NavItem({ to, label, badge, annotation, end }) {
  * Nav items + role gates come from src/routePaths.js (OPS_NAV_ITEMS); the
  * "read-only" annotation is a visibility hint for staff (v1 keeps the
  * control-panel spec's staff read-only view — see the decision #8 note).
- * nbadge counts read lazily from the same mockApi feeds the pages use
+ * nbadge counts read lazily from the same httpApi feeds the pages use
  * (Ongoing Orders = open pending+processing; Inventory = items at/below
  * threshold) — a shared "counts" fetch is out of scope for the shell.
  *
@@ -85,10 +85,10 @@ export default function OpsShell() {
   // Lazy nbadge counts from the same feeds the ops pages consume.
   useEffect(() => {
     let alive = true
-    mockApi.getOrders().then((d) => {
+    httpApi.getOrders().then((d) => {
       if (alive) setBadges((b) => ({ ...b, orders: (d.tabs.pending || 0) + (d.tabs.processing || 0) }))
     }).catch(() => {})
-    mockApi.getStockOverview().then((d) => {
+    httpApi.getStockOverview().then((d) => {
       if (alive) setBadges((b) => ({ ...b, stock: d.total || 0 }))
     }).catch(() => {})
     return () => {
