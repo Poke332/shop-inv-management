@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { Link, useLocation } from 'react-router'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { OrderCard } from '../components/orders/OrderCard.jsx'
 
 /**
@@ -35,7 +35,7 @@ function OrdersContent() {
 
   useEffect(() => {
     let alive = true
-    mockApi
+    httpApi
       .getMyOrders()
       .then((o) => {
         if (!alive) return
@@ -50,7 +50,7 @@ function OrdersContent() {
       .catch(() => {
         if (alive) setError(true)
       })
-    mockApi
+    httpApi
       .getProducts()
       .then((d) => {
         if (alive) setProducts(d.items)

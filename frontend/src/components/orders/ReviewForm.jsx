@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { mockApi } from '../../data'
+import { httpApi } from '../../data/httpApi.js'
 
 /**
  * The purchase-rating block (docs/orders-placed "ReviewForm"): per
@@ -45,7 +45,7 @@ export function ReviewForm({ order, line }) {
     setErr(null)
     setBusy(true)
     try {
-      await mockApi.submitReview(order.id, line.productId, rating, comment)
+      await httpApi.submitReview(order.id, line.productId, rating, comment)
       setSent({ rating, comment })
     } finally {
       setBusy(false)

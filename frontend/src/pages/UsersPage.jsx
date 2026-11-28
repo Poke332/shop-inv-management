@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { ToastHost } from '../components/ToastHost.jsx'
 import { UserTable } from '../components/user-dashboard/UserTable.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { useDebounce } from '../hooks/useDebounce.js'
 import { useToasts } from '../hooks/useToasts.js'
@@ -31,7 +31,7 @@ export function UsersPage() {
 
   useEffect(() => {
     let alive = true
-    mockApi
+    httpApi
       .getUsers()
       .then((d) => {
         if (!alive) return
@@ -54,7 +54,7 @@ export function UsersPage() {
     )
   }, [users, debounced])
 
-  // Optimistic role/status patch: apply in state, confirm via mockApi,
+  // Optimistic role/status patch: apply in state, confirm via httpApi,
   // revert + toast on failure (the page re-queries on navigation, so no
   // cross-page state survives).
   const patchUser = async (username, next, apiCall, onDone) => {
@@ -125,7 +125,7 @@ export function UsersPage() {
                 patchUser(
                   row.username,
                   (u) => ({ ...u, role: newRole }),
-                  (id) => mockApi.setUserRole(id, newRole),
+                  (id) => httpApi.setUserRole(id, newRole),
                   () => showFlash(`Role updated to ${newRole} · ${row.username}`),
                 )
               }
@@ -133,7 +133,7 @@ export function UsersPage() {
                 patchUser(
                   row.username,
                   (u) => ({ ...u, active }),
-                  (id) => mockApi.setUserActive(id, active),
+                  (id) => httpApi.setUserActive(id, active),
                   () =>
                     showFlash(active ? `${row.username} re-enabled` : `${row.username} disabled`),
                 )

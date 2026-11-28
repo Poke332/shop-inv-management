@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Link, useLocation, useNavigate } from 'react-router'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { postLoginHome } from '../utils/postLoginHome.js'
 import { useAuth } from '../hooks/useAuth.js'
 
 /**
  * Login page (docs/login/IMPLEMENTATION.md) on the shared AuthLayout
- * two-panel shell. Role-agnostic: one form for all 4 roles — mockApi.login
+ * two-panel shell. Role-agnostic: one form for all 4 roles — httpApi.login
  * returns the role, and post-login routing is the locked table (buyer -> /,
  * staff -> /ops/orders, manager/admin -> /ops/inventory) via AuthContext's
  * signIn return. 401 -> "Email or password is incorrect." banner; 403
@@ -48,7 +48,7 @@ export default function LoginPage() {
     setBusy(true)
     setError(null)
     try {
-      const res = await mockApi.login(email.trim(), password)
+      const res = await httpApi.login(email.trim(), password)
       signIn(res.user, res.role)
       // A login carrying location.state.from returns to that origin after
       // sign-in: the guest-CTA flow (pendingAdd) lands back on the product

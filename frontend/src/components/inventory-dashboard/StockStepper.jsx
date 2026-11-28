@@ -7,7 +7,7 @@ import { useState } from 'react'
  * blueSlate-200 border; the value is an editable input (type −/digits/+).
  * The ± buttons step AND save immediately (a one-step off the current draft
  * is unambiguous, so it doesn't wait for the input's blur); a typed value
- * commits on blur or Enter (mockApi.setStock, absolute value, min 0).
+ * commits on blur or Enter (httpApi.setStock, absolute value, min 0).
  * success tints the row willowGreen-100 for ~1s (the page's
  * flashRow), a failure shows the inline "Save failed — retry" link.
  * Rendered by manager/admin ONLY — staff never see it (visibility

@@ -182,7 +182,7 @@ export function estimatedArrival(from = new Date()) {
  * `subline` field wins (the two mock-session rows carry one); otherwise
  * the first spec value stands in for the model, with the category label
  * + brand alongside.
- * @param {object} p  a product record (mockApi shape).
+ * @param {object} p  a product record (httpApi shape).
  * @returns {string}
  */
 export function productSubline(p) {

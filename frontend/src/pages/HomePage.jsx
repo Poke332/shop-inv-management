@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { FiArrowUpRight, FiArrowRight, FiBox, FiShield, FiHeadphones } from 'react-icons/fi'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { ProductGrid } from '../components/ProductGrid.jsx'
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton.jsx'
 import { TileGlyph } from '../components/TileGlyph.jsx'
@@ -15,7 +15,7 @@ export default function HomePage() {
   const [category, setCategory] = useState('all')
   useEffect(() => {
     let alive = true
-    mockApi.getProducts({ sort: 'catalog' }).then(({ items }) => {
+    httpApi.getProducts({ sort: 'catalog' }).then(({ items }) => {
       if (alive) setProducts(items)
     }).catch(() => { if (alive) setError(true) })
     return () => { alive = false }

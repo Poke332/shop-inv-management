@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import { ProductForm } from '../components/per-product-dashboard/ProductForm.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 
 /**
  * /ops/products/:id/edit — the pre-filled product editor (docs/per-
@@ -25,7 +25,7 @@ function ProductEditPageContent({ id }) {
 
   useEffect(() => {
     let alive = true
-    mockApi
+    httpApi
       .getProduct(id)
       .then((p) => {
         if (alive) setProduct(p)

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { FiCheck, FiPlus } from 'react-icons/fi'
 
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useCart } from '../hooks/useCart.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { addToCartFailure, CATEGORY_TILE, CATEGORY_LABEL, formatIdr, fireToast, IMAGE_SRC_RE } from '../utils/utils.js'
@@ -30,7 +30,7 @@ import { TileGlyph } from './TileGlyph.jsx'
  * failure toasts "Store unreachable." with a retry action, and anything
  * else the generic unknown copy — the transient toasts keep role="alert"
  * in the layout's toast host.
- * @param {object} p  a product record (mockApi shape).
+ * @param {object} p  a product record (httpApi shape).
  * @param {function} [onBuy]  custom "Buy now" override (default = add qty 1 +
  *   navigate to /cart, per the CTA-target decision in the main-store doc).
  * @param {function} [onAdd]  custom "Add to cart" override (default = the
@@ -78,7 +78,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
   function addAndRefresh() {
     setFlash(true)
     flashTimer.current = setTimeout(() => setFlash(false), 600)
-    return mockApi
+    return httpApi
       .addToCart({ productId: p.id, qty: 1 })
       .then(() => refresh())
       .catch((failure) => {
@@ -91,7 +91,7 @@ export function ProductCard({ p, onBuy, onAdd }) {
       })
   }
   function buyNow() {
-    return mockApi
+    return httpApi
       .addToCart({ productId: p.id, qty: 1 })
       .then(() => navigate('/cart'))
       .catch((failure) => {

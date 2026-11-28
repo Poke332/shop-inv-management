@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { ProductForm } from '../components/per-product-dashboard/ProductForm.jsx'
 import { ProductList } from '../components/per-product-dashboard/ProductList.jsx'
 import { ProductReadonly } from '../components/per-product-dashboard/ProductReadonly.jsx'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { useAuth } from '../hooks/useAuth.js'
 
 /**
@@ -30,7 +30,7 @@ export function ProductsPage() {
 
   useEffect(() => {
     let alive = true
-    mockApi
+    httpApi
       .getProducts({ sort: 'catalog' })
       .then((d) => {
         if (!alive) return

@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { postLoginHome } from '../utils/postLoginHome.js'
 import { AuthContext } from './contextObjects.js'
-import { mockApi } from '../data'
+import { httpApi } from '../data/httpApi.js'
 import { token, profile, clearAuth, saveProfile, onAuthChange } from '../data/authStorage.js'
 
 /**
@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
     }
     verifying.current = true
     setStatus('checking')
-    mockApi.me()
+    httpApi.me()
       .then((result) => {
         // saveProfile notifies the storage listener, which lands the user,
         // clears the expired flag, and settles status to 'ready'
@@ -123,7 +123,7 @@ export function AuthProvider({ children }) {
     // flag before clearAuth so the storage listener does not mistake an
     // explicit sign-out for a session expiry
     intentionalSignOut.current = true
-    const pending = token() ? mockApi.logout() : Promise.resolve()
+    const pending = token() ? httpApi.logout() : Promise.resolve()
     clearAuth()
     pending.catch(() => console.warn('Local session terminated; server session termination not yet confirmed.'))
     setUser(null)
